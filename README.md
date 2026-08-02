@@ -9,6 +9,8 @@ It provides a collection of APIs and Content Patcher tokens that other mods can 
 
 > **Players:** You only need to install this mod if another mod lists it as a requirement.
 
+---
+
 > [!IMPORTANT]
 > **🚧 Work in Progress**
 >
