@@ -1,0 +1,18 @@
+{
+  "Name": "T's Core",
+  "Author": "Tikamin557",
+  "Version": "1.0",
+  "Description": "A shared core library for T's Stardew Valley Mods, providing common services, APIs, and utilities.",
+  "UniqueID": "Tikamin557.TsCore",
+  "UpdateKeys": [ "Nexus:50043" ],
+  "EntryDll": "Ts_Core.dll",
+  "MinimumApiVersion": "4.0.0",
+
+  "Dependencies": [
+    { "UniqueID": "Pathoschild.ContentPatcher" },
+    { "UniqueID": "aedenthorn.FreeLove", "IsRequired": false },
+    { "UniqueID": "aedenthorn.CustomSpouseRooms", "IsRequired": false },
+    { "UniqueID": "ApryllForever.PolyamorySweetLove", "IsRequired": false },
+    { "UniqueID": "ApryllForever.PolyamorySweetRooms", "IsRequired": false }
+  ]
+}
