@@ -13,8 +13,8 @@ It provides a collection of APIs and Content Patcher tokens that other mods can 
 
 > [!IMPORTANT]
 > **🚧 Work in Progress**
->
->The documentation and guides are currently being written and expanded. Additional examples, API >references, and tutorials will be added over time.
+> 
+> The documentation and guides are currently being written and expanded. Additional examples, API references, and tutorials will be added over time.
 
 ---
 
