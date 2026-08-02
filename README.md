@@ -9,6 +9,11 @@ It provides a collection of APIs and Content Patcher tokens that other mods can 
 
 > **Players:** You only need to install this mod if another mod lists it as a requirement.
 
+> [!IMPORTANT]
+> **🚧 Work in Progress**
+>
+>The documentation and guides are currently being written and expanded. Additional examples, API >references, and tutorials will be added over time.
+
 ---
 
 ## ✨ Features
