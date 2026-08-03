@@ -1,9 +1,11 @@
+using HarmonyLib;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using Ts_Core.Actions;
 using Ts_Core.Debug;
 using Ts_Core.Initializers;
 using Ts_Core.Interfaces;
+using Ts_Core.Patches;
 using Ts_Core.Providers;
 using Ts_Core.Services.Location;
 using Ts_Core.Services.Notification;
@@ -40,6 +42,7 @@ namespace Ts_Core
         private PartnerService service = null!;
         private IPartnerProvider provider = null!;
         private LocationService locationService = null!;
+        private Harmony? harmony;
 
         //----------------------------------------
         // エントリーポイント
@@ -47,6 +50,11 @@ namespace Ts_Core
 
         public override void Entry(IModHelper helper)
         {
+            harmony = new Harmony(ModManifest.UniqueID);
+
+            // Stardew Valley標準のWarp警告を抑制
+            WarpWarningPatch.Apply(harmony);
+
             InitializeServices(helper);
             RegisterSystems(helper);
             RegisterEvents(helper);

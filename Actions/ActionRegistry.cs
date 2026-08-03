@@ -22,7 +22,12 @@ namespace Ts_Core.Actions
         public static void Register()
         {
             RegisterAction(
-                "Warp",
+                "TsCoreWarp",
+                HandleTouchAction,
+                HandleTileAction);
+
+            RegisterAction(
+                "TsCoreMagicWarp",
                 HandleTouchAction,
                 HandleTileAction);
 
@@ -93,16 +98,10 @@ namespace Ts_Core.Actions
         private static bool ExecuteWarp(string[] action)
         {
             // Content Patcher:
-            // Warp TsCoreWarp FarmHouseFront
-            // Warp TsCoreMagicWarp FarmHouseFront down
+            // TsCoreWarp FarmHouseFront
+            // TsCoreWarp FarmHouseFront Left
 
-            if (action.Length > 0 &&
-                action[0] == "Warp")
-            {
-                action = action.Skip(1).ToArray();
-            }
-
-            if (action.Length < 2)
+            if (action.Length < 1)
                 return false;
 
             bool magic;
@@ -127,8 +126,8 @@ namespace Ts_Core.Actions
                 // ProviderWarp
                 //----------------------------------------
 
-                // Warp TsCoreWarp FarmHouseFront
-                // Warp TsCoreWarp FarmHouseFront Left
+                // TsCoreWarp FarmHouseFront
+                // TsCoreWarp FarmHouseFront Left
 
                 case 2:
                 case 3:
@@ -157,8 +156,8 @@ namespace Ts_Core.Actions
                 // 座標Warp
                 //----------------------------------------
 
-                // Warp TsCoreWarp Farm 64 15
-                // Warp TsCoreWarp Farm 64 15 Left
+                // TsCoreWarp Farm 64 15
+                // TsCoreWarp Farm 64 15 Left
 
                 case 4:
                 case 5:
