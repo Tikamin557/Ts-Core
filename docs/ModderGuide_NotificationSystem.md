@@ -42,6 +42,6 @@ This guide will cover topics including:
 
 ## Modder Guide
 
-- ← [Warp Services](ModderGuide_WarpServices.md)
+- ← [Warp Services](ModderGuide_WarpServices.md) *(Coming Soon)*
 - ↑ [Guide Index](ModderGuide.md)
 - → [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
