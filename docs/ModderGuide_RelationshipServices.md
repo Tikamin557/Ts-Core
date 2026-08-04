@@ -1,3 +1,19 @@
+# 📖 Modder Guide
+
+This guide explains how to use the public features provided by **T's Core** in Content Patcher.
+
+## Guide Index
+
+- ✅ **Relationship Services** *(Current Page)*
+- 📄 [Location Services](ModderGuide_LocationServices.md) *(Coming Soon)*
+- 📄 [Warp Services](ModderGuide_WarpServices.md) *(Coming Soon)*
+- 📄 [Notification System](ModderGuide_NotificationSystem.md) *(Coming Soon)*
+- 📄 [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
+
+← [Back to Guide Index](ModderGuide.md)
+
+---
+
 # Relationship Services
 
 Relationship Services provide **Content Patcher tokens** for working with the player's current partners.
@@ -250,13 +266,8 @@ They simply expose relationship information through Content Patcher tokens.
 
 ---
 
-# Modder Guide
+## Modder Guide
 
-Continue reading:
-
-- **Relationship Services** *(Current Page)*
-- **Location Services** *(Coming Soon)*
-- **Warp Services** *(Coming Soon)*
-- **Notification System** *(Coming Soon)*
-- **Content Patcher Tokens** *(Coming Soon)*
-- 
+- ← Previous
+- ↑ Modder Guide Index
+- Next →
