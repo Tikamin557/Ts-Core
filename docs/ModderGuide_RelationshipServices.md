@@ -275,5 +275,5 @@ They simply expose relationship information through Content Patcher tokens.
 - → [Location Services](ModderGuide_LocationServices.md)
 
 ← [Back to README](../README.md)
-- ↑ [Guide Index](#top)
+
 ← [Back to Guide Index](ModderGuide.md)
