@@ -276,4 +276,4 @@ They simply expose relationship information through Content Patcher tokens.
 
 ← [Back to README](../README.md)
 
-← [Back to Guide Index](ModderGuide.md)
+← [Back to Modder Guide](ModderGuide.md)
