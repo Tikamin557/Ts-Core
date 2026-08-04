@@ -183,11 +183,11 @@ namespace Ts_Core.Debug
                 LogLevel.Info);
 
             monitor.Log(
-                $"SpouseRoomOrder ({orderedPartners.Count}): {string.Join(", ", orderedPartners)}",
+                $"OrderedPartners ({orderedPartners.Count}): {string.Join(", ", orderedPartners)}",
                 LogLevel.Info);
 
             monitor.Log(
-                "SpouseRoomOrder (room index):",
+                "OrderedPartners (room index):",
                 LogLevel.Info);
 
             for (int i = 0; i < orderedPartners.Count; i++)
@@ -239,16 +239,6 @@ namespace Ts_Core.Debug
 
             monitor.Log(
                 $"IsIndoors: {LocationTracker.IsIndoors()}",
-                LogLevel.Info);
-
-            // デバッグ情報
-            monitor.Log(
-                $"viewport: {Game1.viewport.Width} x {Game1.viewport.Height}",
-                LogLevel.Info);
-
-            // デバッグ情報
-            monitor.Log(
-                $"uiViewport: {Game1.uiViewport.Width} x {Game1.uiViewport.Height}",
                 LogLevel.Info);
         }
 
