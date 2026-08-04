@@ -269,9 +269,9 @@ They simply expose relationship information through Content Patcher tokens.
 ## Modder Guide
 
 - ← Previous *(None)*
-- ↑ [Guide Index](♯-Modder-Guide.md)
+- ↑ [Guide Index](♯-Modder-Guide)
 - → [Location Services](ModderGuide_LocationServices.md)
 
 ← [Back to README](../README.md)
-- ↑ [Guide Index](♯-Modder-Guide.md)
+- ↑ [Guide Index](♯-Modder-Guide)
 ← [Back to Guide Index](ModderGuide.md)
