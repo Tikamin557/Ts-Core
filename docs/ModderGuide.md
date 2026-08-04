@@ -170,6 +170,4 @@ Detailed documentation for each system is available below.
 - [Notification System](ModderGuide_NotificationSystem.md) *(Coming Soon)*
 - [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
 
-← [Back to README](README.md)
-
-← [Back to Guide Index](ModderGuide.md)
+← [Back to README](../README.md)
