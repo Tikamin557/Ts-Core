@@ -41,7 +41,7 @@ It provides a collection of APIs and Content Patcher tokens that other mods can 
 
 ## 🛠 For Mod Authors
 
-If you want to integrate your mod with T's Core, please see the **[Modder Guide](docs/MODDER_GUIDE.md)**.
+If you want to integrate your mod with T's Core, please see the **[Modder Guide](docs/ModderGuide.md)**.
 
 The guide includes:
 
