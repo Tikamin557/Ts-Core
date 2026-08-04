@@ -2,6 +2,8 @@
 
 This guide explains how to use the public features provided by **T's Core** in Content Patcher.
 
+<a id="top"></a>
+
 ## Guide Index
 
 - 📄 [Relationship Services](ModderGuide_RelationshipServices.md)
@@ -42,5 +44,9 @@ This guide will cover topics including:
 ## Modder Guide
 
 - ← [Notification System](ModderGuide_NotificationSystem.md) *(Coming Soon)*
-- ↑ [Guide Index](ModderGuide.md)
+- ↑ [Guide Index](#top)
 - → *(End of Guide)*
+
+← [Back to README](../README.md)
+
+← [Back to Modder Guide](ModderGuide.md)
