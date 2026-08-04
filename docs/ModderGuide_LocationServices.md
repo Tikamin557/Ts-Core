@@ -266,4 +266,4 @@ Location Services are designed to provide simple location-aware conditions for C
 
 - ← [Relationship Services](ModderGuide_RelationshipServices.md)
 - ↑ [Guide Index](ModderGuide.md)
-- → [Warp Services](ModderGuide_WarpServices.md)
+- → [Warp Services](ModderGuide_WarpServices.md) *(Coming Soon)*
