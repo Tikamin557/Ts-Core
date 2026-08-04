@@ -163,7 +163,7 @@ When developing against T's Core:
 
 Detailed documentation for each system is available below.
 
-- [Relationship Services](docs/ModderGuide_RelationshipServices.md)
+- [Relationship Services](ModderGuide_RelationshipServices.md)
 - Location Services *(Coming Soon)*
 - Warp Services *(Coming Soon)*
 - Notification System *(Coming Soon)*
