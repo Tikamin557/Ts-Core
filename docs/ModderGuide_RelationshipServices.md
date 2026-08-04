@@ -22,7 +22,7 @@ They automatically support both **vanilla Stardew Valley** and supported relatio
 
 ---
 
-## Supported Relationship Mods
+## Supported Relationship Systems
 
 Relationship Services currently support the following relationship systems:
 
@@ -268,6 +268,6 @@ They simply expose relationship information through Content Patcher tokens.
 
 ## Modder Guide
 
-- ← Previous
-- ↑ Modder Guide Index
-- Next →
+- ← Previous *(None)*
+- ↑ [Guide Index](ModderGuide.md)
+- → [Location Services](ModderGuide_LocationServices.md)
