@@ -165,7 +165,7 @@ When developing against T's Core:
 Detailed documentation for each system is available below.
 
 - [Relationship Services](ModderGuide_RelationshipServices.md)
-- Location Services *(Coming Soon)*
+- [Location Services](ModderGuide_LocationServices.md)
 - Warp Services *(Coming Soon)*
 - Notification System *(Coming Soon)*
 - Content Patcher Tokens *(Coming Soon)*
