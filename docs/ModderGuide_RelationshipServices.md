@@ -1,8 +1,8 @@
-<a id="top"></a>
-
 # 📖 Modder Guide
 
 This guide explains how to use the public features provided by **T's Core** in Content Patcher.
+
+<a id="top"></a>
 
 ## Guide Index
 
