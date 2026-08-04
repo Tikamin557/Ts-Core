@@ -1,3 +1,5 @@
+<a id="top"></a>
+
 # 📖 Modder Guide
 
 This guide explains how to use the public features provided by **T's Core** in Content Patcher.
@@ -269,9 +271,9 @@ They simply expose relationship information through Content Patcher tokens.
 ## Modder Guide
 
 - ← Previous *(None)*
-- ↑ [Guide Index](♯-Modder-Guide)
+- ↑ [Guide Index](#top)
 - → [Location Services](ModderGuide_LocationServices.md)
 
 ← [Back to README](../README.md)
-- ↑ [Guide Index](♯-Modder-Guide)
+- ↑ [Guide Index](#top)
 ← [Back to Guide Index](ModderGuide.md)
