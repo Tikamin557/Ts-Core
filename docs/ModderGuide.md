@@ -16,6 +16,8 @@ T's Core is a shared library for Stardew Valley SMAPI mods. It provides reusable
 - [API Stability](#-api-stability)
 - [Detailed Documentation](#-detailed-documentation)
 
+← [Back to README](../README.md)
+
 ---
 
 # 🚀 Getting Started
