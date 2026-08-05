@@ -8,7 +8,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 
 - 📄 [Relationship Services](ModderGuide_RelationshipServices.md)
 - 📄 [Location Services](ModderGuide_LocationServices.md)
-- 📄 [Warp Services](ModderGuide_WarpServices.md) *(Coming Soon)*
+- 📄 [Warp Services](ModderGuide_WarpServices.md)
 - ✅ **Notification System** *(Current Page)* *(Coming Soon)*
 - 📄 [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
 
@@ -46,7 +46,7 @@ This guide will cover topics including:
 
 ## Modder Guide
 
-- ← [Warp Services](ModderGuide_WarpServices.md) *(Coming Soon)*
+- ← [Warp Services](ModderGuide_WarpServices.md)
 - ↑ [Guide Index](#top)
 - → [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
 
