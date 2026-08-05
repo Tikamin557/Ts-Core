@@ -12,6 +12,8 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Notification System](ModderGuide_NotificationSystem.md) *(Coming Soon)*
 - 📄 [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
 
+← [Back to README](../README.md)
+
 ← [Back to Modder Guide](ModderGuide.md)
 
 ---
