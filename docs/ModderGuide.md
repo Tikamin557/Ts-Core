@@ -140,7 +140,7 @@ The following commands are available during development.
 
 | Command | Description |
 |---------|-------------|
-| `tscore_debug_warp` | Prints warp provider information |
+| `tscore_debug_warp` | Prints warp providers information |
 | `tscore_debug_buildings` | Prints building information |
 | `tscore_debug_notification` | Tests notifications |
 | `tscore_debug_notification_trigger` | Tests Trigger Actions |
