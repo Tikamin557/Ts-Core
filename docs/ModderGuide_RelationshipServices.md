@@ -239,14 +239,18 @@ Example output:
 ```text
 tscore_tokens_relationship
 [T's Core] ===== Relationship =====
-[T's Core] Provider: ApiMarriageProvider (MarriageMod: ApryllForever.PolyamorySweetLove)
-[T's Core] Partners (3): Abigail, Emily, Sebastian
-[T's Core] RoomMod: Polyamory Sweet Rooms
-[T's Core] OrderedPartners (3): Sebastian, Abigail, Emily
-[T's Core] OrderedPartners (room index):
-[T's Core] [0] Sebastian
-[T's Core] [1] Abigail
-[T's Core] [2] Emily
+[T's Core]
+[T's Core]     Provider            : ApiMarriageProvider
+[T's Core]     Description         : MarriageMod: ApryllForever.PolyamorySweetLove
+[T's Core]     Room Mod            : Polyamory Sweet Rooms
+[T's Core]     Partners (3)        : Abigail, Emily, Sebastian
+[T's Core]     OrderedPartners (3) : Sebastian, Abigail, Emily
+[T's Core]
+[T's Core] ----- OrderedPartners Index -----
+[T's Core]
+[T's Core]     [0] Sebastian
+[T's Core]     [1] Abigail
+[T's Core]     [2] Emily
 ```
 
 The room index shown in the debug output corresponds directly to the `valueAt` index used by the `OrderedPartners` token.
