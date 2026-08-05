@@ -248,7 +248,7 @@ To create a T's Core Content Pack, configure your `manifest.json` as follows:
 
 ```json
 {
-  "Name": "My T's Core Content Pack",
+  "Name": "[TsC] My T's Core Content Pack",
   "Author": "YourName",
   "Version": "1.0.0",
   "UniqueID": "YourName.MyTsCorePack",
@@ -265,7 +265,7 @@ Replace the example values with your own information before publishing your Cont
 ### Folder Structure
 
 ```text
-My T's Core Content Pack
+[TsC] My T's Core Content Pack
 ├── manifest.json
 └── assets
     ├── notification
