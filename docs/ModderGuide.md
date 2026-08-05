@@ -88,8 +88,8 @@ Each feature has its own file format and setup requirements.
 
 For detailed instructions, see the corresponding guide:
 
-- **Notification Guide (Coming Soon)**
-- **[Warp Guide](ModderGuide_WarpServices.md)**
+- **Notification System Guide (Coming Soon)**
+- **[Warp Services Guide](ModderGuide_WarpServices.md)**
 
 ---
 
