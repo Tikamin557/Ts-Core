@@ -546,7 +546,11 @@ This example also demonstrates how to specify the player's facing direction afte
 
 ## Debugging
 
-Warp Services can be inspected using the following SMAPI command:
+T's Core provides debug commands for inspecting registered Warp Providers and farm buildings.
+
+### Inspecting Warp Providers
+
+Use the following SMAPI command to display all currently registered Warp Providers:
 
 ```text
 tscore_debug_warp
@@ -591,6 +595,46 @@ tscore_debug_warp
 [T's Core]     Offset              : (0, 1)
 [T's Core]     Fallback            : FarmHouseFront
 ```
+
+### Inspecting Farm Buildings
+
+When creating a Warp Provider with `Type: "Building"`, you can inspect the buildings currently placed on the farm using the following SMAPI command:
+
+```text
+tscore_debug_buildings
+```
+
+This command displays each building's internal type, tile position, size, and interior location.
+
+The value shown for `Building` can be used as the `BuildingType` property in a Building Provider definition.
+
+Example output:
+
+```text
+tscore_debug_buildings
+[T's Core] ===== Farm Buildings =====
+[T's Core] Registered Buildings: 2
+[T's Core]
+[T's Core] Farmhouse
+[T's Core]     Tile                : (59, 12)
+[T's Core]     Size                : 9 x 5
+[T's Core]     Indoors             : FarmHouse
+[T's Core]
+[T's Core] Tikami557.SF.MonsterHouse.Buildings_MonsterHouse
+[T's Core]     Tile                : (56, 12)
+[T's Core]     Size                : 2 x 1
+[T's Core]     Indoors             : (none)
+```
+
+In this example, the value used for the Monster House provider is:
+
+```json
+"BuildingType": "Tikami557.SF.MonsterHouse.Buildings_MonsterHouse"
+```
+
+The `Tile` value represents the building's top-left tile and can be used to verify the position calculated from `OffsetX` and `OffsetY`.
+
+> **Note:** A save must be loaded before using `tscore_debug_buildings`.
 
 ---
 
