@@ -41,7 +41,6 @@ namespace Ts_Core
 
         private PartnerService service = null!;
         private IPartnerProvider provider = null!;
-        private LocationService locationService = null!;
         private Harmony? harmony;
 
         //----------------------------------------
@@ -58,9 +57,11 @@ namespace Ts_Core
             InitializeServices(helper);
             RegisterSystems(helper);
             RegisterEvents(helper);
+
             NotificationThemeManager.Initialize(
                 Helper,
                 Monitor);
+
             NotificationService.Initialize(helper);
         }
 
@@ -81,8 +82,6 @@ namespace Ts_Core
                 : new VanillaProvider();
 
             service = new PartnerService(provider);
-
-            locationService = new LocationService();
         }
 
         //----------------------------------------
@@ -96,19 +95,18 @@ namespace Ts_Core
                 helper,
                 Monitor,
                 service,
-                provider,
-                locationService);
+                provider);
 
             // アクション登録
             ActionRegistry.Register();
+
+            // Warpサービス初期化
+            WarpService.Initialize(Monitor);
 
             // Warp定義読み込み
             WarpLoader.Load(
                 helper,
                 Monitor);
-
-            // Warpサービス初期化
-            WarpService.Initialize(Monitor);
         }
 
         //----------------------------------------
@@ -169,7 +167,6 @@ namespace Ts_Core
                 api,
                 ModManifest,
                 service,
-                locationService,
                 GetOrderedPartners);
         }
     }

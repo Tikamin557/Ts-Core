@@ -8,6 +8,62 @@ using Ts_Core.Models;
 namespace Ts_Core.Services.WarpRelated
 {
     /// <summary>
+    /// 登録済みWarp Providerのデバッグ情報です。
+    /// </summary>
+    internal sealed class RegisteredWarpProviderInfo
+    {
+        /// <summary>
+        /// Provider IDです。
+        /// </summary>
+        public string Id { get; init; } = "";
+
+        /// <summary>
+        /// Providerを登録したModまたはContent Packです。
+        /// </summary>
+        public string Owner { get; init; } = "";
+
+        /// <summary>
+        /// Provider定義ファイルのパスです。
+        /// </summary>
+        public string SourceFile { get; init; } = "";
+
+        /// <summary>
+        /// Providerの種類です。
+        /// </summary>
+        public string Type { get; init; } = "";
+
+        /// <summary>
+        /// Warp検索元のLocation名です。
+        /// </summary>
+        public string? SourceLocation { get; init; }
+
+        /// <summary>
+        /// Warpの移動先Location名です。
+        /// </summary>
+        public string? TargetLocation { get; init; }
+
+        /// <summary>
+        /// 検索対象の建物タイプです。
+        /// </summary>
+        public string? BuildingType { get; init; }
+
+        /// <summary>
+        /// 建物座標から加算するX座標です。
+        /// </summary>
+        public int OffsetX { get; init; }
+
+        /// <summary>
+        /// 建物座標から加算するY座標です。
+        /// </summary>
+        public int OffsetY { get; init; }
+
+        /// <summary>
+        /// 建物が見つからなかった場合に使用するProviderです。
+        /// </summary>
+        public string? Fallback { get; init; }
+    }
+
+    /// <summary>
     /// Warp Providerや座標を使用したワープ処理を実行するサービスです。
     /// </summary>
     public static class WarpService
@@ -28,11 +84,24 @@ namespace Ts_Core.Services.WarpRelated
         }
 
         //----------------------------------------
-        // 登録元一覧
+        // 登録済みProvider情報
         //----------------------------------------
 
-        private static readonly Dictionary<string, string> ProviderSources
-            = new();
+        private static readonly Dictionary<string, RegisteredWarpProviderInfo>
+            RegisteredProviders =
+                new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// 現在登録されているWarp Provider情報を取得します。
+        /// </summary>
+        internal static IReadOnlyList<RegisteredWarpProviderInfo>
+            GetRegisteredProviders()
+        {
+            return RegisteredProviders.Values
+                .OrderBy(provider => provider.Owner)
+                .ThenBy(provider => provider.Id)
+                .ToList();
+        }
 
         //----------------------------------------
         // Warp取得
@@ -79,26 +148,37 @@ namespace Ts_Core.Services.WarpRelated
             WarpProviders[key] = provider;
         }
 
-        static WarpService()
-        {
-        }
-
+        /// <summary>
+        /// Warp Providerを登録します。
+        /// </summary>
         public static void RegisterProvider(
             WarpProviderModel model,
-            string source,
+            string owner,
+            string sourceFile,
             IMonitor monitor)
         {
+            //----------------------------------------
             // 重複チェック
-            if (ProviderSources.ContainsKey(model.Id))
+            //----------------------------------------
+
+            if (RegisteredProviders.TryGetValue(
+                    model.Id,
+                    out RegisteredWarpProviderInfo? existingProvider))
             {
                 monitor.Log(
                     $"Duplicate Warp Provider '{model.Id}' ignored.\n" +
-                    $"Already registered by: {ProviderSources[model.Id]}\n" +
-                    $"Ignored: {source}",
+                    $"Already registered by: {existingProvider.Owner}\n" +
+                    $"Existing file: {existingProvider.SourceFile}\n" +
+                    $"Ignored provider owner: {owner}\n" +
+                    $"Ignored file: {sourceFile}",
                     LogLevel.Warn);
 
                 return;
             }
+
+            //----------------------------------------
+            // Provider登録
+            //----------------------------------------
 
             switch (model.Type)
             {
@@ -126,17 +206,38 @@ namespace Ts_Core.Services.WarpRelated
                 default:
 
                     monitor.Log(
-                        $"Unknown Warp Provider type '{model.Type}' in '{Path.GetFileName(source)}'.",
+                        $"Unknown Warp Provider type '{model.Type}' " +
+                        $"in '{Path.GetFileName(sourceFile)}'.",
                         LogLevel.Warn);
 
                     return;
             }
 
-            // 登録元を保存
-            ProviderSources[model.Id] = source;
+            //----------------------------------------
+            // Provider情報を保存
+            //----------------------------------------
+
+            RegisteredProviders[model.Id] =
+                new RegisteredWarpProviderInfo
+                {
+                    Id = model.Id,
+                    Owner = owner,
+                    SourceFile = sourceFile,
+                    Type = model.Type,
+
+                    SourceLocation = model.Source,
+                    TargetLocation = model.Target,
+
+                    BuildingType = model.BuildingType,
+                    OffsetX = model.OffsetX,
+                    OffsetY = model.OffsetY,
+
+                    Fallback = model.Fallback
+                };
 
             monitor.Log(
-                $"Registered Warp Provider '{model.Id}'",
+                $"Registered Warp Provider '{model.Id}' " +
+                $"from '{owner}'.",
                 LogLevel.Trace);
         }
 

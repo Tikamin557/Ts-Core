@@ -7,6 +7,7 @@ using Ts_Core.Services;
 using Ts_Core.Services.Location;
 using Ts_Core.Services.Notification;
 using Ts_Core.Services.Relationship;
+using Ts_Core.Services.WarpRelated;
 
 namespace Ts_Core.Debug
 {
@@ -22,8 +23,7 @@ namespace Ts_Core.Debug
             IModHelper helper,
             IMonitor monitor,
             PartnerService service,
-            IPartnerProvider provider,
-            LocationService locationService)
+            IPartnerProvider provider)
         {
             // 全トークン値を表示
             helper.ConsoleCommands.Add(
@@ -36,12 +36,10 @@ namespace Ts_Core.Debug
                         service,
                         provider);
 
+                    LogBlankLine(monitor);
+
                     LogLocation(
                         monitor);
-
-                    LogWarp(
-                        monitor,
-                        locationService);
                 });
 
             // Relationship関連トークンを表示
@@ -62,18 +60,17 @@ namespace Ts_Core.Debug
                     LogLocation(
                         monitor));
 
-            // Warp関連トークンを表示
-            helper.ConsoleCommands.Add(
-                "tscore_tokens_warp",
-                "Print warp tokens.",
-                (command, args) =>
-                    LogWarp(
-                        monitor,
-                        locationService));
-
             //----------------------------------------
             // Debug
             //----------------------------------------
+
+            // 登録されているWarp Providerを表示
+            helper.ConsoleCommands.Add(
+                "tscore_debug_warp",
+                "Print all registered warp providers.",
+                (command, args) =>
+                    LogWarpProviders(
+                        monitor));
 
             // 農場に存在する建物情報を表示
             helper.ConsoleCommands.Add(
@@ -137,8 +134,9 @@ namespace Ts_Core.Debug
                     if (args.Length < 4)
                     {
                         monitor.Log(
-                        "Usage: tscore_debug_trigger <Type> <Priority> <Duration> <Message...>",
-                        LogLevel.Info);
+                            "Usage: tscore_debug_notification_trigger <Type> <Priority> <Duration> <Message...>",
+                            LogLevel.Info);
+
                         return;
                     }
 
@@ -158,42 +156,64 @@ namespace Ts_Core.Debug
             PartnerService service,
             IPartnerProvider provider)
         {
-            monitor.Log(
-                "===== Relationship =====",
-                LogLevel.Info);
-
-            var partners =
+            List<string> partners =
                 service.GetPartners()?.ToList()
                 ?? new List<string>();
 
-            var orderedPartners =
+            List<string> orderedPartners =
                 service.GetRoomOrderedPartners()?.ToList()
                 ?? new List<string>();
 
             monitor.Log(
-                $"Provider: {service.GetProviderName()} ({provider.Description})",
+                "===== Relationship =====",
                 LogLevel.Info);
 
-            monitor.Log(
-                $"Partners ({partners.Count}): {string.Join(", ", partners)}",
-                LogLevel.Info);
+            LogBlankLine(monitor);
+
+            LogField(
+                monitor,
+                "Provider",
+                service.GetProviderName());
+
+            LogField(
+                monitor,
+                "Description",
+                provider.Description);
+
+            LogField(
+                monitor,
+                "Room Mod",
+                RoomOrderReader.CurrentRoomMod);
+
+            LogField(
+                monitor,
+                $"Partners ({partners.Count})",
+                partners.Count > 0
+                    ? string.Join(", ", partners)
+                    : "(none)");
+
+            LogField(
+                monitor,
+                $"OrderedPartners ({orderedPartners.Count})",
+                orderedPartners.Count > 0
+                    ? string.Join(", ", orderedPartners)
+                    : "(none)");
+
+            if (orderedPartners.Count == 0)
+                return;
+
+            LogBlankLine(monitor);
 
             monitor.Log(
-                $"RoomMod: {RoomOrderReader.CurrentRoomMod}",
+                "----- OrderedPartners Index -----",
                 LogLevel.Info);
 
-            monitor.Log(
-                $"OrderedPartners ({orderedPartners.Count}): {string.Join(", ", orderedPartners)}",
-                LogLevel.Info);
-
-            monitor.Log(
-                "OrderedPartners (room index):",
-                LogLevel.Info);
+            LogBlankLine(monitor);
 
             for (int i = 0; i < orderedPartners.Count; i++)
             {
                 monitor.Log(
-                    $"[{i}] {orderedPartners[i]}",
+                    $"    [{i}] {orderedPartners[i]}",
                     LogLevel.Info);
             }
         }
@@ -209,62 +229,220 @@ namespace Ts_Core.Debug
                 "===== Location =====",
                 LogLevel.Info);
 
-            monitor.Log(
-                $"CurrentLocation: {Game1.currentLocation?.NameOrUniqueName}",
-                LogLevel.Info);
+            LogBlankLine(monitor);
 
-            monitor.Log(
-                $"PreviousLocation: {LocationTracker.PreviousLocation}",
-                LogLevel.Info);
+            LogField(
+                monitor,
+                "Current Location",
+                Game1.currentLocation?.NameOrUniqueName
+                    ?? "(none)");
 
-            monitor.Log(
-                $"LocationElapsed: {LocationTracker.LocationElapsed}",
-                LogLevel.Info);
+            LogField(
+                monitor,
+                "Previous Location",
+                string.IsNullOrWhiteSpace(LocationTracker.PreviousLocation)
+                    ? "(none)"
+                    : LocationTracker.PreviousLocation);
 
-            monitor.Log(
-                $"VisitCount: {LocationTracker.VisitCount()}",
-                LogLevel.Info);
+            LogField(
+                monitor,
+                "Location Elapsed",
+                LocationTracker.LocationElapsed);
 
-            monitor.Log(
-                $"SessionVisitCount: {LocationTracker.SessionVisitCount()}",
-                LogLevel.Info);
+            LogField(
+                monitor,
+                "Visit Count",
+                LocationTracker.VisitCount());
 
-            monitor.Log(
-                $"EnteredToday: {LocationTracker.EnteredToday()}",
-                LogLevel.Info);
+            LogField(
+                monitor,
+                "Session Visit Count",
+                LocationTracker.SessionVisitCount());
 
-            monitor.Log(
-                $"IsOutdoors: {LocationTracker.IsOutdoors()}",
-                LogLevel.Info);
+            LogField(
+                monitor,
+                "Entered Today",
+                LocationTracker.EnteredToday());
 
-            monitor.Log(
-                $"IsIndoors: {LocationTracker.IsIndoors()}",
-                LogLevel.Info);
+            LogField(
+                monitor,
+                "Is Outdoors",
+                LocationTracker.IsOutdoors());
+
+            LogField(
+                monitor,
+                "Is Indoors",
+                LocationTracker.IsIndoors());
         }
 
         //----------------------------------------
-        // Warp のログ表示
+        // Warp Provider のログ表示
         //----------------------------------------
 
-        private static void LogWarp(
+        /// <summary>
+        /// 現在登録されているWarp Providerを表示します。
+        /// </summary>
+        private static void LogWarpProviders(
+            IMonitor monitor)
+        {
+            IReadOnlyList<RegisteredWarpProviderInfo> providers =
+                WarpService.GetRegisteredProviders();
+
+            monitor.Log(
+                "===== Warp Providers =====",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"Registered Providers: {providers.Count}",
+                LogLevel.Info);
+
+            if (providers.Count == 0)
+            {
+                LogBlankLine(monitor);
+
+                monitor.Log(
+                    "No warp providers are registered.",
+                    LogLevel.Info);
+
+                return;
+            }
+
+            //----------------------------------------
+            // 登録元ごとにグループ化
+            //----------------------------------------
+
+            List<IGrouping<string, RegisteredWarpProviderInfo>> groupList =
+               providers
+                   .GroupBy(provider => provider.Owner)
+                   .OrderBy(group =>
+                       string.Equals(
+                           group.Key,
+                           "T's Core",
+                           StringComparison.OrdinalIgnoreCase)
+                           ? 0
+                           : 1)
+                   .ThenBy(group => group.Key)
+                   .ToList();
+
+            LogBlankLine(monitor);
+
+            for (int groupIndex = 0; groupIndex < groupList.Count; groupIndex++)
+            {
+                IGrouping<string, RegisteredWarpProviderInfo> group =
+                    groupList[groupIndex];
+
+                monitor.Log(
+                    $"----- {group.Key} -----",
+                    LogLevel.Info);
+
+                LogBlankLine(monitor);
+
+                List<RegisteredWarpProviderInfo> providerList =
+                    group
+                        .OrderBy(provider => provider.Id)
+                        .ToList();
+
+                for (int providerIndex = 0;
+                     providerIndex < providerList.Count;
+                     providerIndex++)
+                {
+                    LogWarpProvider(
+                        monitor,
+                        providerList[providerIndex]);
+
+                    // 同じグループ内のProvider間だけ空行を入れる
+                    if (providerIndex < providerList.Count - 1)
+                        LogBlankLine(monitor);
+                }
+
+                // グループ間だけ空行を入れる
+                if (groupIndex < groupList.Count - 1)
+                    LogBlankLine(monitor);
+            }
+        }
+
+        /// <summary>
+        /// Warp Provider一件分の情報を表示します。
+        /// </summary>
+        private static void LogWarpProvider(
             IMonitor monitor,
-            LocationService locationService)
+            RegisteredWarpProviderInfo provider)
         {
             monitor.Log(
-                "===== Warp =====",
+                provider.Id,
                 LogLevel.Info);
 
-            monitor.Log(
-                $"FarmHouseEntry: {locationService.GetFarmHouseEntry().FirstOrDefault()}",
-                LogLevel.Info);
+            switch (provider.Type)
+            {
+                //----------------------------------------
+                // Warp
+                //----------------------------------------
 
-            monitor.Log(
-                $"FarmHouseEntryX: {locationService.GetFarmHouseEntryX().FirstOrDefault()}",
-                LogLevel.Info);
+                case "Warp":
 
-            monitor.Log(
-                $"FarmHouseEntryY: {locationService.GetFarmHouseEntryY().FirstOrDefault()}",
-                LogLevel.Info);
+                    LogField(
+                        monitor,
+                        "Type",
+                        "Warp");
+
+                    LogField(
+                        monitor,
+                        "Source",
+                        provider.SourceLocation);
+
+                    LogField(
+                        monitor,
+                        "Target",
+                        provider.TargetLocation);
+
+                    break;
+
+                //----------------------------------------
+                // Building
+                //----------------------------------------
+
+                case "Building":
+
+                    string fallback =
+                        string.IsNullOrWhiteSpace(provider.Fallback)
+                            ? "FarmHouseFront"
+                            : provider.Fallback;
+
+                    LogField(
+                        monitor,
+                        "Type",
+                        "Building");
+
+                    LogField(
+                        monitor,
+                        "Building",
+                        provider.BuildingType);
+
+                    LogField(
+                        monitor,
+                        "Offset",
+                        $"({provider.OffsetX}, {provider.OffsetY})");
+
+                    LogField(
+                        monitor,
+                        "Fallback",
+                        fallback);
+
+                    break;
+
+                //----------------------------------------
+                // Unknown
+                //----------------------------------------
+
+                default:
+
+                    LogField(
+                        monitor,
+                        "Type",
+                        provider.Type);
+
+                    break;
+            }
         }
 
         //----------------------------------------
@@ -279,6 +457,7 @@ namespace Ts_Core.Debug
                 monitor.Log(
                     "No save is loaded.",
                     LogLevel.Warn);
+
                 return;
             }
 
@@ -288,23 +467,33 @@ namespace Ts_Core.Debug
                 "===== Farm Buildings =====",
                 LogLevel.Info);
 
+            monitor.Log(
+                $"Registered Buildings: {farm.buildings.Count}",
+                LogLevel.Info);
+
             foreach (Building building in farm.buildings)
             {
-                monitor.Log(
-                    $"Type: {building.buildingType.Value}",
-                    LogLevel.Info);
+                LogBlankLine(monitor);
 
                 monitor.Log(
-                    $"  Tile: ({building.tileX.Value}, {building.tileY.Value})",
+                    building.buildingType.Value,
                     LogLevel.Info);
 
-                monitor.Log(
-                    $"  Size: {building.tilesWide.Value} x {building.tilesHigh.Value}",
-                    LogLevel.Info);
+                LogField(
+                    monitor,
+                    "Tile",
+                    $"({building.tileX.Value}, {building.tileY.Value})");
 
-                monitor.Log(
-                    $"  Indoors: {building.GetIndoors()?.NameOrUniqueName ?? "(none)"}",
-                    LogLevel.Info);
+                LogField(
+                    monitor,
+                    "Size",
+                    $"{building.tilesWide.Value} x {building.tilesHigh.Value}");
+
+                LogField(
+                    monitor,
+                    "Indoors",
+                    building.GetIndoors()?.NameOrUniqueName
+                        ?? "(none)");
             }
         }
 
@@ -315,22 +504,40 @@ namespace Ts_Core.Debug
         private static void LogNotificationThemes(
             IMonitor monitor)
         {
+            List<string> builtinThemes =
+                NotificationThemeManager
+                    .GetBuiltinThemeNames()
+                    .ToList();
+
+            List<string> contentPackThemes =
+                NotificationThemeManager
+                    .GetContentPackThemeNames()
+                    .ToList();
+
             monitor.Log(
                 "===== Notification Themes =====",
                 LogLevel.Info);
 
-            //----------------------------------------
-            // TsCore自体のテーマ
-            //----------------------------------------
-
             monitor.Log(
-                "[TsCore]",
+                $"Registered Themes: {builtinThemes.Count + contentPackThemes.Count}",
                 LogLevel.Info);
 
-            foreach (string name in NotificationThemeManager.GetBuiltinThemeNames())
+            //----------------------------------------
+            // T's Core自体のテーマ
+            //----------------------------------------
+
+            LogBlankLine(monitor);
+
+            monitor.Log(
+                $"----- T's Core ({builtinThemes.Count}) -----",
+                LogLevel.Info);
+
+            LogBlankLine(monitor);
+
+            foreach (string name in builtinThemes)
             {
                 monitor.Log(
-                    $"  {name}",
+                    $"    {name}",
                     LogLevel.Info);
             }
 
@@ -338,13 +545,27 @@ namespace Ts_Core.Debug
             // Content Packで追加されたテーマ
             //----------------------------------------
 
+            LogBlankLine(monitor);
+
             monitor.Log(
-                "[Content Packs]",
+                $"----- Content Packs ({contentPackThemes.Count}) -----",
                 LogLevel.Info);
 
-            foreach (string name in NotificationThemeManager.GetContentPackThemeNames())
+            LogBlankLine(monitor);
+
+            if (contentPackThemes.Count == 0)
             {
-                int separator = name.LastIndexOf('.');
+                monitor.Log(
+                    "    (none)",
+                    LogLevel.Info);
+
+                return;
+            }
+
+            foreach (string name in contentPackThemes)
+            {
+                int separator =
+                    name.LastIndexOf('.');
 
                 string shortName =
                     separator >= 0
@@ -352,9 +573,50 @@ namespace Ts_Core.Debug
                         : name;
 
                 monitor.Log(
-                    $"  {shortName} ({name})",
+                    $"    {shortName}",
                     LogLevel.Info);
+
+                LogField(
+                    monitor,
+                    "Full Name",
+                    name,
+                    indent: 8);
+
+                LogBlankLine(monitor);
             }
+        }
+
+        //----------------------------------------
+        // 共通ログ表示
+        //----------------------------------------
+
+        /// <summary>
+        /// 項目名と値を位置を揃えて表示します。
+        /// </summary>
+        private static void LogField(
+            IMonitor monitor,
+            string name,
+            object? value,
+            int labelWidth = 20,
+            int indent = 4)
+        {
+            string indentation =
+                new(' ', indent);
+
+            monitor.Log(
+                $"{indentation}{name.PadRight(labelWidth)}: {value}",
+                LogLevel.Info);
+        }
+
+        /// <summary>
+        /// 空行を表示します。
+        /// </summary>
+        private static void LogBlankLine(
+            IMonitor monitor)
+        {
+            monitor.Log(
+                "",
+                LogLevel.Info);
         }
     }
 }

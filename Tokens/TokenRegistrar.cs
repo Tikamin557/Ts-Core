@@ -18,7 +18,6 @@ namespace Ts_Core.Tokens
             IContentPatcherAPI api,
             IManifest manifest,
             PartnerService partnerService,
-            LocationService locationService,
             Func<IEnumerable<string>> getOrderedPartners)
         {
             //----------------------------------------
@@ -38,15 +37,6 @@ namespace Ts_Core.Tokens
                 manifest,
                 partnerService,
                 getOrderedPartners);
-
-            //----------------------------------------
-            // Warp
-            //----------------------------------------
-
-            WarpTokens.Register(
-                api,
-                manifest,
-                locationService);
         }
     }
 }

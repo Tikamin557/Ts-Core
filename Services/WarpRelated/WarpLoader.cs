@@ -176,6 +176,7 @@ namespace Ts_Core.Services.WarpRelated
 
                 WarpService.RegisterProvider(
                     provider,
+                    "T's Core",
                     relative,
                     monitor);
 
@@ -232,7 +233,8 @@ namespace Ts_Core.Services.WarpRelated
 
                         WarpService.RegisterProvider(
                             provider,
-                            $"{pack.Manifest.UniqueID}:{relativePath}",
+                            pack.Manifest.UniqueID,
+                            relativePath,
                             monitor);
 
                         monitor.Log(
