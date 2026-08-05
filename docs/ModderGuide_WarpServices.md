@@ -226,15 +226,151 @@ If no provider named `BusStop` exists, T's Core automatically treats it as a loc
 
 ---
 
-### Registering Custom Providers *(Coming Soon)*
+### Registering Custom Providers
 
-T's Core also supports registering additional warp providers.
+In addition to the built-in providers, T's Core allows Content Packs to register their own custom Warp Providers.
 
-This allows other mods to expose reusable warp destinations that can be used by any Content Pack.
+This makes it possible to expose reusable warp destinations that can be shared across multiple Content Packs without writing any C# code.
 
-*(Custom provider registration will be documented in a future update.)*
+---
 
-See **Built-in Warp Providers** below for the list of providers included with T's Core.
+### Content Pack Setup
+
+Warp Providers can be added through a standard **T's Core Content Pack**.
+
+A single Content Pack can include multiple T's Core features, such as custom Warp Providers and Notification Themes.
+
+To create a T's Core Content Pack, configure your `manifest.json` as follows:
+
+```json
+{
+  "Name": "My T's Core Content Pack",
+  "Author": "YourName",
+  "Version": "1.0.0",
+  "UniqueID": "YourName.MyTsCorePack",
+  "ContentPackFor": {
+    "UniqueID": "Tikamin557.TsCore"
+  }
+}
+```
+
+Replace the example values with your own information before publishing your Content Pack.
+
+---
+
+### Folder Structure
+
+```text
+My T's Core Content Pack
+├── manifest.json
+└── assets
+    ├── notification
+    │   └── MyNotification.json
+    └── warp
+        └── MyWarpProvider.json
+```
+
+The `assets` folder can contain one or more feature-specific subfolders.
+
+Currently, T's Core supports the following folders:
+
+- `notification` — Custom Notification Themes
+- `warp` — Custom Warp Providers
+
+Only create the folders that your Content Pack actually uses.
+
+The filenames are completely optional and may be chosen freely.
+
+> **Note:** The folder names (`assets`, `notification`, `warp`, etc.) are fixed and must not be renamed. T's Core looks for JSON files in these specific folders when loading Content Packs. Renaming the folders will prevent the files from being detected.
+
+---
+
+## Warp Provider Definition
+
+Each JSON file defines one Warp Provider.
+
+The available provider types and their properties are explained in the following sections.
+
+---
+
+### Warp Provider (Type: Warp)
+
+A **Warp** provider resolves its destination by reading an existing warp from a source location.
+
+```json
+{
+  "Id": "FarmHouseFront",
+  "Type": "Warp",
+  "Source": "FarmHouse",
+  "Target": "Farm"
+}
+```
+
+| Property | Required | Description |
+|----------|----------|-------------|
+| `Id` | ✅ | Unique provider name used by `TsCoreWarp` and `TsCoreMagicWarp`. |
+| `Type` | ✅ | Must be `"Warp"`. |
+| `Source` | ✅ | The location that contains the warp to inspect. |
+| `Target` | ✅ | The destination location of the warp that should be resolved. |
+
+When this provider is used, T's Core searches the specified source location for a warp leading to the target location and uses its destination coordinates.
+
+This allows the provider to automatically adapt when another mod changes the warp destination.
+
+---
+
+### Building Provider (Type: Building)
+
+A **Building** provider resolves its destination based on the position of a building placed on the player's farm.
+
+The following example shows the actual Building Provider used by the **[(SF) MonsterHouse](https://www.nexusmods.com/stardewvalley/mods/20586)** mod.
+
+```json
+{
+  "Id": "MonsterHouseFront",
+  "Type": "Building",
+  "BuildingType": "Tikamin557.SF.MonsterHouse.Buildings_MonsterHouse",
+  "OffsetX": 0,
+  "OffsetY": 1,
+  "Fallback": "FarmHouseFront"
+}
+```
+
+| Property | Required | Description |
+|----------|----------|-------------|
+| `Id` | ✅ | Unique provider name used by `TsCoreWarp` and `TsCoreMagicWarp`. |
+| `Type` | ✅ | Must be `"Building"`. |
+| `BuildingType` | ✅ | The building type to search for on the player's farm. |
+| `OffsetX` | ✅ | Horizontal offset from the building's top-left tile. |
+| `OffsetY` | ✅ | Vertical offset from the building's top-left tile. |
+| `Fallback` | Optional | Provider to use if the building cannot be found. Defaults to `FarmHouseFront`. |
+
+T's Core searches the player's farm for a building with the specified `BuildingType`.
+
+If the building is found, the destination is calculated by adding the configured offsets to the building's top-left tile.
+
+For example, the Monster House occupies a **2 × 1** area.
+
+Using:
+
+```json
+"OffsetX": 0,
+"OffsetY": 1
+```
+
+produces the following destination:
+
+```text
+■■
+□
+↑ Warp destination
+```
+
+The warp destination is one tile directly below the building's top-left tile.
+
+If the building cannot be found, the provider specified by `Fallback` is used instead.
+
+> **Tip:** The easiest way to find a building's internal type is by using the `tscore_debug_buildings` debug command.
 
 ---
 
