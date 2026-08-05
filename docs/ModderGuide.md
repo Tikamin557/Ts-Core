@@ -120,7 +120,7 @@ Currently, the `assets` folder supports the following subfolders:
 For detailed information about the JSON formats, see the following guides:
 
 - **Notification Guide (Coming Soon)**
-- **Warp Guide (Coming Soon)**
+- **[Warp Guide](ModderGuide_WarpServices.md)**
 
 ---
 
@@ -135,12 +135,12 @@ The following commands are available during development.
 | `tscore_tokens` | Prints all token values |
 | `tscore_tokens_relationship` | Prints relationship tokens |
 | `tscore_tokens_location` | Prints location tokens |
-| `tscore_tokens_warp` | Prints warp tokens |
 
 ## Other Commands
 
 | Command | Description |
 |---------|-------------|
+| `tscore_debug_warp` | Prints warp provider information |
 | `tscore_debug_buildings` | Prints building information |
 | `tscore_debug_notification` | Tests notifications |
 | `tscore_debug_notification_trigger` | Tests Trigger Actions |
