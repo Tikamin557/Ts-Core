@@ -12,7 +12,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 - ✅ **Notification System** *(Current Page)* *(Coming Soon)*
 - 📄 [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
 
-← [Back to Guide Index](ModderGuide.md)
+← [Back to Modder Guide](ModderGuide.md)
 
 ---
 
