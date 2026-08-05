@@ -22,7 +22,9 @@ This guide explains how to use the public features provided by **T's Core** in C
 
 Warp Services provide reusable warp functionality for Content Patcher.
 
-They allow Content Packs to perform flexible warps using map names, registered warp providers, or magic warps without requiring C# code.
+In addition to built-in warp actions, T's Core allows Content Packs to register reusable Warp Providers without requiring any C# code.
+
+This guide explains how to use Warp Actions, create custom Warp Providers, and integrate them into your own Content Packs.
 
 ---
 
@@ -30,6 +32,8 @@ They allow Content Packs to perform flexible warps using map names, registered w
 
 - Warp Actions
 - Warp Providers
+- Content Pack Setup
+- Warp Provider Types
 - Built-in Warp Providers
 - Examples
 - Debugging
@@ -230,7 +234,7 @@ If no provider named `BusStop` exists, T's Core automatically treats it as a loc
 
 In addition to the built-in providers, T's Core allows Content Packs to register their own custom Warp Providers.
 
-This makes it possible to expose reusable warp destinations that can be shared across multiple Content Packs without writing any C# code.
+This makes it possible to expose reusable warp destinations that can be referenced by other Content Packs without writing any C# code.
 
 ---
 
@@ -285,7 +289,7 @@ The filenames are completely optional and may be chosen freely.
 
 ---
 
-## Warp Provider Definition
+## Warp Provider Types
 
 Each JSON file defines one Warp Provider.
 
@@ -319,11 +323,11 @@ This allows the provider to automatically adapt when another mod changes the war
 
 ---
 
-### Building Provider (Type: Building)
+### Warp Provider (Type: Building)
 
 A **Building** provider resolves its destination based on the position of a building placed on the player's farm.
 
-The following example shows the actual Building Provider used by the **[(SF) MonsterHouse](https://www.nexusmods.com/stardewvalley/mods/20586)** mod.
+The following example shows the actual Building Provider used by the **[(SF) Monster House](https://www.nexusmods.com/stardewvalley/mods/20586)** mod.
 
 ```json
 {
@@ -378,11 +382,9 @@ If the building cannot be found, the provider specified by `Fallback` is used in
 
 T's Core includes several built-in warp providers.
 
-These providers resolve their destinations dynamically at runtime, allowing Content Packs to avoid hardcoded coordinates.
+These providers resolve their destinations dynamically at runtime by reading existing map warps.
 
-Each provider resolves its destination using an existing warp from the source location.
-
-As a result, Content Packs remain compatible with custom maps and mods that move buildings or change their entrance positions.
+This allows Content Packs to avoid hardcoded coordinates while remaining compatible with custom maps and mods that move buildings or change entrance positions.
 
 ---
 
@@ -486,7 +488,6 @@ TsCoreMagicWarp IslandFarmHouseFront
 
 Additional built-in warp providers may be added in future versions of T's Core.
 
-
 ---
 
 ## Examples
@@ -494,6 +495,8 @@ Additional built-in warp providers may be added in future versions of T's Core.
 ### Warp to the farmhouse entrance
 
 The following example adds a Tile Action to the front of the fountain in **Pelican Town**.
+
+Clicking the fountain warps the player to the farmhouse entrance.
 
 ```json
 {
@@ -517,7 +520,9 @@ The following example adds a Tile Action to the front of the fountain in **Pelic
 
 The following example performs the same warp using **TsCoreMagicWarp**.
 
-After arriving at the farmhouse entrance, the player will automatically face **down**.
+Clicking the fountain plays Stardew Valley's magic warp effect before warping the player to the farmhouse entrance.
+
+After arriving, the player automatically faces **down**.
 
 ```json
 {
@@ -547,7 +552,7 @@ Warp Services can be inspected using the following SMAPI command:
 tscore_debug_warp
 ```
 
-The following example shows the built-in providers included with T's Core along with a custom provider registered by a Content Pack.
+The following example shows both the built-in providers included with T's Core and a custom provider registered by the T's Core Content Pack included with the **[(SF) Monster House](https://www.nexusmods.com/stardewvalley/mods/20586)** mod.
 
 Example output:
 
