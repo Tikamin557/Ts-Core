@@ -8,7 +8,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 
 - 📄 [Relationship Services](ModderGuide_RelationshipServices.md)
 - ✅ **Location Services** *(Current Page)*
-- 📄 [Warp Services](ModderGuide_WarpServices.md) *(Coming Soon)*
+- 📄 [Warp Services](ModderGuide_WarpServices.md)
 - 📄 [Notification System](ModderGuide_NotificationSystem.md) *(Coming Soon)*
 - 📄 [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
 
@@ -268,7 +268,7 @@ Location Services are designed to provide simple location-aware conditions for C
 
 - ← [Relationship Services](ModderGuide_RelationshipServices.md)
 - ↑ [Guide Index](#top)
-- → [Warp Services](ModderGuide_WarpServices.md) *(Coming Soon)*
+- → [Warp Services](ModderGuide_WarpServices.md)
 
 ← [Back to README](../README.md)
 
