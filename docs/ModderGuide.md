@@ -77,47 +77,16 @@ Detailed documentation for each system will be added over time.
 
 # 📦 Content Packs
 
-T's Core supports Content Packs, allowing you to add **custom notification themes** and **custom warp destinations** without writing any C# code.
+T's Core supports Content Packs, allowing mods to add custom features without writing any C# code.
 
-To create a Content Pack, configure your `manifest.json` as shown below:
+Currently, Content Packs can provide:
 
-```json
-{
-  "Name": "T's Core Content Pack Example",
-  "Author": "YourName",
-  "Version": "1.0.0",
-  "Description": "Adds custom notification themes and warp destinations for T's Core.",
-  "UniqueID": "YourName.TsCoreContentPackExample",
-  //"UpdateKeys": [ "Nexus:12345" ],
-  "MinimumApiVersion": "4.0.0",
-  "ContentPackFor": {
-    "UniqueID": "Tikamin557.TsCore"
-  }
-}
-```
-Replace the example values with your own information before publishing your Content Pack.
+- Custom Notification Themes
+- Custom Warp Providers
 
-### Example Folder Structure
+Each feature has its own file format and setup requirements.
 
-```text
-Mods
-└── T's Core Content Pack Example
-    ├── manifest.json
-    └── assets
-        ├── notification
-        │   └── CustomNotificationExample.json
-        └── warp
-            └── CustomWarpExample.json
-```
-The `assets` folder can contain one or more feature-specific folders depending on the functionality provided by the Content Pack.
-Currently, the `assets` folder supports the following subfolders:
-
-- `notification` — Custom notification themes
-- `warp` — Custom warp destinations
-
-`CustomNotificationExample.json` and `CustomWarpExample.json` are only example filenames. You may use any filenames you prefer.
-
-For detailed information about the JSON formats, see the following guides:
+For detailed instructions, see the corresponding guide:
 
 - **Notification Guide (Coming Soon)**
 - **[Warp Guide](ModderGuide_WarpServices.md)**
