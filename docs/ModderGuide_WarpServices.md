@@ -408,7 +408,7 @@ This example also demonstrates how to specify the player's facing direction afte
 Warp Services can be inspected using the following SMAPI command:
 
 ```text
-tscore_warpproviders
+tscore_tokens_warp
 ```
 
 *(Coming Soon)*
