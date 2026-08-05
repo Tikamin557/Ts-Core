@@ -408,16 +408,56 @@ This example also demonstrates how to specify the player's facing direction afte
 Warp Services can be inspected using the following SMAPI command:
 
 ```text
-tscore_tokens_warp
+tscore_debug_warp
 ```
 
-*(Coming Soon)*
+The following example shows the built-in providers included with T's Core along with a custom provider registered by a Content Pack.
+
+Example output:
+
+```text
+tscore_debug_warp
+[T's Core] ===== Warp Providers =====
+[T's Core] Registered Providers: 5
+[T's Core]
+[T's Core] ----- T's Core -----
+[T's Core]
+[T's Core] FarmCaveFront
+[T's Core]     Type                : Warp
+[T's Core]     Source              : FarmCave
+[T's Core]     Target              : Farm
+[T's Core]
+[T's Core] FarmHouseFront
+[T's Core]     Type                : Warp
+[T's Core]     Source              : FarmHouse
+[T's Core]     Target              : Farm
+[T's Core]
+[T's Core] GreenhouseFront
+[T's Core]     Type                : Warp
+[T's Core]     Source              : Greenhouse
+[T's Core]     Target              : Farm
+[T's Core]
+[T's Core] IslandFarmHouseFront
+[T's Core]     Type                : Warp
+[T's Core]     Source              : IslandFarmHouse
+[T's Core]     Target              : IslandWest
+[T's Core]
+[T's Core] ----- Tikamin557.TsC.MonsterHouse -----
+[T's Core]
+[T's Core] MonsterHouseFront
+[T's Core]     Type                : Building
+[T's Core]     Building            : Tikami557.SF.MonsterHouse.Buildings_MonsterHouse
+[T's Core]     Offset              : (0, 1)
+[T's Core]     Fallback            : FarmHouseFront
+```
 
 ---
 
 ## Notes
 
 Warp Services are fully compatible with Content Patcher and require no C# code.
+
+Whenever possible, it is recommended to use warp providers instead of hardcoded map names or coordinates to maximize compatibility with other mods.
 
 Additional warp providers and features may be added in future versions of T's Core without requiring changes to existing Content Packs.
 
