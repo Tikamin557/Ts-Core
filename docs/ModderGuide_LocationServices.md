@@ -238,14 +238,15 @@ Example output:
 ```text
 tscore_tokens_location
 [T's Core] ===== Location =====
-[T's Core] CurrentLocation: Farm
-[T's Core] PreviousLocation: BusStop
-[T's Core] LocationElapsed: 20
-[T's Core] VisitCount: 3
-[T's Core] SessionVisitCount: 3
-[T's Core] EnteredToday: True
-[T's Core] IsOutdoors: True
-[T's Core] IsIndoors: False
+[T's Core]
+[T's Core]     Current Location    : Farm
+[T's Core]     Previous Location   : BusStop
+[T's Core]     Location Elapsed    : 20
+[T's Core]     Visit Count         : 3
+[T's Core]     Session Visit Count : 3
+[T's Core]     Entered Today       : True
+[T's Core]     Is Outdoors         : True
+[T's Core]     Is Indoors          : False
 ```
 
 > **Note:** Planned tokens are also displayed by the debug command. Their current values are intended for testing only and should not be relied upon until the features are fully implemented.
