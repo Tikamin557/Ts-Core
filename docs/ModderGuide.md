@@ -168,7 +168,7 @@ Detailed documentation for each system is available below.
 
 - [Relationship Services](ModderGuide_RelationshipServices.md)
 - [Location Services](ModderGuide_LocationServices.md)
-- [Warp Services](ModderGuide_WarpServices.md) *(Coming Soon)*
+- [Warp Services](ModderGuide_WarpServices.md)
 - [Notification System](ModderGuide_NotificationSystem.md) *(Coming Soon)*
 - [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
 
