@@ -226,7 +226,7 @@ If no provider named `BusStop` exists, T's Core automatically treats it as a loc
 
 ---
 
-### Registering Custom Providers
+### Registering Custom Providers *(Coming Soon)*
 
 T's Core also supports registering additional warp providers.
 
