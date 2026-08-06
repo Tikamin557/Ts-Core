@@ -86,6 +86,45 @@ namespace Ts_Core.Services.WarpRelated
         }
 
         //----------------------------------------
+        // 再読み込み
+        //----------------------------------------
+
+        /// <summary>
+        /// Warp Providerをすべて再読み込みします。
+        /// </summary>
+        public static void Reload(
+            IModHelper helper,
+            IMonitor monitor)
+        {
+            monitor.Log(
+                "Reloading Warp Providers...",
+                LogLevel.Info);
+
+            //----------------------------------------
+            // 現在の登録内容を削除
+            //----------------------------------------
+
+            WarpService.ClearProviders();
+
+            //----------------------------------------
+            // Providerを再読み込み
+            //----------------------------------------
+
+            Load(
+                helper,
+                monitor);
+
+            int providerCount =
+                WarpService
+                    .GetRegisteredProviders()
+                    .Count;
+
+            monitor.Log(
+                $"Warp Providers reloaded successfully. Registered Providers: {providerCount}",
+                LogLevel.Info);
+        }
+
+        //----------------------------------------
         // デフォルトWarpを書き出し
         //----------------------------------------
 

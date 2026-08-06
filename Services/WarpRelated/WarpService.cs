@@ -104,6 +104,20 @@ namespace Ts_Core.Services.WarpRelated
         }
 
         //----------------------------------------
+        // Provider再読み込み
+        //----------------------------------------
+
+        /// <summary>
+        /// 登録済みのWarp Providerをすべて削除します。
+        /// 再読み込み前に使用します。
+        /// </summary>
+        internal static void ClearProviders()
+        {
+            WarpProviders.Clear();
+            RegisteredProviders.Clear();
+        }
+
+        //----------------------------------------
         // Warp取得
         //----------------------------------------
 

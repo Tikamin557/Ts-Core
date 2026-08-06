@@ -64,6 +64,16 @@ namespace Ts_Core.Debug
             // Debug
             //----------------------------------------
 
+            // T's Coreの機能を再読み込み
+            helper.ConsoleCommands.Add(
+                "tscore_reload",
+                "Reload T's Core data. Usage: tscore_reload [all|warp|notification]",
+                (command, args) =>
+                    ReloadTsCore(
+                        helper,
+                        monitor,
+                        args));
+
             // 登録されているWarp Providerを表示
             helper.ConsoleCommands.Add(
                 "tscore_debug_warp",
@@ -145,6 +155,195 @@ namespace Ts_Core.Debug
                         default,
                         out _);
                 });
+        }
+
+        //----------------------------------------
+        // Reload
+        //----------------------------------------
+
+        /// <summary>
+        /// T's Coreの各機能を再読み込みします。
+        /// </summary>
+        private static void ReloadTsCore(
+            IModHelper helper,
+            IMonitor monitor,
+            string[] args)
+        {
+            string target =
+                args.Length > 0
+                    ? args[0].Trim().ToLowerInvariant()
+                    : "all";
+
+            switch (target)
+            {
+                //----------------------------------------
+                // すべて再読み込み
+                //----------------------------------------
+
+                case "all":
+
+                    ReloadWarp(
+                        helper,
+                        monitor);
+
+                    ReloadNotification(
+                        monitor);
+
+                    monitor.Log(
+                        "T's Core data reloaded successfully.",
+                        LogLevel.Info);
+
+                    break;
+
+                //----------------------------------------
+                // Warp Provider
+                //----------------------------------------
+
+                case "warp":
+
+                    ReloadWarp(
+                        helper,
+                        monitor);
+
+                    break;
+
+                //----------------------------------------
+                // Notification Theme
+                //----------------------------------------
+
+                case "notification":
+                case "notifications":
+
+                    ReloadNotification(
+                        monitor);
+
+                    break;
+
+                //----------------------------------------
+                // Help
+                //----------------------------------------
+
+                case "help":
+                case "?":
+
+                    LogReloadUsage(
+                        monitor);
+
+                    break;
+
+                //----------------------------------------
+                // 不明な引数
+                //----------------------------------------
+
+                default:
+
+                    monitor.Log(
+                        $"Unknown reload target: '{target}'",
+                        LogLevel.Warn);
+
+                    LogReloadUsage(
+                        monitor);
+
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Warp Providerを再読み込みします。
+        /// </summary>
+        private static void ReloadWarp(
+            IModHelper helper,
+            IMonitor monitor)
+        {
+            try
+            {
+                WarpLoader.Reload(
+                    helper,
+                    monitor);
+            }
+            catch (Exception ex)
+            {
+                monitor.Log(
+                    $"Failed to reload Warp Providers: {ex}",
+                    LogLevel.Error);
+            }
+        }
+
+        /// <summary>
+        /// Notification Themeを再読み込みします。
+        /// </summary>
+        private static void ReloadNotification(
+            IMonitor monitor)
+        {
+            try
+            {
+                monitor.Log(
+                    "Reloading Notification Themes...",
+                    LogLevel.Info);
+
+                NotificationThemeManager.ReloadThemes();
+
+                int builtinThemeCount =
+                    NotificationThemeManager
+                        .GetBuiltinThemeNames()
+                        .Count();
+
+                int contentPackThemeCount =
+                    NotificationThemeManager
+                        .GetContentPackThemeNames()
+                        .Count();
+
+                int themeCount =
+                    builtinThemeCount + contentPackThemeCount;
+
+                monitor.Log(
+                    $"Notification Themes reloaded successfully. " +
+                    $"Registered Themes: {themeCount}",
+                    LogLevel.Info);
+            }
+            catch (Exception ex)
+            {
+                monitor.Log(
+                    $"Failed to reload Notification Themes: {ex}",
+                    LogLevel.Error);
+            }
+        }
+
+        /// <summary>
+        /// tscore_reloadの使用方法を表示します。
+        /// </summary>
+        private static void LogReloadUsage(
+            IMonitor monitor)
+        {
+            monitor.Log(
+                "===== T's Core Reload =====",
+                LogLevel.Info);
+
+            LogBlankLine(monitor);
+
+            LogField(
+                monitor,
+                "tscore_reload",
+                "Reload all supported data.",
+                labelWidth: 28);
+
+            LogField(
+                monitor,
+                "tscore_reload all",
+                "Reload all supported data.",
+                labelWidth: 28);
+
+            LogField(
+                monitor,
+                "tscore_reload warp",
+                "Reload Warp Providers.",
+                labelWidth: 28);
+
+            LogField(
+                monitor,
+                "tscore_reload notification",
+                "Reload Notification Themes.",
+                labelWidth: 28);
         }
 
         //----------------------------------------
@@ -562,10 +761,11 @@ namespace Ts_Core.Debug
                 return;
             }
 
-            foreach (string name in contentPackThemes)
+            for (int i = 0; i < contentPackThemes.Count; i++)
             {
-                int separator =
-                    name.LastIndexOf('.');
+                string name = contentPackThemes[i];
+
+                int separator = name.LastIndexOf('.');
 
                 string shortName =
                     separator >= 0
@@ -582,7 +782,9 @@ namespace Ts_Core.Debug
                     name,
                     indent: 8);
 
-                LogBlankLine(monitor);
+                // 最後のテーマ以外だけ空行
+                if (i < contentPackThemes.Count - 1)
+                    LogBlankLine(monitor);
             }
         }
 
