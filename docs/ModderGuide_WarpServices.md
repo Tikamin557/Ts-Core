@@ -546,7 +546,29 @@ This example also demonstrates how to specify the player's facing direction afte
 
 ## Debugging
 
-T's Core provides debug commands for inspecting registered Warp Providers and farm buildings.
+T's Core provides several debug commands for inspecting registered Warp Providers, farm buildings, and reloading Warp Providers during development.
+
+---
+
+### Reloading T's Core Resources
+
+When developing a T's Core Content Pack, you can reload supported resources without restarting the game.
+
+| Command | Reloads |
+|---------|---------|
+| `tscore_reload warp` | Warp Providers |
+| `tscore_reload notification` | Notification Themes |
+| `tscore_reload all` | All supported T's Core resources |
+
+After running a reload command, T's Core automatically rescans the corresponding folders.
+
+Any JSON files that have been added, modified, or removed are detected and applied immediately without restarting the game.
+
+This allows you to test changes, add new Warp Providers or Notification Themes, and iterate on your Content Pack much faster while the game is running.
+
+> **Note:** Reloading only refreshes data loaded by T's Core. It does not reload Content Patcher patches or other SMAPI mods.
+
+---
 
 ### Inspecting Warp Providers
 
@@ -558,7 +580,8 @@ tscore_debug_warp
 
 The following example shows both the built-in providers included with T's Core and a custom provider registered by the T's Core Content Pack included with the **[(SF) Monster House](https://www.nexusmods.com/stardewvalley/mods/20586)** mod.
 
-Example output:
+<details>
+<summary>Example output</summary>
 
 ```text
 tscore_debug_warp
@@ -596,6 +619,10 @@ tscore_debug_warp
 [T's Core]     Fallback            : FarmHouseFront
 ```
 
+</details>
+
+---
+
 ### Inspecting Farm Buildings
 
 When creating a Warp Provider with `Type: "Building"`, you can inspect the buildings currently placed on the farm using the following SMAPI command:
@@ -608,7 +635,8 @@ This command displays each building's internal type, tile position, size, and in
 
 The value shown for `Building` can be used as the `BuildingType` property in a Building Provider definition.
 
-Example output:
+<details>
+<summary>Example output</summary>
 
 ```text
 tscore_debug_buildings
@@ -625,6 +653,8 @@ tscore_debug_buildings
 [T's Core]     Size                : 2 x 1
 [T's Core]     Indoors             : (none)
 ```
+
+</details>
 
 In this example, the value used for the Monster House provider is:
 
