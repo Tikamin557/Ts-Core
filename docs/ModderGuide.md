@@ -101,18 +101,27 @@ The following commands are available during development.
 
 | Command | Description |
 |---------|-------------|
-| `tscore_tokens` | Prints all token values |
-| `tscore_tokens_relationship` | Prints relationship tokens |
-| `tscore_tokens_location` | Prints location tokens |
+| `tscore_tokens` | Prints all available token values |
+| `tscore_tokens_relationship` | Prints relationship-related tokens |
+| `tscore_tokens_location` | Prints location-related tokens |
 
 ## Other Commands
 
 | Command | Description |
 |---------|-------------|
-| `tscore_debug_warp` | Prints warp providers information |
-| `tscore_debug_buildings` | Prints building information |
-| `tscore_debug_notification` | Tests notifications |
-| `tscore_debug_notification_trigger` | Tests Trigger Actions |
+| `tscore_debug_warp` | Prints all registered Warp Providers |
+| `tscore_debug_buildings` | Prints all farm buildings |
+| `tscore_debug_notification_themes` | Prints all registered Notification Themes |
+| `tscore_debug_notification` | Displays a test notification |
+| `tscore_debug_notification_trigger` | Tests notification Trigger Actions |
+
+## Reload Commands
+
+| Command | Description |
+|---------|-------------|
+| `tscore_reload warp` | Reloads all registered Warp Providers |
+| `tscore_reload notification` | Reloads all registered Notification Themes |
+| `tscore_reload all` | Reloads all supported T's Core resources |
 
 ---
 
