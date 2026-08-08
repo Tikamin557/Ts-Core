@@ -22,9 +22,9 @@ This guide explains how to use the public features provided by **T's Core** in C
 
 Warp Services provide reusable warp functionality for Content Patcher.
 
-In addition to built-in warp actions, T's Core allows Content Packs to register reusable Warp Providers without requiring any C# code.
+T's Core provides custom Warp Actions and reusable Warp Providers, and also allows Content Packs to register their own destinations without requiring any C# code.
 
-This guide explains how to use Warp Actions, create custom Warp Providers, and integrate them into your own Content Packs.
+This guide explains how to use Warp Actions, create custom Warp Providers, and integrate them into your Content Packs.
 
 ---
 
@@ -43,17 +43,20 @@ This guide explains how to use Warp Actions, create custom Warp Providers, and i
 
 ## Warp Actions
 
-Warp Services are built around two custom warp actions:
+T's Core provides two custom warp actions:
 
-- `TsCoreWarp`
-- `TsCoreMagicWarp`
+| Action | Description |
+|--------|-------------|
+| `TsCoreWarp` | Performs a standard warp without visual effects. |
+| `TsCoreMagicWarp` | Performs the same warp using Stardew Valley's built-in magic warp animation and sound effect. |
 
-Both actions support the following destination types:
+Both actions support:
 
-- Built-in warp providers
-- Registered custom warp providers
+- Built-in Warp Providers
+- Custom Warp Providers
 - Location names
-- Location coordinates
+- Direct coordinates
+- Optional facing direction
 
 The same syntax can be used with:
 
@@ -61,111 +64,36 @@ The same syntax can be used with:
 - Touch Actions
 - Trigger Actions *(where supported)*
 
-The only difference between the two actions is how the player is warped:
-
-| Action | Description |
-|--------|-------------|
-| `TsCoreWarp` | Performs a standard warp without visual effects. |
-| `TsCoreMagicWarp` | Performs the same warp using Stardew Valley's built-in magic warp animation and sound effect. |
-
-> **Note:** When custom warp actions are used as Tile Actions, Stardew Valley normally logs a legacy **"unknown warp property"** warning to the SMAPI console. T's Core automatically suppresses this warning for `TsCoreWarp` and `TsCoreMagicWarp`, allowing Content Packs to use these actions without generating unnecessary console messages.
+> **Note:** When custom warp actions are used as Tile Actions, Stardew Valley normally logs a legacy **"unknown warp property"** warning to the SMAPI console. T's Core automatically suppresses this warning for `TsCoreWarp` and `TsCoreMagicWarp`.
 
 ---
 
 ### Syntax
 
-#### Warp using a provider
+`TsCoreWarp` and `TsCoreMagicWarp` use the same syntax.
 
-```text
-TsCoreWarp <Provider>
-TsCoreMagicWarp <Provider>
-```
+| Destination | Syntax | Example |
+|-------------|--------|---------|
+| Provider | `<Action> <Provider>` | `TsCoreWarp FarmHouseFront` |
+| Provider + facing direction | `<Action> <Provider> <FacingDirection>` | `TsCoreMagicWarp FarmHouseFront Left` |
+| Location | `<Action> <LocationName>` | `TsCoreWarp BusStop` |
+| Location + coordinates | `<Action> <LocationName> <X> <Y>` | `TsCoreWarp Farm 64 15` |
+| Location + coordinates + facing direction | `<Action> <LocationName> <X> <Y> <FacingDirection>` | `TsCoreMagicWarp Farm 64 15 Down` |
 
-Example:
+Replace `<Action>` with either `TsCoreWarp` or `TsCoreMagicWarp`.
 
-```text
-TsCoreWarp FarmHouseFront
-TsCoreMagicWarp FarmHouseFront
-```
+When only a location name is specified, T's Core automatically uses the location's default warp point.
 
----
-
-#### Warp using a provider and set the player's facing direction
-
-```text
-TsCoreWarp <Provider> <FacingDirection>
-TsCoreMagicWarp <Provider> <FacingDirection>
-```
-
-Example:
-
-```text
-TsCoreWarp FarmHouseFront Left
-TsCoreMagicWarp FarmHouseFront Left
-```
-
----
-
-#### Warp to a map
-
-```text
-TsCoreWarp <LocationName>
-TsCoreMagicWarp <LocationName>
-```
-
-Example:
-
-```text
-TsCoreWarp BusStop
-TsCoreMagicWarp BusStop
-```
-
-T's Core automatically uses the map's default warp point.
-
----
-
-#### Warp to specific coordinates
-
-```text
-TsCoreWarp <LocationName> <X> <Y>
-TsCoreMagicWarp <LocationName> <X> <Y>
-```
-
-Example:
-
-```text
-TsCoreWarp Farm 64 15
-TsCoreMagicWarp Farm 64 15
-```
-
-This behaves exactly the same as the corresponding vanilla warp action.
-
-If you do not need any T's Core-specific features, it is recommended to use the vanilla warp action instead.
-
----
-
-#### Warp to specific coordinates and set the player's facing direction
-
-```text
-TsCoreWarp <LocationName> <X> <Y> <FacingDirection>
-TsCoreMagicWarp <LocationName> <X> <Y> <FacingDirection>
-```
-
-Example:
-
-```text
-TsCoreWarp Farm 64 15 Down
-TsCoreMagicWarp Farm 64 15 Down
-```
+> **Note:** Direct coordinate warps behave like the corresponding vanilla warp action. If you do not need any T's Core-specific functionality, using the vanilla warp action is recommended.
 
 ---
 
 ### Facing Direction
 
-The facing direction can be specified using either text or the corresponding numeric value.
+Facing direction can be specified using either its name or numeric value.
 
 | Direction | Numeric Value |
-|----------|------:|
+|----------|--------------:|
 | `Up` | `0` |
 | `Right` | `1` |
 | `Down` | `2` |
@@ -183,68 +111,44 @@ For example:
 TsCoreWarp FarmHouseFront
 ```
 
-Instead of:
+can be used instead of a fixed destination such as:
 
 ```text
 Warp Farm 64 15
 ```
 
-This makes Content Packs easier to maintain and improves compatibility with custom maps and other mods that change warp destinations.
+Providers make Content Packs easier to maintain and improve compatibility with custom maps and mods that move buildings or change warp destinations.
 
-T's Core automatically resolves the provider name to the correct destination.
-
----
-
-### Why use Warp Providers?
-
-Using warp providers has several advantages:
-
-- No hardcoded coordinates
-- Better compatibility with custom maps
-- Easier maintenance
-- More readable Content Packs
-
-For example, if another mod changes the farmhouse entrance position, a provider such as `FarmHouseFront` can automatically resolve the correct destination without requiring changes to your Content Pack.
+For example, `FarmHouseFront` resolves the farmhouse entrance dynamically, so a Content Pack does not need to know its exact coordinates.
 
 ---
 
 ### Provider Resolution
 
-When `TsCoreWarp` or `TsCoreMagicWarp` is executed, T's Core attempts to resolve the destination in the following order:
+When a destination is passed to `TsCoreWarp` or `TsCoreMagicWarp`, T's Core first attempts to resolve it as a registered Warp Provider.
 
-1. Built-in warp providers
-2. Registered custom warp providers
-3. Location name (fallback)
+If no matching provider exists, the value is treated as a location name.
 
-This means the following examples are both valid:
+For example, both of the following are valid:
 
 ```text
 TsCoreWarp FarmHouseFront
-```
-
-```text
 TsCoreWarp BusStop
 ```
 
-If no provider named `BusStop` exists, T's Core automatically treats it as a location name.
+`FarmHouseFront` resolves to a registered provider, while `BusStop` is treated as a location name if no provider with that name exists.
 
 ---
 
-### Registering Custom Providers
+## Content Pack Setup
 
-In addition to the built-in providers, T's Core allows Content Packs to register their own custom Warp Providers.
+In addition to the built-in providers, T's Core allows Content Packs to register custom Warp Providers.
 
-This makes it possible to expose reusable warp destinations that can be referenced by other Content Packs without writing any C# code.
-
----
-
-### Content Pack Setup
-
-Warp Providers can be added through a standard **T's Core Content Pack**.
+Warp Providers are added through a standard **T's Core Content Pack**.
 
 A single Content Pack can include multiple T's Core features, such as custom Warp Providers and Notification Themes.
 
-To create a T's Core Content Pack, configure your `manifest.json` as follows:
+### manifest.json
 
 ```json
 {
@@ -260,8 +164,6 @@ To create a T's Core Content Pack, configure your `manifest.json` as follows:
 
 Replace the example values with your own information before publishing your Content Pack.
 
----
-
 ### Folder Structure
 
 ```text
@@ -274,26 +176,29 @@ Replace the example values with your own information before publishing your Cont
         └── MyWarpProvider.json
 ```
 
-The `assets` folder can contain one or more feature-specific subfolders.
+Currently, T's Core supports the following feature folders:
 
-Currently, T's Core supports the following folders:
+| Folder | Purpose |
+|--------|---------|
+| `assets/notification` | Custom Notification Themes |
+| `assets/warp` | Custom Warp Providers |
 
-- `notification` — Custom Notification Themes
-- `warp` — Custom Warp Providers
+Only create the folders your Content Pack actually uses.
 
-Only create the folders that your Content Pack actually uses.
+JSON filenames may be chosen freely.
 
-The filenames are completely optional and may be chosen freely.
-
-> **Note:** The folder names (`assets`, `notification`, `warp`, etc.) are fixed and must not be renamed. T's Core looks for JSON files in these specific folders when loading Content Packs. Renaming the folders will prevent the files from being detected.
+> **Note:** The folder names (`assets`, `notification`, `warp`, etc.) are fixed and must not be renamed. T's Core searches these specific folders when loading Content Packs.
 
 ---
 
 ## Warp Provider Types
 
-Each JSON file defines one Warp Provider.
+Each JSON file inside `assets/warp` defines one Warp Provider.
 
-The available provider types and their properties are explained in the following sections.
+T's Core currently supports two provider types:
+
+- `Warp`
+- `Building`
 
 ---
 
@@ -303,7 +208,7 @@ A **Warp** provider resolves its destination by reading an existing warp from a 
 
 ```json
 {
-  "Id": "FarmHouseFront",
+  "Id": "MyFarmHouseFront",
   "Type": "Warp",
   "Source": "FarmHouse",
   "Target": "Farm"
@@ -314,18 +219,20 @@ A **Warp** provider resolves its destination by reading an existing warp from a 
 |----------|----------|-------------|
 | `Id` | ✅ | Unique provider name used by `TsCoreWarp` and `TsCoreMagicWarp`. |
 | `Type` | ✅ | Must be `"Warp"`. |
-| `Source` | ✅ | The location that contains the warp to inspect. |
-| `Target` | ✅ | The destination location of the warp that should be resolved. |
+| `Source` | ✅ | Location containing the warp to inspect. |
+| `Target` | ✅ | Destination location of the warp to resolve. |
 
-When this provider is used, T's Core searches the specified source location for a warp leading to the target location and uses its destination coordinates.
+T's Core searches `Source` for a warp leading to `Target` and uses that warp's destination coordinates.
 
-This allows the provider to automatically adapt when another mod changes the warp destination.
+Because the destination is resolved at runtime, this provider can adapt when another mod changes the corresponding map warp.
+
+> **Note:** Provider IDs should be unique. If another provider with the same ID is already registered, the duplicate provider will not be registered.
 
 ---
 
 ### Warp Provider (Type: Building)
 
-A **Building** provider resolves its destination based on the position of a building placed on the player's farm.
+A **Building** provider calculates its destination from the position of a building placed on the player's farm.
 
 The following example shows the actual Building Provider used by the **[(SF) Monster House](https://www.nexusmods.com/stardewvalley/mods/20586)** mod.
 
@@ -344,25 +251,14 @@ The following example shows the actual Building Provider used by the **[(SF) Mon
 |----------|----------|-------------|
 | `Id` | ✅ | Unique provider name used by `TsCoreWarp` and `TsCoreMagicWarp`. |
 | `Type` | ✅ | Must be `"Building"`. |
-| `BuildingType` | ✅ | The building type to search for on the player's farm. |
+| `BuildingType` | ✅ | Internal building type to search for on the player's farm. |
 | `OffsetX` | ✅ | Horizontal offset from the building's top-left tile. |
 | `OffsetY` | ✅ | Vertical offset from the building's top-left tile. |
-| `Fallback` | Optional | Provider to use if the building cannot be found. Defaults to `FarmHouseFront`. |
+| `Fallback` | Optional | Provider used if the building cannot be found. Defaults to `FarmHouseFront`. |
 
-T's Core searches the player's farm for a building with the specified `BuildingType`.
+T's Core searches the farm for the specified `BuildingType` and calculates the destination from the building's top-left tile plus `OffsetX` and `OffsetY`.
 
-If the building is found, the destination is calculated by adding the configured offsets to the building's top-left tile.
-
-For example, the Monster House occupies a **2 × 1** area.
-
-Using:
-
-```json
-"OffsetX": 0,
-"OffsetY": 1
-```
-
-produces the following destination:
+For example, the Monster House occupies a **2 × 1** area:
 
 ```text
 ■■
@@ -370,159 +266,53 @@ produces the following destination:
 ↑ Warp destination
 ```
 
-The warp destination is one tile directly below the building's top-left tile.
+With:
+
+```json
+"OffsetX": 0,
+"OffsetY": 1
+```
+
+the destination is one tile directly below the building's top-left tile.
 
 If the building cannot be found, the provider specified by `Fallback` is used instead.
 
-> **Tip:** The easiest way to find a building's internal type is by using the `tscore_debug_buildings` debug command.
+> **Tip:** Use `tscore_debug_buildings` to inspect building types, positions, and sizes currently present on the farm.
 
 ---
 
 ## Built-in Warp Providers
 
-T's Core includes several built-in warp providers.
+T's Core includes several built-in providers that resolve their destinations dynamically from existing map warps.
 
-These providers resolve their destinations dynamically at runtime by reading existing map warps.
+| Provider | Source | Target | Description |
+|----------|--------|--------|-------------|
+| `FarmHouseFront` | `FarmHouse` | `Farm` | Resolves the tile outside the farmhouse entrance. |
+| `GreenhouseFront` | `Greenhouse` | `Farm` | Resolves the tile outside the greenhouse entrance. |
+| `FarmCaveFront` | `FarmCave` | `Farm` | Resolves the tile outside the farm cave entrance. |
+| `IslandFarmHouseFront` | `IslandFarmHouse` | `IslandWest` | Resolves the tile outside the Island Farmhouse. |
 
-This allows Content Packs to avoid hardcoded coordinates while remaining compatible with custom maps and mods that move buildings or change entrance positions.
+All built-in providers can be used with either `TsCoreWarp` or `TsCoreMagicWarp`.
 
----
-
-### Available Providers
-
-| Provider | Source | Target | Status |
-|----------|--------|--------|--------|
-| `FarmHouseFront` | `FarmHouse` | `Farm` | ✅ Available |
-| `GreenhouseFront` | `Greenhouse` | `Farm` | ✅ Available |
-| `FarmCaveFront` | `FarmCave` | `Farm` | ✅ Available |
-| `IslandFarmHouseFront` | `IslandFarmHouse` | `IslandWest` | ✅ Available |
-
----
-
-### FarmHouseFront
-
-Resolves the destination of the warp from `FarmHouse` to `Farm`.
-
-This normally corresponds to the tile directly outside the player's farmhouse entrance.
-
-Because the destination is read from the active map warp, it can adapt to:
-
-- Vanilla farm layouts
-- Custom farm maps
-- Mods that move the farmhouse
-- Mods that change the farmhouse entrance warp
-
-#### Example
+Example:
 
 ```text
 TsCoreWarp FarmHouseFront
 ```
 
-```text
-TsCoreMagicWarp FarmHouseFront
-```
+Because these destinations are resolved from the active map warps, they can adapt to compatible custom maps and mods that move or modify their corresponding entrances.
 
----
+> **Note:** A provider requires a valid warp between its configured source and target locations. If another mod removes that warp entirely, the provider may not be able to resolve its destination.
 
-### GreenhouseFront
-
-Resolves the destination of the warp from `Greenhouse` to `Farm`.
-
-This normally corresponds to the tile directly outside the greenhouse entrance.
-
-Because the destination is read from the active map warp, it can adapt to custom farm layouts and mods that move or replace the greenhouse.
-
-#### Example
-
-```text
-TsCoreWarp GreenhouseFront
-```
-
-```text
-TsCoreMagicWarp GreenhouseFront
-```
-
----
-
-### FarmCaveFront
-
-Resolves the destination of the warp from `FarmCave` to `Farm`.
-
-This normally corresponds to the tile directly outside the farm cave entrance.
-
-Because the destination is read from the active map warp, it can adapt to custom farm layouts and mods that move the farm cave entrance.
-
-#### Example
-
-```text
-TsCoreWarp FarmCaveFront
-```
-
-```text
-TsCoreMagicWarp FarmCaveFront
-```
-
----
-
-### IslandFarmHouseFront
-
-Resolves the destination of the warp from `IslandFarmHouse` to `IslandWest`.
-
-This normally corresponds to the tile directly outside the Island Farmhouse entrance on Ginger Island.
-
-Because the destination is read from the active map warp, it can adapt to mods that change the Island Farmhouse or the surrounding `IslandWest` map.
-
-#### Example
-
-```text
-TsCoreWarp IslandFarmHouseFront
-```
-
-```text
-TsCoreMagicWarp IslandFarmHouseFront
-```
-
----
-
-> **Note:** These providers depend on the corresponding source and destination locations having a valid warp between them. If another mod removes or replaces that warp without providing an equivalent destination, the provider may not be able to resolve its target.
-
-Additional built-in warp providers may be added in future versions of T's Core.
+Additional built-in providers may be added in future versions of T's Core.
 
 ---
 
 ## Examples
 
-### Warp to the farmhouse entrance
-
 The following example adds a Tile Action to the front of the fountain in **Pelican Town**.
 
-Clicking the fountain warps the player to the farmhouse entrance.
-
-```json
-{
-    "Action": "EditMap",
-    "Target": "Maps/Town",
-    "MapTiles": [
-        {
-            "Position": { "X": 26, "Y": 28 },
-            "Layer": "Buildings",
-            "SetProperties": {
-                "Action": "TsCoreWarp FarmHouseFront"
-            }
-        }
-    ]
-}
-```
-
----
-
-### Magic warp to the farmhouse entrance and face down
-
-The following example performs the same warp using **TsCoreMagicWarp**.
-
-Clicking the fountain plays Stardew Valley's magic warp effect before warping the player to the farmhouse entrance.
-
-After arriving, the player automatically faces **down**.
+Clicking the fountain uses the `FarmHouseFront` provider to magic-warp the player to the farmhouse entrance and face **down**.
 
 ```json
 {
@@ -540,7 +330,7 @@ After arriving, the player automatically faces **down**.
 }
 ```
 
-This example also demonstrates how to specify the player's facing direction after warping.
+To perform the same warp without the magic warp effect, replace `TsCoreMagicWarp` with `TsCoreWarp`.
 
 ---
 
@@ -556,9 +346,11 @@ When developing a T's Core Content Pack, you can reload supported resources with
 
 | Command | Reloads |
 |---------|---------|
+| `tscore_reload`<br>`tscore_reload all` | All supported T's Core resources |
 | `tscore_reload warp` | Warp Providers |
 | `tscore_reload notification` | Notification Themes |
-| `tscore_reload all` | All supported T's Core resources |
+
+Running `tscore_reload` without an argument is equivalent to `tscore_reload all`.
 
 After running a reload command, T's Core automatically rescans the corresponding folders.
 
