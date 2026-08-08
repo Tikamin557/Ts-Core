@@ -230,13 +230,17 @@ Relationship Services are useful for:
 
 ## Debugging
 
-To inspect the current values provided by the Relationship Services, enter the following command into the SMAPI console:
+The following SMAPI commands can be used to inspect token-related information:
 
-```text
-tscore_tokens_relationship
-```
+| Command | Displays |
+|---------|----------|
+| `tscore_tokens` | All token-related information provided by T's Core |
+| `tscore_tokens_relationship` | Relationship Services information |
 
-Example output:
+Use `tscore_tokens_relationship` when you only need to inspect Relationship Services.
+
+<details>
+<summary>Example output</summary>
 
 ```text
 tscore_tokens_relationship
@@ -254,6 +258,8 @@ tscore_tokens_relationship
 [T's Core]     [1] Abigail
 [T's Core]     [2] Emily
 ```
+
+</details>
 
 The room index shown in the debug output corresponds directly to the `valueAt` index used by the `OrderedPartners` token.
 
