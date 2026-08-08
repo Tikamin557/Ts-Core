@@ -229,13 +229,17 @@ Location Services are useful for:
 
 ## Debugging
 
-To inspect the current values provided by the Location Services, enter the following command into the SMAPI console:
+The following SMAPI commands can be used to inspect token-related information:
 
-```text
-tscore_tokens_location
-```
+| Command | Displays |
+|---------|----------|
+| `tscore_tokens` | All token-related information provided by T's Core |
+| `tscore_tokens_location` | Location Services information |
 
-Example output:
+Use `tscore_tokens_location` when you only need to inspect Location Services.
+
+<details>
+<summary>Example output</summary>
 
 ```text
 tscore_tokens_location
@@ -250,6 +254,8 @@ tscore_tokens_location
 [T's Core]     Is Outdoors         : True
 [T's Core]     Is Indoors          : False
 ```
+
+</details>
 
 > **Note:** Planned tokens are also displayed by the debug command. Their current values are intended for testing only and should not be relied upon until the features are fully implemented.
 
