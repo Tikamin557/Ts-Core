@@ -20,92 +20,65 @@ This guide explains how to use the public features provided by **T's Core** in C
 
 # Relationship Services
 
-Relationship Services provide **Content Patcher tokens** for working with the player's current partners.
+Relationship Services provide **Content Patcher tokens** for accessing the player's current partners.
 
-They automatically support both **vanilla Stardew Valley** and supported relationship systems, allowing Content Packs to work without creating separate compatibility patches.
-
----
-
-## Contents
-
-- [Supported Relationship Systems](#supported-relationship-systems)
-- [Available Tokens](#available-tokens)
-- [Using the Tokens](#using-the-tokens)
-- [Practical Examples](#practical-examples)
-- [Common Use Cases](#common-use-cases)
-- [Debugging](#debugging)
-- [Notes](#notes)
+T's Core automatically handles supported relationship systems, allowing the same Content Pack to work without separate compatibility patches.
 
 ---
 
 ## Supported Relationship Systems
 
-Relationship Services currently support the following relationship systems:
+| System | Supported |
+|--------|:---------:|
+| Vanilla marriage | ✅ |
+| Vanilla roommate (Krobus) | ✅ |
+| FreeLove | ✅ |
+| PolyamorySweetLove | ✅ |
 
-- Vanilla marriage
-- Vanilla roommate (Krobus)
-- FreeLove
-- PolyamorySweetLove
+T's Core automatically detects the active relationship system and provides the same tokens regardless of which system is being used.
 
-T's Core automatically detects which relationship system is currently active and provides a consistent set of Content Patcher tokens.
-
-This means your Content Pack can simply use:
-
-```text
-{{Tikamin557.TsCore/Partners}}
-{{Tikamin557.TsCore/OrderedPartners}}
-```
-
-without creating separate compatibility patches for each supported relationship mod.
-
-As support for additional relationship mods is added to T's Core, existing Content Packs can automatically gain compatibility without requiring any changes.
+As support for additional relationship mods is added to T's Core, existing Content Packs can automatically gain compatibility without requiring changes.
 
 ---
 
 ## Available Tokens
 
+| Token | Returns | Recommended Use |
+|-------|---------|-----------------|
+| `{{Tikamin557.TsCore/Partners}}` | Current partners | General relationship checks |
+| `{{Tikamin557.TsCore/OrderedPartners}}` | Current partners in spouse room order | Room/order-dependent patches |
+
+Both tokens return a **list of partner names** and can be used with Content Patcher features such as `Count`, `HasValue`, and `valueAt`.
+
+For example:
+
+| Token | Example Value |
+|-------|---------------|
+| `Partners` | `Abigail, Emily, Sebastian` |
+| `OrderedPartners` | `Sebastian, Abigail, Emily` |
+
+---
+
 ### Partners
 
-Returns the names of all current partners.
-
-#### Example
+Use `Partners` when you only need to know **who the player's current partners are**.
 
 ```text
 {{Tikamin557.TsCore/Partners}}
 ```
 
-#### Example Value
+For most Content Packs, this is the recommended relationship token.
 
-```text
-Abigail, Emily, Sebastian
-```
+Because the result is a list, you can directly use Content Patcher's list-aware features.
 
-Because this token returns a **list of partner names**, it works naturally with list-aware Content Patcher features such as:
+| Purpose | Example |
+|---------|---------|
+| Count partners | `{{Count:{{Tikamin557.TsCore/Partners}}}}` |
+| Check for a partner | `HasValue:{{Tikamin557.TsCore/Partners}}` |
+| Check whether any partner exists | `Count:{{Tikamin557.TsCore/Partners}} > 0` |
+| Check for multiple partners | `Count:{{Tikamin557.TsCore/Partners}} >= 2` |
 
-- `Count`
-- `HasValue`
-
----
-
-#### Count Example
-
-Returns the number of current partners.
-
-```text
-{{Count:{{Tikamin557.TsCore/Partners}}}}
-```
-
-Result:
-
-```text
-3
-```
-
----
-
-#### HasValue Example
-
-Checks whether the player has a specific partner.
+#### Check for a specific partner
 
 ```json
 "When": {
@@ -113,64 +86,30 @@ Checks whether the player has a specific partner.
 }
 ```
 
-If the token value is:
-
-```text
-Abigail, Emily, Sebastian
-```
-
-the condition evaluates to:
-
-```text
-true
-```
-
-`HasValue` checks whether the specified partner exists in the list, so you don't need to worry about the order of the partners.
+`HasValue` checks whether the specified name exists anywhere in the list, so partner order does not matter.
 
 ---
 
 ### OrderedPartners
 
-Returns the names of all current partners in **spouse room order**.
-
-Unlike `Partners`, this token follows the room order provided by the currently active spouse room system.
-
-#### Example
+Use `OrderedPartners` when the **position of each partner in the spouse room order** is important.
 
 ```text
 {{Tikamin557.TsCore/OrderedPartners}}
 ```
 
-#### Example Value
+It supports the same list operations as `Partners`, but the returned list follows the room order provided by the active spouse room system.
 
-```text
-Sebastian, Abigail, Emily
-```
-
-`OrderedPartners` can be used in the same way as the `Partners` token.
-
-The only difference is that the returned list follows the current spouse room order instead of the partner list order.
-
----
-
-## When should I use `OrderedPartners`?
-
-Use **`Partners`** when you only need to know who the player's current partners are.
-
-Use **`OrderedPartners`** when the order of the partners is important, such as:
+This is useful for:
 
 - Assigning spouse rooms
-- Applying room-specific map patches
+- Room-specific map patches
 - Matching furniture or decorations to spouse room positions
-- Creating hallway or room layouts based on spouse order
+- Creating layouts based on spouse order
 
-For most Content Packs, `Partners` is the recommended token.
+#### Check a partner by room position
 
-Use `OrderedPartners` only when you need to match the spouse room order.
-
-#### Example — Check the second spouse
-
-The following condition evaluates to `true` if **Abigail** is the second partner in the spouse room order.
+For example, to check whether **Abigail** is the second partner:
 
 ```json
 "When": {
@@ -178,15 +117,21 @@ The following condition evaluates to `true` if **Abigail** is the second partner
 }
 ```
 
-This is useful when applying patches based on a partner's position in the spouse room order, such as assigning custom spouse rooms or room-specific decorations.
+`valueAt` uses zero-based indexing:
 
-> **Note:** `valueAt` uses zero-based indexing. For example, `valueAt=0` is the first partner, `valueAt=1` is the second, and `valueAt=2` is the third.
+| Position | Index |
+|----------|------:|
+| First partner | `0` |
+| Second partner | `1` |
+| Third partner | `2` |
 
 ---
 
-## Practical Examples
+## Common Examples
 
-### Example 1 — Check whether the player has a partner
+The same conditions work with vanilla relationships and supported relationship mods.
+
+### Check whether the player has any partner
 
 ```json
 "When": {
@@ -194,9 +139,7 @@ This is useful when applying patches based on a partner's position in the spouse
 }
 ```
 
----
-
-### Example 2 — Check for a specific partner
+### Check for a specific partner
 
 ```json
 "When": {
@@ -204,9 +147,7 @@ This is useful when applying patches based on a partner's position in the spouse
 }
 ```
 
----
-
-### Example 3 — Polyamory support
+### Check for multiple partners
 
 ```json
 "When": {
@@ -214,23 +155,31 @@ This is useful when applying patches based on a partner's position in the spouse
 }
 ```
 
-This is useful for applying different patches based on the player's current partner count.
+No separate compatibility conditions are required for Vanilla, FreeLove, or PolyamorySweetLove.
 
-The same Content Pack works for:
+---
 
-- Vanilla marriage
-- FreeLove
-- PolyamorySweetLove
+## Which Token Should I Use?
 
-without any additional compatibility code.
+| If you need to... | Use |
+|-------------------|-----|
+| Check whether the player has a partner | `Partners` |
+| Check for a specific partner | `Partners` |
+| Count current partners | `Partners` |
+| Support multiple spouses | `Partners` |
+| Determine spouse room order | `OrderedPartners` |
+| Apply patches based on room position | `OrderedPartners` |
+| Access a partner by room index | `OrderedPartners` |
+
+> **Recommendation:** Use `Partners` unless your Content Pack specifically depends on spouse room order.
 
 ---
 
 ## Common Use Cases
 
-Relationship Services are useful for:
+Relationship Services are useful for Content Packs involving:
 
-- Multi-spouse compatible Content Packs
+- Multi-spouse compatibility
 - Custom spouse rooms
 - Marriage events
 - Dialogue conditions
@@ -273,7 +222,7 @@ tscore_tokens_relationship
 
 </details>
 
-The room index shown in the debug output corresponds directly to the `valueAt` index used by the `OrderedPartners` token.
+The index shown under `OrderedPartners Index` corresponds directly to the `valueAt` index used by the `OrderedPartners` token.
 
 ---
 
@@ -281,14 +230,7 @@ The room index shown in the debug output corresponds directly to the `valueAt` i
 
 Relationship Services are **read-only**.
 
-They do **not** modify:
-
-- marriages
-- friendships
-- dating
-- roommate status
-
-They simply expose relationship information through Content Patcher tokens.
+They do not modify marriages, friendships, dating relationships, or roommate status. They only expose existing relationship information through Content Patcher tokens.
 
 ---
 
