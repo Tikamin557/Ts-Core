@@ -20,41 +20,39 @@ This guide explains how to use the public features provided by **T's Core** in C
 
 # Location Services
 
-Location Services provide Content Patcher tokens related to the player's current location and movement.
+Location Services provide **Content Patcher tokens** related to the player's current location and movement.
 
-They are useful for creating location-aware Content Packs using dynamic location information provided by T's Core.
+They are useful for creating location-aware Content Packs without requiring custom C# code.
 
 ---
 
 ## Available Tokens
 
-| Token | Returns | Example Value | Status |
-|-------|---------|---------------|--------|
-| `LocationElapsed` | Time elapsed since entering the current location | `60` | ✅ Available |
-| `PreviousLocation` | Previous location name | `Farm` | ✅ Available |
-| `VisitCount` | Total visits to the current location | `7` | 🚧 Planned |
-| `SessionVisitCount` | Visits to the current location during the current game session | `3` | 🚧 Planned |
-| `EnteredToday` | Whether the current location has already been entered today | `true` | 🚧 Planned |
-| `IsOutdoors` | Whether the current location is outdoors | `false` | ✅ Available |
-| `IsIndoors` | Whether the current location is indoors | `true` | ✅ Available |
-
-All of these tokens can be used in Content Patcher using the following format:
+All Location Services tokens use the following format:
 
 ```text
 {{Tikamin557.TsCore/<TokenName>}}
 ```
 
-> **Note:** Tokens marked as 🚧 Planned are reserved for future versions of T's Core. They are included for forward compatibility but are not yet recommended for use in released Content Packs. Their behavior may change before they become fully supported.
+| Token | Returns | Example | Status |
+|-------|---------|---------|--------|
+| `LocationElapsed` | Elapsed in-game minutes since entering the current location | `60` | ✅ Available |
+| `PreviousLocation` | Previous location name | `Farm` | ✅ Available |
+| `VisitCount` | Total visits to the current location | `7` | 🚧 Planned |
+| `SessionVisitCount` | Visits during the current game session | `3` | 🚧 Planned |
+| `EnteredToday` | Whether the current location has already been entered today | `true` | 🚧 Planned |
+| `IsOutdoors` | Whether the current location is outdoors | `false` | ✅ Available |
+| `IsIndoors` | Whether the current location is indoors | `true` | ✅ Available |
 
-The sections below describe each available token in more detail.
+> **Note:** Tokens marked as 🚧 Planned are reserved for future versions of T's Core. Their current behavior is not finalized and should not be relied upon in released Content Packs.
 
 ---
 
-## LocationElapsed
+## Available Tokens in Detail
+
+### LocationElapsed
 
 Returns the elapsed in-game minutes since the player entered the current location.
-
-### Example — Apply a patch after staying for 60 minutes
 
 ```json
 "When": {
@@ -63,19 +61,15 @@ Returns the elapsed in-game minutes since the player entered the current locatio
 "Update": "OnTimeChange"
 ```
 
-This patch is applied after the player has spent at least **60 in-game minutes** in the current location.
+This condition becomes true after the player has remained in the current location for at least **60 in-game minutes**.
 
-> **Note:** `LocationElapsed` returns elapsed minutes, not the current time of day. Since the value changes as time passes, remember to set `Update` to `OnTimeChange`.
+> **Note:** `LocationElapsed` returns elapsed minutes, not the current time of day. Use `Update: OnTimeChange` when the patch needs to react as time passes.
 
 ---
 
-## PreviousLocation
+### PreviousLocation
 
-Returns the name of the location the player was in immediately before entering the current location.
-
-The returned value is the internal location name used by Stardew Valley (the same name used by Content Patcher).
-
-### Example — Check whether the player came from the Farm
+Returns the internal name of the location the player was in immediately before entering the current location.
 
 ```json
 "When": {
@@ -84,86 +78,22 @@ The returned value is the internal location name used by Stardew Valley (the sam
 "Update": "OnLocationChange"
 ```
 
-This patch is applied when the player entered the current location from the **Farm**.
+This condition is true when the player entered the current location from `Farm`.
 
 > **Note:** The token may return an empty value until the player changes locations for the first time after loading the save.
 
 ---
 
-## VisitCount *(Not yet implemented)*
+### IsOutdoors / IsIndoors
 
-Returns the number of times the player has entered the current location.
+These tokens indicate whether the current location is considered outdoors or indoors.
 
-> **Status:** This token is planned for a future version of T's Core and is **not yet fully implemented**.
->
-> The example below demonstrates the intended usage once the feature becomes available. It should not be relied upon in released Content Packs at this time.
+| Token | Returns `true` when... |
+|-------|-------------------------|
+| `IsOutdoors` | The current location is outdoors |
+| `IsIndoors` | The current location is indoors |
 
-### Planned Example — Apply a patch from the third visit onward
-
-```json
-"When": {
-    "Query: {{Tikamin557.TsCore/VisitCount}} >= 3": true
-},
-"Update": "OnLocationChange"
-```
-
-When fully implemented, this patch will be applied after the player has entered the current location at least **three times**.
-
-> **Note:** Since this value changes when entering a location, `Update` should be set to `OnLocationChange`.
-
----
-
-## SessionVisitCount *(Not yet implemented)*
-
-Returns the number of times the player has entered the current location during the current game session.
-
-> **Status:** This token is planned for a future version of T's Core and is **not yet fully implemented**.
->
-> The example below demonstrates the intended usage once the feature becomes available. It should not be relied upon in released Content Packs at this time.
-
-### Planned Example — Apply a patch after entering twice in the current session
-
-```json
-"When": {
-    "Query: {{Tikamin557.TsCore/SessionVisitCount}} >= 2": true
-},
-"Update": "OnLocationChange"
-```
-
-When fully implemented, this patch will be applied after the player has entered the current location at least **two times during the current game session**.
-
-> **Note:** Since this value changes when entering a location, `Update` should be set to `OnLocationChange`.
-
----
-
-## EnteredToday *(Not yet implemented)*
-
-Returns whether the current location has already been entered during the current in-game day.
-
-> **Status:** This token is planned for a future version of T's Core and is **not yet fully implemented**.
->
-> The example below demonstrates the intended usage once the feature becomes available. It should not be relied upon in released Content Packs at this time.
-
-### Planned Example — Check whether the location has already been visited today
-
-```json
-"When": {
-    "Tikamin557.TsCore/EnteredToday": "true"
-},
-"Update": "OnLocationChange"
-```
-
-When fully implemented, this patch will be applied if the current location has already been entered during the current in-game day.
-
-> **Note:** Since this value changes when entering a location or when a new day begins, `Update` should be set to `OnLocationChange`.
-
----
-
-## IsOutdoors
-
-Returns `true` if the player's current location is considered outdoors; otherwise, it returns `false`.
-
-### Example — Apply a patch only in outdoor locations
+#### Outdoor example
 
 ```json
 "When": {
@@ -172,24 +102,7 @@ Returns `true` if the player's current location is considered outdoors; otherwis
 "Update": "OnLocationChange"
 ```
 
-This patch is applied only while the player is in an **outdoor location**.
-
-This can be useful for:
-
-- Outdoor visual effects
-- Weather-related changes
-- Exterior decorations
-- Location-specific ambient changes
-
-> **Note:** The result depends on how the location is configured. This also applies to custom locations.
-
----
-
-## IsIndoors
-
-Returns `true` if the player's current location is considered indoors; otherwise, it returns `false`.
-
-### Example — Apply a patch only in indoor locations
+#### Indoor example
 
 ```json
 "When": {
@@ -198,18 +111,58 @@ Returns `true` if the player's current location is considered indoors; otherwise
 "Update": "OnLocationChange"
 ```
 
-This patch is applied only while the player is in an **indoor location**.
+`IsIndoors` is normally the opposite of `IsOutdoors`.
 
-This can be useful for:
+> **Note:** The result depends on how the location is configured, including custom locations.
 
-- Interior decorations
-- Indoor lighting changes
-- Furniture-related patches
-- Effects that should not appear outdoors
+---
 
-`IsIndoors` is the opposite of `IsOutdoors`. When one token returns `true`, the other normally returns `false`.
+## Planned Tokens
 
-> **Note:** The result depends on how the location is configured. This also applies to custom locations.
+The following tokens are registered but are **not yet fully implemented**:
+
+| Token | Intended Purpose | Recommended Update |
+|-------|------------------|--------------------|
+| `VisitCount` | Track how many times the current location has been entered | `OnLocationChange` |
+| `SessionVisitCount` | Track visits during the current game session | `OnLocationChange` |
+| `EnteredToday` | Track whether the current location has been entered during the current in-game day | `OnLocationChange` |
+
+The examples below show their intended future usage.
+
+### VisitCount
+
+```json
+"When": {
+    "Query: {{Tikamin557.TsCore/VisitCount}} >= 3": true
+},
+"Update": "OnLocationChange"
+```
+
+Intended to apply a patch from the third visit onward.
+
+### SessionVisitCount
+
+```json
+"When": {
+    "Query: {{Tikamin557.TsCore/SessionVisitCount}} >= 2": true
+},
+"Update": "OnLocationChange"
+```
+
+Intended to apply a patch after entering the location at least twice during the current game session.
+
+### EnteredToday
+
+```json
+"When": {
+    "Tikamin557.TsCore/EnteredToday": "true"
+},
+"Update": "OnLocationChange"
+```
+
+Intended to check whether the current location has already been entered during the current in-game day.
+
+> **Important:** Planned tokens are shown for reference only. Do not rely on their current behavior in released Content Packs until they are marked as available.
 
 ---
 
@@ -219,11 +172,11 @@ Location Services are useful for:
 
 - Location-specific map edits
 - Dynamic decorations
-- Seasonal area changes
 - Interior / exterior differences
 - Dialogue based on location
 - Event-specific patches
-- Support for custom locations
+- Custom location support
+- Time-based behavior after entering a location
 
 ---
 
@@ -265,11 +218,9 @@ tscore_tokens_location
 
 Location Services are **read-only**.
 
-They simply expose location-related information through Content Patcher tokens.
+They only expose location-related information through Content Patcher tokens and do not modify locations, warps, or player movement.
 
-Some tokens update when the player changes locations, while others update as in-game time passes. Make sure to specify an appropriate `Update` value when using these tokens in Content Patcher.
-
-Location Services are designed to provide simple location-aware conditions for Content Patcher without requiring custom tokens or C# code.
+Some tokens update when the player changes locations, while others update as in-game time passes. Make sure to specify an appropriate `Update` value when using them in Content Patcher.
 
 ---
 
