@@ -26,6 +26,17 @@ They are useful for creating location-aware Content Packs without requiring cust
 
 ---
 
+## Contents
+
+- [Available Tokens](#available-tokens)
+- [Using the Tokens](#using-the-tokens)
+- [Practical Examples](#practical-examples)
+- [Common Use Cases](#common-use-cases)
+- [Debugging](#debugging)
+- [Notes](#notes)
+
+---
+
 ## Available Tokens
 
 All Location Services tokens use the following format:
