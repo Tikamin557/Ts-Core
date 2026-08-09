@@ -26,6 +26,18 @@ They automatically support both **vanilla Stardew Valley** and supported relatio
 
 ---
 
+## Contents
+
+- [Supported Relationship Systems](#supported-relationship-systems)
+- [Available Tokens](#available-tokens)
+- [Using the Tokens](#using-the-tokens)
+- [Practical Examples](#practical-examples)
+- [Common Use Cases](#common-use-cases)
+- [Debugging](#debugging)
+- [Notes](#notes)
+
+---
+
 ## Supported Relationship Systems
 
 Relationship Services currently support the following relationship systems:
