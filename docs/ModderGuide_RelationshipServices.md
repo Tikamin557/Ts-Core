@@ -30,8 +30,8 @@ T's Core automatically handles supported relationship systems, allowing the same
 
 - [Supported Relationship Systems](#supported-relationship-systems)
 - [Available Tokens](#available-tokens)
-- [Using the Tokens](#using-the-tokens)
-- [Practical Examples](#practical-examples)
+- [Common Examples](#common-examples)
+- [Which Token Should I Use?](#which-token-should-i-use)
 - [Common Use Cases](#common-use-cases)
 - [Debugging](#debugging)
 - [Notes](#notes)
