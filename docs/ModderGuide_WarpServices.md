@@ -30,14 +30,14 @@ This guide explains how to use Warp Actions, create custom Warp Providers, and i
 
 ## Contents
 
-- Warp Actions
-- Warp Providers
-- Content Pack Setup
-- Warp Provider Types
-- Built-in Warp Providers
-- Examples
-- Debugging
-- Notes
+- [Warp Actions](#warp-actions)
+- [Warp Providers](#warp-providers)
+- [Content Pack Setup](#content-pack-setup)
+- [Warp Provider Types](#warp-provider-types)
+- [Built-in Warp Providers](#built-in-warp-providers)
+- [Example](#example)
+- [Debugging](#debugging)
+- [Notes](#notes)
 
 ---
 
@@ -50,15 +50,9 @@ T's Core provides two custom warp actions:
 | `TsCoreWarp` | Performs a standard warp without visual effects. |
 | `TsCoreMagicWarp` | Performs the same warp using Stardew Valley's built-in magic warp animation and sound effect. |
 
-Both actions support:
+Both actions support Warp Providers, location names, direct coordinates, and optional facing directions.
 
-- Built-in Warp Providers
-- Custom Warp Providers
-- Location names
-- Direct coordinates
-- Optional facing direction
-
-The same syntax can be used with:
+They can be used with:
 
 - Tile Actions
 - Touch Actions
@@ -129,7 +123,7 @@ When a destination is passed to `TsCoreWarp` or `TsCoreMagicWarp`, T's Core firs
 
 If no matching provider exists, the value is treated as a location name.
 
-For example, both of the following are valid:
+For example:
 
 ```text
 TsCoreWarp FarmHouseFront
@@ -142,9 +136,7 @@ TsCoreWarp BusStop
 
 ## Content Pack Setup
 
-In addition to the built-in providers, T's Core allows Content Packs to register custom Warp Providers.
-
-Warp Providers are added through a standard **T's Core Content Pack**.
+T's Core Content Packs can register custom Warp Providers.
 
 A single Content Pack can include multiple T's Core features, such as custom Warp Providers and Notification Themes.
 
@@ -195,10 +187,7 @@ JSON filenames may be chosen freely.
 
 Each JSON file inside `assets/warp` defines one Warp Provider.
 
-T's Core currently supports two provider types:
-
-- `Warp`
-- `Building`
+T's Core currently supports `Warp` and `Building` providers.
 
 ---
 
@@ -294,12 +283,6 @@ T's Core includes several built-in providers that resolve their destinations dyn
 
 All built-in providers can be used with either `TsCoreWarp` or `TsCoreMagicWarp`.
 
-Example:
-
-```text
-TsCoreWarp FarmHouseFront
-```
-
 Because these destinations are resolved from the active map warps, they can adapt to compatible custom maps and mods that move or modify their corresponding entrances.
 
 > **Note:** A provider requires a valid warp between its configured source and target locations. If another mod removes that warp entirely, the provider may not be able to resolve its destination.
@@ -308,7 +291,7 @@ Additional built-in providers may be added in future versions of T's Core.
 
 ---
 
-## Examples
+## Example
 
 The following example adds a Tile Action to the front of the fountain in **Pelican Town**.
 
@@ -336,7 +319,7 @@ To perform the same warp without the magic warp effect, replace `TsCoreMagicWarp
 
 ## Debugging
 
-T's Core provides several debug commands for inspecting registered Warp Providers, farm buildings, and reloading Warp Providers during development.
+T's Core provides debug commands for inspecting Warp Providers and farm buildings, as well as reloading T's Core resources during development.
 
 ---
 
@@ -352,11 +335,11 @@ When developing a T's Core Content Pack, you can reload supported resources with
 
 Running `tscore_reload` without an argument is equivalent to `tscore_reload all`.
 
-After running a reload command, T's Core automatically rescans the corresponding folders.
+After running a reload command, T's Core rescans the corresponding folders.
 
-Any JSON files that have been added, modified, or removed are detected and applied immediately without restarting the game.
+Any JSON files that have been added, modified, or removed are detected and applied without restarting the game.
 
-This allows you to test changes, add new Warp Providers or Notification Themes, and iterate on your Content Pack much faster while the game is running.
+This makes it possible to test changes and add new Warp Providers or Notification Themes while the game is running.
 
 > **Note:** Reloading only refreshes data loaded by T's Core. It does not reload Content Patcher patches or other SMAPI mods.
 
@@ -364,13 +347,13 @@ This allows you to test changes, add new Warp Providers or Notification Themes, 
 
 ### Inspecting Warp Providers
 
-Use the following SMAPI command to display all currently registered Warp Providers:
+Use the following command to display all currently registered Warp Providers:
 
 ```text
 tscore_debug_warp
 ```
 
-The following example shows both the built-in providers included with T's Core and a custom provider registered by the T's Core Content Pack included with the **[(SF) Monster House](https://www.nexusmods.com/stardewvalley/mods/20586)** mod.
+The following example shows the built-in providers and a custom provider registered by the T's Core Content Pack included with the **[(SF) Monster House](https://www.nexusmods.com/stardewvalley/mods/20586)** mod.
 
 <details>
 <summary>Example output</summary>
@@ -417,15 +400,15 @@ tscore_debug_warp
 
 ### Inspecting Farm Buildings
 
-When creating a Warp Provider with `Type: "Building"`, you can inspect the buildings currently placed on the farm using the following SMAPI command:
+When creating a `Building` provider, use the following command to inspect buildings currently placed on the farm:
 
 ```text
 tscore_debug_buildings
 ```
 
-This command displays each building's internal type, tile position, size, and interior location.
+It displays each building's internal type, tile position, size, and interior location.
 
-The value shown for `Building` can be used as the `BuildingType` property in a Building Provider definition.
+The building name shown in the output can be used as the `BuildingType` value.
 
 <details>
 <summary>Example output</summary>
@@ -448,13 +431,13 @@ tscore_debug_buildings
 
 </details>
 
-In this example, the value used for the Monster House provider is:
+For the Monster House example, the corresponding value is:
 
 ```json
 "BuildingType": "Tikami557.SF.MonsterHouse.Buildings_MonsterHouse"
 ```
 
-The `Tile` value represents the building's top-left tile and can be used to verify the position calculated from `OffsetX` and `OffsetY`.
+The `Tile` value represents the building's top-left tile and can be used to verify the destination calculated from `OffsetX` and `OffsetY`.
 
 > **Note:** A save must be loaded before using `tscore_debug_buildings`.
 
@@ -462,11 +445,11 @@ The `Tile` value represents the building's top-left tile and can be used to veri
 
 ## Notes
 
-Warp Services are fully compatible with Content Patcher and require no C# code.
+Warp Services are designed for use with Content Patcher and require no C# code.
 
-Whenever possible, it is recommended to use warp providers instead of hardcoded map names or coordinates to maximize compatibility with other mods.
+Whenever possible, use Warp Providers instead of hardcoded map names or coordinates to improve compatibility with custom maps and other mods.
 
-Additional warp providers and features may be added in future versions of T's Core without requiring changes to existing Content Packs.
+Additional providers and features may be added in future versions of T's Core.
 
 ---
 
