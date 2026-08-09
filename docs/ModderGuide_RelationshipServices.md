@@ -26,6 +26,18 @@ T's Core automatically handles supported relationship systems, allowing the same
 
 ---
 
+## Contents
+
+- [Supported Relationship Systems](#supported-relationship-systems)
+- [Available Tokens](#available-tokens)
+- [Using the Tokens](#using-the-tokens)
+- [Practical Examples](#practical-examples)
+- [Common Use Cases](#common-use-cases)
+- [Debugging](#debugging)
+- [Notes](#notes)
+
+---
+
 ## Supported Relationship Systems
 
 | System | Supported |
