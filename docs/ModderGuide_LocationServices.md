@@ -29,8 +29,8 @@ They are useful for creating location-aware Content Packs without requiring cust
 ## Contents
 
 - [Available Tokens](#available-tokens)
-- [Using the Tokens](#using-the-tokens)
-- [Practical Examples](#practical-examples)
+- [Available Tokens in Detail](#available-tokens-in-detail)
+- [Planned Tokens](#planned-tokens)
 - [Common Use Cases](#common-use-cases)
 - [Debugging](#debugging)
 - [Notes](#notes)
