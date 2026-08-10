@@ -148,6 +148,7 @@ A single Content Pack can include multiple T's Core features, such as custom War
   "Author": "YourName",
   "Version": "1.0.0",
   "UniqueID": "YourName.MyTsCorePack",
+  "UpdateKeys": [ "Nexus:12345" ],
   "ContentPackFor": {
     "UniqueID": "Tikamin557.TsCore"
   }
