@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using HarmonyLib;
+using StardewValley;
 using System.Reflection;
 using System.Reflection.Emit;
-using HarmonyLib;
-using StardewModdingAPI;
-using StardewValley;
 
 namespace Ts_Core.Patches
 {
@@ -125,17 +122,26 @@ namespace Ts_Core.Patches
         }
 
         /// <summary>
+        /// T's Coreが登録するWarp Action名です。
+        /// </summary>
+        private static readonly string[] TsCoreWarpActions =
+        {
+            "TsCoreWarp",
+            "TsCoreMagicWarp",
+            "TsCoreMagicWarp_Simple"
+        };
+
+        /// <summary>
         /// T's CoreのWarp Actionに関する警告か判定します。
         /// </summary>
         private static bool IsTsCoreWarpWarning(
             string message)
         {
-            return message.Contains(
-                       "unknown warp property 'TsCoreWarp ",
-                       StringComparison.Ordinal)
-                || message.Contains(
-                       "unknown warp property 'TsCoreMagicWarp ",
-                       StringComparison.Ordinal);
+            return TsCoreWarpActions.Any(
+                action =>
+                    message.Contains(
+                        $"unknown warp property '{action} ",
+                        StringComparison.Ordinal));
         }
     }
 }

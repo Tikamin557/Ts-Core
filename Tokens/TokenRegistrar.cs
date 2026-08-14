@@ -1,6 +1,5 @@
 ﻿using StardewModdingAPI;
 using Ts_Core.Interfaces;
-using Ts_Core.Services.Location;
 using Ts_Core.Services.Relationship;
 
 namespace Ts_Core.Tokens

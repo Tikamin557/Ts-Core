@@ -4,7 +4,6 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
-using System.Linq;
 using System.Text;
 
 namespace Ts_Core.Services.Notification

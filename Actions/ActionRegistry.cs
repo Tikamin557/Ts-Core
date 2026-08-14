@@ -32,6 +32,11 @@ namespace Ts_Core.Actions
                 HandleTileAction);
 
             RegisterAction(
+                "TsCoreMagicWarp_Simple",
+                HandleTouchAction,
+                HandleTileAction);
+
+            RegisterAction(
                 "TsCoreNotification",
                 NotificationAction.HandleTouchAction,
                 NotificationAction.HandleTileAction);
@@ -68,24 +73,84 @@ namespace Ts_Core.Actions
 
         /// <summary>
         /// 向き文字列または数値をゲーム内部の方向へ変換します。
+        /// Autoまたは4の場合は現在の向きを維持します。
         /// </summary>
-        private static int? ParseFacingDirection(string value)
+        private static bool TryParseFacingDirection(
+            string value,
+            out int? direction)
         {
-            if (int.TryParse(value, out int direction)
-                && direction >= 0
-                && direction <= 3)
+            //----------------------------------------
+            // 数値
+            //----------------------------------------
+
+            if (int.TryParse(
+                    value,
+                    out int numericDirection))
             {
-                return direction;
+                if (numericDirection >= 0
+                    && numericDirection <= 3)
+                {
+                    direction =
+                        numericDirection;
+
+                    return true;
+                }
+
+                // 4 = Auto
+                if (numericDirection == 4)
+                {
+                    direction = null;
+
+                    return true;
+                }
+
+                direction = null;
+
+                return false;
             }
 
-            return value.ToLowerInvariant() switch
+            //----------------------------------------
+            // 文字列
+            //----------------------------------------
+
+            switch (value.ToLowerInvariant())
             {
-                "up" => 0,
-                "right" => 1,
-                "down" => 2,
-                "left" => 3,
-                _ => null
-            };
+                case "up":
+
+                    direction = 0;
+
+                    return true;
+
+                case "right":
+
+                    direction = 1;
+
+                    return true;
+
+                case "down":
+
+                    direction = 2;
+
+                    return true;
+
+                case "left":
+
+                    direction = 3;
+
+                    return true;
+
+                case "auto":
+
+                    direction = null;
+
+                    return true;
+
+                default:
+
+                    direction = null;
+
+                    return false;
+            }
         }
 
         //----------------------------------------
@@ -97,94 +162,131 @@ namespace Ts_Core.Actions
         /// </summary>
         private static bool ExecuteWarp(string[] action)
         {
-            // Content Patcher:
-            // TsCoreWarp FarmHouseFront
-            // TsCoreWarp FarmHouseFront Left
-
             if (action.Length < 1)
                 return false;
 
-            bool magic;
+            //----------------------------------------
+            // Warp演出
+            //----------------------------------------
+
+            WarpEffectMode effectMode;
 
             switch (action[0])
             {
                 case "TsCoreWarp":
-                    magic = false;
+                    effectMode = WarpEffectMode.None;
                     break;
 
                 case "TsCoreMagicWarp":
-                    magic = true;
+                    effectMode = WarpEffectMode.Magic;
+                    break;
+
+                case "TsCoreMagicWarp_Simple":
+                    effectMode = WarpEffectMode.MagicSimple;
                     break;
 
                 default:
                     return false;
             }
 
-            switch (action.Length)
+            //----------------------------------------
+            // Warp形式
+            //----------------------------------------
+
+            //----------------------------------------
+            // 座標Warp
+            //----------------------------------------
+            //
+            // <Action> <Location> <X> <Y>
+            // <Action> <Location> <X> <Y> <Facing>
+            // <Action> <Location> <X> <Y> <Facing> <AudioCue>
+            //----------------------------------------
+
+            if (action.Length >= 4
+                && int.TryParse(action[2], out int x)
+                && int.TryParse(action[3], out int y))
             {
-                //----------------------------------------
-                // ProviderWarp
-                //----------------------------------------
-
-                // TsCoreWarp FarmHouseFront
-                // TsCoreWarp FarmHouseFront Left
-
-                case 2:
-                case 3:
-                    {
-                        int? facingDirection = null;
-
-                        if (action.Length == 3)
-                            facingDirection = ParseFacingDirection(action[2]);
-
-                        if (WarpService.Warp(
-                                action[1],
-                                magic,
-                                facingDirection))
-                        {
-                            return true;
-                        }
-
-                        // Providerが見つからない場合はMap名として扱う
-                        return WarpService.WarpToMap(
-                            action[1],
-                            magic,
-                            facingDirection);
-                    }
-
-                //----------------------------------------
-                // 座標Warp
-                //----------------------------------------
-
-                // TsCoreWarp Farm 64 15
-                // TsCoreWarp Farm 64 15 Left
-
-                case 4:
-                case 5:
-                    {
-                        if (!int.TryParse(action[2], out int x))
-                            return false;
-
-                        if (!int.TryParse(action[3], out int y))
-                            return false;
-
-                        int? facingDirection = null;
-
-                        if (action.Length == 5)
-                            facingDirection = ParseFacingDirection(action[4]);
-
-                        WarpService.Warp(
-                            action[1],
-                            new Point(x, y),
-                            magic,
-                            facingDirection);
-
-                        return true;
-                    }
-
-                default:
+                if (action.Length > 6)
                     return false;
+
+                int? facingDirection = null;
+                string? audioCue = null;
+
+                if (action.Length >= 5)
+                {
+                    if (!TryParseFacingDirection(
+                            action[4],
+                            out facingDirection))
+                    {
+                        return false;
+                    }
+                }
+
+                if (action.Length == 6)
+                {
+                    audioCue =
+                        action[5];
+                }
+
+                WarpService.Warp(
+                    action[1],
+                    new Point(x, y),
+                    effectMode,
+                    facingDirection,
+                    audioCue);
+
+                return true;
             }
+
+            //----------------------------------------
+            // Provider / Map Warp
+            //----------------------------------------
+            //
+            // <Action> <Provider>
+            // <Action> <Provider> <Facing>
+            // <Action> <Provider> <Facing> <AudioCue>
+            //----------------------------------------
+
+            if (action.Length < 2
+                || action.Length > 4)
+            {
+                return false;
+            }
+
+            int? providerFacingDirection = null;
+            string? providerAudioCue = null;
+
+            if (action.Length >= 3)
+            {
+                if (!TryParseFacingDirection(
+                        action[2],
+                        out providerFacingDirection))
+                {
+                    return false;
+                }
+            }
+
+            if (action.Length == 4)
+            {
+                providerAudioCue =
+                    action[3];
+            }
+
+            if (WarpService.Warp(
+                    action[1],
+                    effectMode,
+                    providerFacingDirection,
+                    providerAudioCue))
+            {
+                return true;
+            }
+
+            // Providerが見つからない場合はMap名として扱う
+            return WarpService.WarpToMap(
+                action[1],
+                effectMode,
+                providerFacingDirection,
+                providerAudioCue);
         }
 
         //----------------------------------------

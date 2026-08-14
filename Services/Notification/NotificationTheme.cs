@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using StardewValley;
 
 namespace Ts_Core.Services.Notification
 {

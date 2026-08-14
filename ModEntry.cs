@@ -7,6 +7,7 @@ using Ts_Core.Initializers;
 using Ts_Core.Interfaces;
 using Ts_Core.Patches;
 using Ts_Core.Providers;
+using Ts_Core.Services.LightRelated;
 using Ts_Core.Services.Location;
 using Ts_Core.Services.Notification;
 using Ts_Core.Services.Relationship;
@@ -53,6 +54,20 @@ namespace Ts_Core
 
             // Stardew Valley標準のWarp警告を抑制
             WarpWarningPatch.Apply(harmony);
+
+            // Stardew Valley標準のレイントーテムの
+            // 不具合を修正
+            RainTotemPatch.Apply(
+                harmony,
+                Monitor);
+
+            // 建物移動・撤去時にBuilding Lightを更新
+            BuildingLightPatch.Apply(
+                harmony);
+
+            // Buildingに条件付きDrawLayerを追加
+            BuildingDrawLayerPatch.Apply(
+                harmony);
 
             InitializeServices(helper);
             RegisterSystems(helper);
@@ -107,6 +122,11 @@ namespace Ts_Core
             WarpLoader.Load(
                 helper,
                 Monitor);
+
+            // Building Light定義読み込み
+            BuildingLightLoader.Load(
+                helper,
+                Monitor);
         }
 
         //----------------------------------------
@@ -116,6 +136,14 @@ namespace Ts_Core
         private void RegisterEvents(IModHelper helper)
         {
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+
+            // Building Light
+            helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
+            helper.Events.GameLoop.TimeChanged += OnTimeChanged;
+            helper.Events.Player.Warped += OnWarped;
+
+            // Data/Buildings更新
+            helper.Events.Content.AssetReady += OnAssetReady;
         }
 
         //----------------------------------------
@@ -142,6 +170,62 @@ namespace Ts_Core
                 provider);
 
             RegisterContentPatcherTokens();
+        }
+
+        //----------------------------------------
+        // SaveLoaded
+        //----------------------------------------
+
+        private void OnSaveLoaded(
+            object? sender,
+            SaveLoadedEventArgs e)
+        {
+            BuildingLightService.UpdateLights();
+        }
+
+        //----------------------------------------
+        // TimeChanged
+        //----------------------------------------
+
+        private void OnTimeChanged(
+            object? sender,
+            TimeChangedEventArgs e)
+        {
+            BuildingLightService.UpdateLights();
+        }
+
+        //----------------------------------------
+        // Warped
+        //----------------------------------------
+
+        private void OnWarped(
+            object? sender,
+            WarpedEventArgs e)
+        {
+            if (!e.IsLocalPlayer)
+                return;
+
+            BuildingLightService.UpdateLights();
+        }
+
+        //----------------------------------------
+        // AssetReady
+        //----------------------------------------
+
+        private void OnAssetReady(
+            object? sender,
+            AssetReadyEventArgs e)
+        {
+            if (!Context.IsWorldReady)
+                return;
+
+            if (!e.NameWithoutLocale.IsEquivalentTo(
+                    "Data/Buildings"))
+            {
+                return;
+            }
+
+            BuildingLightService.UpdateLights();
         }
 
         //----------------------------------------

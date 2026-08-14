@@ -1,0 +1,99 @@
+﻿using HarmonyLib;
+using Microsoft.Xna.Framework.Graphics;
+using StardewValley.Buildings;
+using Ts_Core.Services.DrawLayerRelated;
+
+namespace Ts_Core.Patches
+{
+    /// <summary>
+    /// Building描画時にTsCoreの条件付きDrawLayerを追加します。
+    /// </summary>
+    internal static class BuildingDrawLayerPatch
+    {
+        //----------------------------------------
+        // Patch適用
+        //----------------------------------------
+
+        public static void Apply(
+            Harmony harmony)
+        {
+            PatchDraw(
+                harmony);
+
+            PatchDrawBackground(
+                harmony);
+        }
+
+        //----------------------------------------
+        // Foreground DrawLayer
+        //----------------------------------------
+
+        private static void PatchDraw(
+            Harmony harmony)
+        {
+            var method =
+                AccessTools.Method(
+                    typeof(Building),
+                    nameof(Building.draw),
+                    new[]
+                    {
+                        typeof(SpriteBatch)
+                    });
+
+            if (method == null)
+                return;
+
+            harmony.Patch(
+                method,
+                postfix: new HarmonyMethod(
+                    typeof(BuildingDrawLayerPatch),
+                    nameof(DrawPostfix)));
+        }
+
+        private static void DrawPostfix(
+            Building __instance,
+            SpriteBatch b)
+        {
+            BuildingDrawLayerService.DrawLayers(
+                __instance,
+                b,
+                drawInBackground: false);
+        }
+
+        //----------------------------------------
+        // Background DrawLayer
+        //----------------------------------------
+
+        private static void PatchDrawBackground(
+            Harmony harmony)
+        {
+            var method =
+                AccessTools.Method(
+                    typeof(Building),
+                    nameof(Building.drawBackground),
+                    new[]
+                    {
+                        typeof(SpriteBatch)
+                    });
+
+            if (method == null)
+                return;
+
+            harmony.Patch(
+                method,
+                postfix: new HarmonyMethod(
+                    typeof(BuildingDrawLayerPatch),
+                    nameof(DrawBackgroundPostfix)));
+        }
+
+        private static void DrawBackgroundPostfix(
+            Building __instance,
+            SpriteBatch b)
+        {
+            BuildingDrawLayerService.DrawLayers(
+                __instance,
+                b,
+                drawInBackground: true);
+        }
+    }
+}

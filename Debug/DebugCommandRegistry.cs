@@ -1,9 +1,11 @@
 ﻿using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
+using Ts_Core.Models;
 using Ts_Core.Providers;
 using Ts_Core.Readers;
 using Ts_Core.Services;
+using Ts_Core.Services.LightRelated;
 using Ts_Core.Services.Location;
 using Ts_Core.Services.Notification;
 using Ts_Core.Services.Relationship;
@@ -67,7 +69,7 @@ namespace Ts_Core.Debug
             // T's Coreの機能を再読み込み
             helper.ConsoleCommands.Add(
                 "tscore_reload",
-                "Reload T's Core data. Usage: tscore_reload [all|warp|notification]",
+                "Reload T's Core data. Usage: tscore_reload [all|warp|notification|light]",
                 (command, args) =>
                     ReloadTsCore(
                         helper,
@@ -88,6 +90,14 @@ namespace Ts_Core.Debug
                 "Print all farm buildings.",
                 (command, args) =>
                     LogBuildings(
+                        monitor));
+
+            // 登録されているBuilding Light Providerを表示
+            helper.ConsoleCommands.Add(
+                "tscore_debug_lights",
+                "Print all registered Building Light providers.",
+                (command, args) =>
+                    LogBuildingLightProviders(
                         monitor));
 
             //----------------------------------------
@@ -189,6 +199,10 @@ namespace Ts_Core.Debug
                     ReloadNotification(
                         monitor);
 
+                    ReloadBuildingLights(
+                        helper,
+                        monitor);
+
                     monitor.Log(
                         "T's Core data reloaded successfully.",
                         LogLevel.Info);
@@ -202,6 +216,19 @@ namespace Ts_Core.Debug
                 case "warp":
 
                     ReloadWarp(
+                        helper,
+                        monitor);
+
+                    break;
+
+                //----------------------------------------
+                // Building Light
+                //----------------------------------------
+
+                case "light":
+                case "lights":
+
+                    ReloadBuildingLights(
                         helper,
                         monitor);
 
@@ -265,6 +292,32 @@ namespace Ts_Core.Debug
             {
                 monitor.Log(
                     $"Failed to reload Warp Providers: {ex}",
+                    LogLevel.Error);
+            }
+        }
+
+        /// <summary>
+        /// Building Light Providerを再読み込みします。
+        /// </summary>
+        private static void ReloadBuildingLights(
+            IModHelper helper,
+            IMonitor monitor)
+        {
+            try
+            {
+                BuildingLightLoader.Reload(
+                    helper,
+                    monitor);
+
+                if (Context.IsWorldReady)
+                {
+                    BuildingLightService.UpdateLights();
+                }
+            }
+            catch (Exception ex)
+            {
+                monitor.Log(
+                    $"Failed to reload Building Light Providers: {ex}",
                     LogLevel.Error);
             }
         }
@@ -337,6 +390,12 @@ namespace Ts_Core.Debug
                 monitor,
                 "tscore_reload warp",
                 "Reload Warp Providers.",
+                labelWidth: 28);
+
+            LogField(
+                monitor,
+                "tscore_reload light",
+                "Reload Building Light Providers.",
                 labelWidth: 28);
 
             LogField(
@@ -693,6 +752,157 @@ namespace Ts_Core.Debug
                     "Indoors",
                     building.GetIndoors()?.NameOrUniqueName
                         ?? "(none)");
+            }
+        }
+
+        //----------------------------------------
+        // Building Light Provider のログ表示
+        //----------------------------------------
+
+        /// <summary>
+        /// 現在登録されているBuilding Light Providerを表示します。
+        /// </summary>
+        private static void LogBuildingLightProviders(
+            IMonitor monitor)
+        {
+            IReadOnlyList<RegisteredBuildingLightProviderInfo> providers =
+                BuildingLightService.GetRegisteredProviders();
+
+            monitor.Log(
+                "===== Building Light Providers =====",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"Registered Providers: {providers.Count}",
+                LogLevel.Info);
+
+            if (providers.Count == 0)
+            {
+                LogBlankLine(monitor);
+
+                monitor.Log(
+                    "No Building Light providers are registered.",
+                    LogLevel.Info);
+
+                return;
+            }
+
+            //----------------------------------------
+            // 登録元ごとにグループ化
+            //----------------------------------------
+
+            List<IGrouping<string, RegisteredBuildingLightProviderInfo>> groupList =
+                providers
+                    .GroupBy(provider => provider.Owner)
+                    .OrderBy(group =>
+                        string.Equals(
+                            group.Key,
+                            "T's Core",
+                            StringComparison.OrdinalIgnoreCase)
+                            ? 0
+                            : 1)
+                    .ThenBy(group => group.Key)
+                    .ToList();
+
+            LogBlankLine(monitor);
+
+            for (int groupIndex = 0;
+                 groupIndex < groupList.Count;
+                 groupIndex++)
+            {
+                IGrouping<string, RegisteredBuildingLightProviderInfo> group =
+                    groupList[groupIndex];
+
+                monitor.Log(
+                    $"----- {group.Key} -----",
+                    LogLevel.Info);
+
+                LogBlankLine(monitor);
+
+                List<RegisteredBuildingLightProviderInfo> providerList =
+                    group
+                        .OrderBy(provider => provider.Id)
+                        .ToList();
+
+                for (int providerIndex = 0;
+                     providerIndex < providerList.Count;
+                     providerIndex++)
+                {
+                    RegisteredBuildingLightProviderInfo provider =
+                        providerList[providerIndex];
+
+                    monitor.Log(
+                        provider.Id,
+                        LogLevel.Info);
+
+                    LogField(
+                        monitor,
+                        "Building",
+                        provider.BuildingType);
+
+                    LogField(
+                        monitor,
+                        "Lights",
+                        provider.LightCount);
+
+                    LogField(
+                        monitor,
+                        "Enable Field",
+                        string.IsNullOrWhiteSpace(provider.LightsEnabledField)
+                            ? "(none)"
+                            : provider.LightsEnabledField);
+
+                    //----------------------------------------
+                    // Light一覧
+                    //----------------------------------------
+
+                    if (provider.Lights.Count > 0)
+                    {
+                        LogBlankLine(monitor);
+
+                        for (int lightIndex = 0;
+                             lightIndex < provider.Lights.Count;
+                             lightIndex++)
+                        {
+                            BuildingLightModel light =
+                                provider.Lights[lightIndex];
+
+                            monitor.Log(
+                                $"    {light.Id}",
+                                LogLevel.Info);
+
+                            LogField(
+                                monitor,
+                                "Offset",
+                                $"({light.OffsetX}, {light.OffsetY})",
+                                indent: 8);
+
+                            LogField(
+                                monitor,
+                                "Radius",
+                                light.Radius,
+                                indent: 8);
+
+                            LogField(
+                                monitor,
+                                "Color",
+                                light.Color,
+                                indent: 8);
+
+                            // 同じProvider内のLight間だけ空行
+                            if (lightIndex < provider.Lights.Count - 1)
+                                LogBlankLine(monitor);
+                        }
+                    }
+
+                    // 同じグループ内のProvider間だけ空行
+                    if (providerIndex < providerList.Count - 1)
+                        LogBlankLine(monitor);
+                }
+
+                // グループ間だけ空行
+                if (groupIndex < groupList.Count - 1)
+                    LogBlankLine(monitor);
             }
         }
 

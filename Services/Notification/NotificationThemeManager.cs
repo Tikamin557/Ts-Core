@@ -1,6 +1,5 @@
 ﻿using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using System.Text.Json;
 
 namespace Ts_Core.Services.Notification
 {

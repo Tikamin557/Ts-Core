@@ -64,6 +64,27 @@ namespace Ts_Core.Services.WarpRelated
     }
 
     /// <summary>
+    /// Warp時に使用する演出の種類です。
+    /// </summary>
+    public enum WarpEffectMode
+    {
+        /// <summary>
+        /// 通常Warp。
+        /// </summary>
+        None,
+
+        /// <summary>
+        /// 通常のMagic Warp演出。
+        /// </summary>
+        Magic,
+
+        /// <summary>
+        /// 簡易Magic Warp演出。
+        /// </summary>
+        MagicSimple
+    }
+
+    /// <summary>
     /// Warp Providerや座標を使用したワープ処理を実行するサービスです。
     /// </summary>
     public static class WarpService
@@ -259,12 +280,18 @@ namespace Ts_Core.Services.WarpRelated
         // Warp実行
         //----------------------------------------
 
+        /// <summary>
+        /// Warp Providerを使用してWarpします。
+        /// </summary>
         public static bool Warp(
             string key,
-            bool magic,
-            int? facingDirection = null)
+            WarpEffectMode effectMode,
+            int? facingDirection = null,
+            string? audioCue = null)
         {
-            if (!WarpProviders.TryGetValue(key, out var provider))
+            if (!WarpProviders.TryGetValue(
+                    key,
+                    out Func<(string Location, Point Point)>? provider))
             {
                 return false;
             }
@@ -274,24 +301,67 @@ namespace Ts_Core.Services.WarpRelated
             Warp(
                 destination.Location,
                 destination.Point,
-                magic,
-                facingDirection);
+                effectMode,
+                facingDirection,
+                audioCue);
 
             return true;
         }
 
+        /// <summary>
+        /// 指定座標へWarpします。
+        /// </summary>
+        public static void Warp(
+            string location,
+            Point point,
+            WarpEffectMode effectMode,
+            int? facingDirection = null,
+            string? audioCue = null)
+        {
+            WarpInternal(
+                location,
+                point,
+                effectMode,
+                facingDirection,
+                audioCue);
+        }
+
+        //----------------------------------------
+        // 互換用 overload
+        //----------------------------------------
+
+        /// <summary>
+        /// 従来のbool指定によるWarpです。
+        /// </summary>
+        public static bool Warp(
+            string key,
+            bool magic,
+            int? facingDirection = null)
+        {
+            return Warp(
+                key,
+                magic
+                    ? WarpEffectMode.Magic
+                    : WarpEffectMode.None,
+                facingDirection);
+        }
+
+        /// <summary>
+        /// 従来のbool指定によるWarpです。
+        /// </summary>
         public static void Warp(
             string location,
             Point point,
             bool magic,
             int? facingDirection = null)
         {
-            WarpInternal(
+            Warp(
                 location,
                 point,
-                magic,
-                facingDirection
-            );
+                magic
+                    ? WarpEffectMode.Magic
+                    : WarpEffectMode.None,
+                facingDirection);
         }
 
         //----------------------------------------
@@ -339,11 +409,13 @@ namespace Ts_Core.Services.WarpRelated
         //----------------------------------------
 
         public static bool WarpToMap(
-        string locationName,
-        bool magic,
-        int? facingDirection = null)
+            string locationName,
+            WarpEffectMode effectMode,
+            int? facingDirection = null,
+            string? audioCue = null)
         {
-            GameLocation? location = Game1.getLocationFromName(locationName);
+            GameLocation? location =
+                Game1.getLocationFromName(locationName);
 
             if (location == null)
                 return false;
@@ -368,10 +440,28 @@ namespace Ts_Core.Services.WarpRelated
             Warp(
                 location.Name,
                 new Point(x, y),
-                magic,
-                facingDirection);
+                effectMode,
+                facingDirection,
+                audioCue);
 
             return true;
+        }
+
+        //----------------------------------------
+        // 互換用 overload
+        //----------------------------------------
+
+        public static bool WarpToMap(
+            string locationName,
+            bool magic,
+            int? facingDirection = null)
+        {
+            return WarpToMap(
+                locationName,
+                magic
+                    ? WarpEffectMode.Magic
+                    : WarpEffectMode.None,
+                facingDirection);
         }
 
         //----------------------------------------
@@ -379,24 +469,69 @@ namespace Ts_Core.Services.WarpRelated
         //----------------------------------------
 
         private static void WarpInternal(
-            string location,
-            Point point,
-            bool magic,
-            int? facingDirection)
+     string location,
+     Point point,
+     WarpEffectMode effectMode,
+     int? facingDirection,
+     string? audioCue)
         {
-            if (magic)
+            switch (effectMode)
             {
-                MagicWarp(location, point, facingDirection);
-                return;
+                //----------------------------------------
+                // Magic Warp
+                //----------------------------------------
+
+                case WarpEffectMode.Magic:
+
+                    MagicWarp(
+                        location,
+                        point,
+                        facingDirection,
+                        simple: false,
+                        audioCue);
+
+                    return;
+
+                //----------------------------------------
+                // Simple Magic Warp
+                //----------------------------------------
+
+                case WarpEffectMode.MagicSimple:
+
+                    MagicWarp(
+                        location,
+                        point,
+                        facingDirection,
+                        simple: true,
+                        audioCue);
+
+                    return;
+
+                //----------------------------------------
+                // Normal Warp
+                //----------------------------------------
+
+                default:
+
+                    int direction =
+                        facingDirection
+                        ?? Game1.player.FacingDirection;
+
+                    // Audio Cueが指定されている場合のみ再生
+                    if (!string.IsNullOrWhiteSpace(audioCue))
+                    {
+                        Game1.currentLocation?.playSound(
+                            audioCue);
+                    }
+
+                    Game1.warpFarmer(
+                        location,
+                        point.X,
+                        point.Y,
+                        direction);
+
+                    return;
             }
-
-            int direction = facingDirection ?? Game1.player.FacingDirection;
-
-            Game1.warpFarmer(
-                location,
-                point.X,
-                point.Y,
-                direction);
         }
 
         //----------------------------------------
@@ -404,72 +539,122 @@ namespace Ts_Core.Services.WarpRelated
         //----------------------------------------
 
         private const int MagicWarpDelay = 1000;
+        private const int SimpleMagicWarpDelay = 500;
 
         private static void MagicWarp(
             string location,
             Point point,
-            int? facingDirection)
+            int? facingDirection,
+            bool simple,
+            string? audioCue)
         {
-            GameLocation? currentLocation = Game1.currentLocation;
-            Farmer player = Game1.player;
-            int direction = facingDirection ?? player.FacingDirection;
+            GameLocation? currentLocation =
+                Game1.currentLocation;
+
+            Farmer player =
+                Game1.player;
+
+            int direction =
+                facingDirection
+                ?? player.FacingDirection;
 
             if (currentLocation == null)
                 return;
 
-            // プレイヤー周囲に魔法エフェクトを表示
-            for (int j = 0; j < 12; j++)
+            //----------------------------------------
+            // Full Magic Warp専用エフェクト
+            //----------------------------------------
+
+            if (!simple)
             {
-                currentLocation.TemporarySprites.Add(
-                new TemporaryAnimatedSprite(
-                    354,
-                    Game1.random.Next(25, 75),
-                    6,
-                    1,
-                    new Vector2(
-                        Game1.random.Next((int)player.Position.X - 256,
-                                          (int)player.Position.X + 192),
-                        Game1.random.Next((int)player.Position.Y - 256,
-                                          (int)player.Position.Y + 192)
-                    ),
-                    flicker: false,
-                    Game1.random.NextBool()
-                ));
+                // プレイヤー周囲に魔法エフェクトを表示
+                for (int j = 0; j < 12; j++)
+                {
+                    currentLocation.TemporarySprites.Add(
+                        new TemporaryAnimatedSprite(
+                            354,
+                            Game1.random.Next(25, 75),
+                            6,
+                            1,
+                            new Vector2(
+                                Game1.random.Next(
+                                    (int)player.Position.X - 256,
+                                    (int)player.Position.X + 192),
+                                Game1.random.Next(
+                                    (int)player.Position.Y - 256,
+                                    (int)player.Position.Y + 192)
+                            ),
+                            flicker: false,
+                            Game1.random.NextBool()
+                        ));
+                }
+
+                // 横方向の光エフェクト
+                int j2 = 0;
+                Point playerTile =
+                    player.TilePoint;
+
+                for (int x = playerTile.X + 8;
+                     x >= playerTile.X - 8;
+                     x--)
+                {
+                    currentLocation.TemporarySprites.Add(
+                        new TemporaryAnimatedSprite(
+                            6,
+                            new Vector2(
+                                x,
+                                playerTile.Y) * 64f,
+                            Color.White,
+                            8,
+                            flipped: false,
+                            50f)
+                        {
+                            layerDepth = 1f,
+                            delayBeforeAnimationStart =
+                                j2 * 25,
+                            motion =
+                                new Vector2(-0.25f, 0f)
+                        });
+
+                    j2++;
+                }
             }
 
-            // 横方向の光エフェクト
-            int j2 = 0;
-            Point playerTile = player.TilePoint;
+            //----------------------------------------
+            // 共通Magic Warp演出
+            //----------------------------------------
 
-            for (int x = playerTile.X + 8; x >= playerTile.X - 8; x--)
-            {
-                currentLocation.TemporarySprites.Add(
-                    new TemporaryAnimatedSprite(
-                        6,
-                        new Vector2(x, playerTile.Y) * 64f,
-                        Color.White,
-                        8,
-                        flipped: false,
-                        50f)
-                    {
-                        layerDepth = 1f,
-                        delayBeforeAnimationStart = j2 * 25,
-                        motion = new Vector2(-0.25f, 0f)
-                    });
+            // Warp効果音
+            string warpSound =
+                string.IsNullOrWhiteSpace(audioCue)
+                    ? "wand"
+                    : audioCue;
 
-                j2++;
-            }
-
-            // 魔法効果音を再生
-            currentLocation.playSound("wand");
+            currentLocation.playSound(
+                warpSound);
 
             // プレイヤー操作を一時停止
             Game1.freezeControls = true;
-            Game1.displayFarmer = false;
             player.CanMove = false;
+
+            if (simple)
+            {
+                // 移動を停止して立ち状態に戻す
+                player.Halt();
+                player.FarmerSprite.StopAnimation();
+            }
+            else
+            {
+                Game1.displayFarmer = false;
+            }
 
             // 画面を白くフラッシュ
             Game1.flashAlpha = 1f;
+
+            int warpDelay =
+                simple
+                    ? SimpleMagicWarpDelay
+                    : MagicWarpDelay;
 
             // 一定時間後にWarp
             DelayedAction.fadeAfterDelay(() =>
@@ -487,7 +672,7 @@ namespace Ts_Core.Services.WarpRelated
                 player.CanMove = true;
                 Game1.freezeControls = false;
 
-            }, MagicWarpDelay);
+            }, warpDelay);
         }
     }
 }
