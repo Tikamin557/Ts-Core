@@ -1,4 +1,4 @@
-namespace Ts_Core.Models
+﻿namespace Ts_Core.Models
 {
     /// <summary>
     /// 建物に追加するライト1件分の定義です。

@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley.Buildings;
-using Ts_Core.Services.DrawLayerRelated;
+using Ts_Core.Services.BuildingRelated;
 
 namespace Ts_Core.Patches
 {
@@ -14,6 +14,9 @@ namespace Ts_Core.Patches
         // Patch適用
         //----------------------------------------
 
+        /// <summary>
+        /// Building描画処理にHarmonyパッチを適用します。
+        /// </summary>
         public static void Apply(
             Harmony harmony)
         {
@@ -50,6 +53,9 @@ namespace Ts_Core.Patches
                     nameof(DrawPostfix)));
         }
 
+        /// <summary>
+        /// Building本体の描画後に前面DrawLayerを追加します。
+        /// </summary>
         private static void DrawPostfix(
             Building __instance,
             SpriteBatch b)
@@ -86,6 +92,9 @@ namespace Ts_Core.Patches
                     nameof(DrawBackgroundPostfix)));
         }
 
+        /// <summary>
+        /// Building背景の描画後に背景DrawLayerを追加します。
+        /// </summary>
         private static void DrawBackgroundPostfix(
             Building __instance,
             SpriteBatch b)

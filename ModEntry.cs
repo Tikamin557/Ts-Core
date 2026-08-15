@@ -7,7 +7,7 @@ using Ts_Core.Initializers;
 using Ts_Core.Interfaces;
 using Ts_Core.Patches;
 using Ts_Core.Providers;
-using Ts_Core.Services.LightRelated;
+using Ts_Core.Services.BuildingRelated;
 using Ts_Core.Services.Location;
 using Ts_Core.Services.Notification;
 using Ts_Core.Services.Relationship;
@@ -124,7 +124,7 @@ namespace Ts_Core
                 Monitor);
 
             // Building Light定義読み込み
-            BuildingLightLoader.Load(
+            BuildingProviderLoader.Load(
                 helper,
                 Monitor);
         }

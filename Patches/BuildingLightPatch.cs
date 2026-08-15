@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using StardewValley;
 using StardewValley.Buildings;
-using Ts_Core.Services.LightRelated;
+using Ts_Core.Services.BuildingRelated;
 
 namespace Ts_Core.Patches
 {

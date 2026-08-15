@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
-using Ts_Core.Services.Notification;
 
-namespace Ts_Core.Services
+namespace Ts_Core.Services.Notification
 {
     /// <summary>
     /// 通知の表示要求を表すデータです。

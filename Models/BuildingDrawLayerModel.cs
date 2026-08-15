@@ -14,7 +14,7 @@ namespace Ts_Core.Models
 
         /// <summary>
         /// 描画に使用するテクスチャです。
-        /// 未指定の場合は建物本体のテクスチャを使用します。
+        /// 未指定の場合はBuildingDataのTextureを使用します。
         /// </summary>
         public string? Texture { get; set; }
 
