@@ -92,7 +92,7 @@ For detailed instructions, see the corresponding guide:
 
 - **[Building Services Guide](ModderGuide_BuildingServices.md)**
 - **[Warp Services Guide](ModderGuide_WarpServices.md)**
-- **[Notification System Guide](ModderGuide_NotificationSystem.md)** *(Coming Soon)*
+- **[Notification System Guide](ModderGuide_NotificationSystem.md)**
 
 ---
 
@@ -161,7 +161,7 @@ Detailed documentation for each system is available below.
 - [Location Services](ModderGuide_LocationServices.md)
 - [Warp Services](ModderGuide_WarpServices.md)
 - [Building Services](ModderGuide_BuildingServices.md)
-- [Notification System](ModderGuide_NotificationSystem.md) *(Coming Soon)*
-- [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
+- [Notification System](ModderGuide_NotificationSystem.md)
+- [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md)
 
 ← [Back to README](../README.md)
