@@ -43,42 +43,49 @@ This guide explains how to use Warp Actions, create custom Warp Providers, and i
 
 ## Warp Actions
 
-T's Core provides two custom warp actions:
+T's Core provides three custom warp actions:
 
 | Action | Description |
 |--------|-------------|
 | `TsCoreWarp` | Performs a standard warp without visual effects. |
 | `TsCoreMagicWarp` | Performs the same warp using Stardew Valley's built-in magic warp animation and sound effect. |
+| `TsCoreMagicWarp_Simple` | Performs a simplified magic warp. Some of the standard magic warp effects are omitted, and the player remains visible during the warp animation. |
 
-Both actions support Warp Providers, location names, direct coordinates, and optional facing directions.
+All three actions support Warp Providers, location names, direct coordinates, and optional facing directions.
+
+All three actions also support a custom audio cue.
 
 They can be used with:
 
 - Tile Actions
 - Touch Actions
-- Trigger Actions *(where supported)*
 
-> **Note:** When custom warp actions are used as Tile Actions, Stardew Valley normally logs a legacy **"unknown warp property"** warning to the SMAPI console. T's Core automatically suppresses this warning for `TsCoreWarp` and `TsCoreMagicWarp`.
+> **Note:** When custom warp actions are used as Tile Actions, Stardew Valley normally logs a legacy **"unknown warp property"** warning to the SMAPI console. T's Core automatically suppresses this warning for T's Core warp actions.
 
 ---
 
 ### Syntax
 
-`TsCoreWarp` and `TsCoreMagicWarp` use the same syntax.
+All T's Core Warp Actions use the same syntax.
 
 | Destination | Syntax | Example |
 |-------------|--------|---------|
-| Provider | `<Action> <Provider>` | `TsCoreWarp FarmHouseFront` |
-| Provider + facing direction | `<Action> <Provider> <FacingDirection>` | `TsCoreMagicWarp FarmHouseFront Left` |
-| Location | `<Action> <LocationName>` | `TsCoreWarp BusStop` |
-| Location + coordinates | `<Action> <LocationName> <X> <Y>` | `TsCoreWarp Farm 64 15` |
-| Location + coordinates + facing direction | `<Action> <LocationName> <X> <Y> <FacingDirection>` | `TsCoreMagicWarp Farm 64 15 Down` |
+| Provider / Location | `<Action> <ProviderOrLocation>` | `TsCoreWarp FarmHouseFront` |
+| Provider / Location + facing direction | `<Action> <ProviderOrLocation> <FacingDirection>` | `TsCoreMagicWarp FarmHouseFront Left` |
+| Provider / Location + facing direction + audio cue | `<Action> <ProviderOrLocation> <FacingDirection> <AudioCue>` | `TsCoreMagicWarp_Simple FarmHouseFront Auto wand` |
+| Direct coordinates | `<Action> <LocationName> <X> <Y>` | `TsCoreWarp Farm 64 15` |
+| Direct coordinates + facing direction | `<Action> <LocationName> <X> <Y> <FacingDirection>` | `TsCoreMagicWarp Farm 64 15 Down` |
+| Direct coordinates + facing direction + audio cue | `<Action> <LocationName> <X> <Y> <FacingDirection> <AudioCue>` | `TsCoreMagicWarp_Simple Farm 64 15 Auto wand` |
 
-Replace `<Action>` with either `TsCoreWarp` or `TsCoreMagicWarp`.
+Replace `<Action>` with:
+
+- `TsCoreWarp`
+- `TsCoreMagicWarp`
+- `TsCoreMagicWarp_Simple`
 
 When only a location name is specified, T's Core automatically uses the location's default warp point.
 
-> **Note:** Direct coordinate warps behave like the corresponding vanilla warp action. If you do not need any T's Core-specific functionality, using the vanilla warp action is recommended.
+> **Note:** A custom audio cue requires a `FacingDirection` argument. Use `Auto` if you want to keep the player's current facing direction.
 
 ---
 
@@ -86,12 +93,53 @@ When only a location name is specified, T's Core automatically uses the location
 
 Facing direction can be specified using either its name or numeric value.
 
-| Direction | Numeric Value |
-|----------|--------------:|
-| `Up` | `0` |
-| `Right` | `1` |
-| `Down` | `2` |
-| `Left` | `3` |
+| Direction | Numeric Value | Description |
+|----------|--------------:|-------------|
+| `Up` | `0` | Face upward after warping. |
+| `Right` | `1` | Face right after warping. |
+| `Down` | `2` | Face downward after warping. |
+| `Left` | `3` | Face left after warping. |
+| `Auto` | `4` | Keep the player's current facing direction. |
+
+`Auto` is useful when a facing direction argument is required, such as when specifying a custom audio cue, but you don't want to change the player's current facing direction.
+
+---
+
+### Custom Audio Cue
+
+T's Core Warp Actions can optionally play a custom audio cue when the warp is performed.
+
+To specify a custom audio cue, a `FacingDirection` must also be specified.
+
+For a Warp Provider or location name:
+
+```text
+<Action> <ProviderOrLocation> <FacingDirection> <AudioCue>
+```
+
+For direct coordinates:
+
+```text
+<Action> <LocationName> <X> <Y> <FacingDirection> <AudioCue>
+```
+
+Examples:
+
+```text
+TsCoreMagicWarp FarmHouseFront Down wand
+TsCoreMagicWarp_Simple FarmHouseFront Auto wand
+TsCoreWarp Farm 64 15 Left doorClose
+```
+
+The final argument is the audio cue name to play when the warp is performed.
+
+If you want to specify a custom audio cue without changing the player's facing direction, use `Auto` for `FacingDirection`.
+
+```text
+TsCoreMagicWarp_Simple FarmHouseFront Auto MyAudioCue
+```
+
+> **Note:** A custom audio cue cannot be specified without `FacingDirection`, since the audio cue is always the argument immediately following it.
 
 ---
 
@@ -119,7 +167,7 @@ For example, `FarmHouseFront` resolves the farmhouse entrance dynamically, so a 
 
 ### Provider Resolution
 
-When a destination is passed to `TsCoreWarp` or `TsCoreMagicWarp`, T's Core first attempts to resolve it as a registered Warp Provider.
+When a destination is passed to a T's Core Warp Action, T's Core first attempts to resolve it as a registered Warp Provider.
 
 If no matching provider exists, the value is treated as a location name.
 
@@ -163,6 +211,8 @@ Replace the example values with your own information before publishing your Cont
 [TsC] My T's Core Content Pack
 ├── manifest.json
 └── assets
+    ├── buildings
+    │   └── MyBuilding.json
     ├── notification
     │   └── MyNotification.json
     └── warp
@@ -173,6 +223,7 @@ Currently, T's Core supports the following feature folders:
 
 | Folder | Purpose |
 |--------|---------|
+| `assets/buildings` | Building Providers |
 | `assets/notification` | Custom Notification Themes |
 | `assets/warp` | Custom Warp Providers |
 
@@ -180,7 +231,7 @@ Only create the folders your Content Pack actually uses.
 
 JSON filenames may be chosen freely.
 
-> **Note:** The folder names (`assets`, `notification`, `warp`, etc.) are fixed and must not be renamed. T's Core searches these specific folders when loading Content Packs.
+> **Note:** The folder names (`assets`, `buildings`, `notification`, `warp`, etc.) are fixed and must not be renamed. T's Core searches these specific folders when loading Content Packs.
 
 ---
 
@@ -207,7 +258,7 @@ A **Warp** provider resolves its destination by reading an existing warp from a 
 
 | Property | Required | Description |
 |----------|----------|-------------|
-| `Id` | ✅ | Unique provider name used by `TsCoreWarp` and `TsCoreMagicWarp`. |
+| `Id` | ✅ | Unique provider name used by T's Core Warp Actions. |
 | `Type` | ✅ | Must be `"Warp"`. |
 | `Source` | ✅ | Location containing the warp to inspect. |
 | `Target` | ✅ | Destination location of the warp to resolve. |
@@ -239,7 +290,7 @@ The following example shows the actual Building Provider used by the **[(SF) Mon
 
 | Property | Required | Description |
 |----------|----------|-------------|
-| `Id` | ✅ | Unique provider name used by `TsCoreWarp` and `TsCoreMagicWarp`. |
+| `Id` | ✅ | Unique provider name used by T's Core Warp Actions. |
 | `Type` | ✅ | Must be `"Building"`. |
 | `BuildingType` | ✅ | Internal building type to search for on the player's farm. |
 | `OffsetX` | ✅ | Horizontal offset from the building's top-left tile. |
@@ -267,7 +318,7 @@ the destination is one tile directly below the building's top-left tile.
 
 If the building cannot be found, the provider specified by `Fallback` is used instead.
 
-> **Tip:** Use `tscore_debug_buildings` to inspect building types, positions, and sizes currently present on the farm.
+> **Tip:** Use `tscore_debug_farmbuildings` to inspect building types, positions, and sizes currently present on the farm.
 
 ---
 
@@ -282,7 +333,7 @@ T's Core includes several built-in providers that resolve their destinations dyn
 | `FarmCaveFront` | `FarmCave` | `Farm` | Resolves the tile outside the farm cave entrance. |
 | `IslandFarmHouseFront` | `IslandFarmHouse` | `IslandWest` | Resolves the tile outside the Island Farmhouse. |
 
-All built-in providers can be used with either `TsCoreWarp` or `TsCoreMagicWarp`.
+All built-in providers can be used with any T's Core Warp Action.
 
 Because these destinations are resolved from the active map warps, they can adapt to compatible custom maps and mods that move or modify their corresponding entrances.
 
@@ -316,6 +367,8 @@ Clicking the fountain uses the `FarmHouseFront` provider to magic-warp the playe
 
 To perform the same warp without the magic warp effect, replace `TsCoreMagicWarp` with `TsCoreWarp`.
 
+To use the simplified magic warp effect while keeping the player visible during the animation, use `TsCoreMagicWarp_Simple` instead.
+
 ---
 
 ## Debugging
@@ -332,6 +385,7 @@ When developing a T's Core Content Pack, you can reload supported resources with
 |---------|---------|
 | `tscore_reload`<br>`tscore_reload all` | All supported T's Core resources |
 | `tscore_reload warp` | Warp Providers |
+| `tscore_reload building` | Building Providers |
 | `tscore_reload notification` | Notification Themes |
 
 Running `tscore_reload` without an argument is equivalent to `tscore_reload all`.
@@ -390,7 +444,7 @@ tscore_debug_warp
 [T's Core]
 [T's Core] MonsterHouseFront
 [T's Core]     Type                : Building
-[T's Core]     Building            : Tikami557.SF.MonsterHouse.Buildings_MonsterHouse
+[T's Core]     Building            : Tikamin557.SF.MonsterHouse.Buildings_MonsterHouse
 [T's Core]     Offset              : (0, 1)
 [T's Core]     Fallback            : FarmHouseFront
 ```
@@ -404,7 +458,7 @@ tscore_debug_warp
 When creating a `Building` provider, use the following command to inspect buildings currently placed on the farm:
 
 ```text
-tscore_debug_buildings
+tscore_debug_farmbuildings
 ```
 
 It displays each building's internal type, tile position, size, and interior location.
@@ -415,7 +469,7 @@ The building name shown in the output can be used as the `BuildingType` value.
 <summary>Example output</summary>
 
 ```text
-tscore_debug_buildings
+tscore_debug_farmbuildings
 [T's Core] ===== Farm Buildings =====
 [T's Core] Registered Buildings: 2
 [T's Core]
@@ -424,7 +478,7 @@ tscore_debug_buildings
 [T's Core]     Size                : 9 x 5
 [T's Core]     Indoors             : FarmHouse
 [T's Core]
-[T's Core] Tikami557.SF.MonsterHouse.Buildings_MonsterHouse
+[T's Core] Tikamin557.SF.MonsterHouse.Buildings_MonsterHouse
 [T's Core]     Tile                : (56, 12)
 [T's Core]     Size                : 2 x 1
 [T's Core]     Indoors             : (none)
@@ -435,12 +489,12 @@ tscore_debug_buildings
 For the Monster House example, the corresponding value is:
 
 ```json
-"BuildingType": "Tikami557.SF.MonsterHouse.Buildings_MonsterHouse"
+"BuildingType": "Tikamin557.SF.MonsterHouse.Buildings_MonsterHouse"
 ```
 
 The `Tile` value represents the building's top-left tile and can be used to verify the destination calculated from `OffsetX` and `OffsetY`.
 
-> **Note:** A save must be loaded before using `tscore_debug_buildings`.
+> **Note:** A save must be loaded before using `tscore_debug_farmbuildings`.
 
 ---
 
