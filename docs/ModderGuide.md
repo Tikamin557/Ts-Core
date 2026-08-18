@@ -2,7 +2,7 @@
 
 Welcome to the T's Core developer documentation.
 
-T's Core is a shared library for Stardew Valley SMAPI mods. It provides reusable APIs, Content Patcher tokens, and shared systems to simplify mod development and improve compatibility between mods.
+T's Core is a shared library for Stardew Valley SMAPI mods. It provides reusable APIs, Content Patcher tokens, Content Pack features, and shared systems to simplify mod development and improve compatibility between mods.
 
 ---
 
@@ -66,12 +66,13 @@ T's Core currently provides the following systems.
 |---------|-------------|
 | Relationship Services | Unified partner information |
 | Location Services | Player location information |
-| Warp Services | Shared warp utilities |
-| Notification System | HUD notifications |
+| Warp Services | Shared warp actions and reusable Warp Providers |
+| Building Services | Building Providers, Building Lights, conditional Draw Layers, and building-related restrictions |
+| Notification System | Customizable HUD notifications and Notification Themes |
 | Content Patcher Tokens | Custom CP tokens |
 | Shared Utilities | Common helper functions |
 
-Detailed documentation for each system will be added over time.
+Detailed documentation for each system is available where noted below.
 
 ---
 
@@ -81,6 +82,7 @@ T's Core supports Content Packs, allowing mods to add custom features without wr
 
 Currently, Content Packs can provide:
 
+- Custom Building Providers
 - Custom Notification Themes
 - Custom Warp Providers
 
@@ -88,8 +90,9 @@ Each feature has its own file format and setup requirements.
 
 For detailed instructions, see the corresponding guide:
 
-- **Notification System Guide (Coming Soon)**
+- **[Building Services Guide](ModderGuide_BuildingServices.md)**
 - **[Warp Services Guide](ModderGuide_WarpServices.md)**
+- **[Notification System Guide](ModderGuide_NotificationSystem.md)** *(Coming Soon)*
 
 ---
 
@@ -110,7 +113,9 @@ The following commands are available during development.
 | Command | Description |
 |---------|-------------|
 | `tscore_debug_warp` | Prints all registered Warp Providers |
-| `tscore_debug_buildings` | Prints all farm buildings |
+| `tscore_debug_buildings` | Prints all registered Building Providers |
+| `tscore_debug_buildings <ID>` | Prints detailed information for the specified Building Provider |
+| `tscore_debug_farmbuildings` | Prints buildings currently placed on the main farm |
 | `tscore_debug_notification_themes` | Prints all registered Notification Themes |
 | `tscore_debug_notification` | Displays a test notification |
 | `tscore_debug_notification_trigger` | Tests notification Trigger Actions |
@@ -119,9 +124,13 @@ The following commands are available during development.
 
 | Command | Description |
 |---------|-------------|
-| `tscore_reload warp` | Reloads all registered Warp Providers |
-| `tscore_reload notification` | Reloads all registered Notification Themes |
+| `tscore_reload` | Reloads all supported T's Core resources |
 | `tscore_reload all` | Reloads all supported T's Core resources |
+| `tscore_reload warp` | Reloads all registered Warp Providers |
+| `tscore_reload building` | Reloads all registered Building Providers |
+| `tscore_reload notification` | Reloads all registered Notification Themes |
+
+> **Note:** Reload commands only refresh data managed by T's Core. They do not reload Content Patcher patches or other SMAPI mods.
 
 ---
 
@@ -137,6 +146,10 @@ When developing against T's Core:
 - Avoid internal implementations.
 - Keep your required version up to date.
 - Test your mod after updating T's Core.
+
+Content Pack file formats may also gain new optional properties as T's Core is expanded.
+
+Existing properties are intended to remain compatible whenever possible.
 
 ---
 
