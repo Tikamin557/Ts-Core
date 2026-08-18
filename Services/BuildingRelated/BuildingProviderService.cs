@@ -1,4 +1,5 @@
 ﻿using StardewModdingAPI;
+using StardewValley;
 using Ts_Core.Models;
 
 namespace Ts_Core.Services.BuildingRelated
@@ -29,9 +30,25 @@ namespace Ts_Core.Services.BuildingRelated
         public string BuildingType { get; init; } = "";
 
         /// <summary>
+        /// バレーのメイン農場でのみ建築可能かどうかです。
+        /// </summary>
+        public bool ValleyFarmOnly { get; init; }
+
+        /// <summary>
+        /// Building Provider全体の有効・無効を制御する
+        /// Data/BuildingsのCustomFieldsキーです。
+        /// </summary>
+        public string? BuildingsEnabledField { get; init; }
+
+        /// <summary>
         /// Lightの有効・無効を制御するData/BuildingsのCustomFieldsキーです。
         /// </summary>
         public string? LightsEnabledField { get; init; }
+
+        /// <summary>
+        /// DrawLayerの有効・無効を制御するData/BuildingsのCustomFieldsキーです。
+        /// </summary>
+        public string? DrawLayersEnabledField { get; init; }
 
         /// <summary>
         /// 登録されているライト一覧です。
@@ -164,7 +181,10 @@ namespace Ts_Core.Services.BuildingRelated
                     Owner = owner,
                     SourceFile = sourceFile,
                     BuildingType = model.BuildingType,
+                    ValleyFarmOnly = model.ValleyFarmOnly,
+                    BuildingsEnabledField = model.BuildingsEnabledField,
                     LightsEnabledField = model.LightsEnabledField,
+                    DrawLayersEnabledField = model.DrawLayersEnabledField,
 
                     Lights = model.Lights
                         .ToList(),
@@ -176,6 +196,111 @@ namespace Ts_Core.Services.BuildingRelated
             monitor.Log(
                 $"Registered Building Provider '{model.Id}' from '{owner}'.",
                 LogLevel.Trace);
+        }
+
+        //----------------------------------------
+        // Provider有効判定
+        //----------------------------------------
+
+        /// <summary>
+        /// Building Provider全体が有効か判定します。
+        /// </summary>
+        internal static bool IsProviderEnabled(
+            BuildingProviderModel provider)
+        {
+            return IsEnabledField(
+                provider,
+                provider.BuildingsEnabledField);
+        }
+
+        //----------------------------------------
+        // CustomFields有効判定
+        //----------------------------------------
+
+        /// <summary>
+        /// Data/BuildingsのCustomFieldsを確認して、
+        /// 指定されたEnabledFieldが有効か判定します。
+        /// </summary>
+        internal static bool IsEnabledField(
+            BuildingProviderModel provider,
+            string? enabledField)
+        {
+            //----------------------------------------
+            // EnableField未指定なら常に有効
+            //----------------------------------------
+
+            if (string.IsNullOrWhiteSpace(
+                    enabledField))
+            {
+                return true;
+            }
+
+            //----------------------------------------
+            // BuildingData取得
+            //----------------------------------------
+
+            var buildingData =
+                DataLoader.Buildings(
+                    Game1.content);
+
+            if (!buildingData.TryGetValue(
+                    provider.BuildingType,
+                    out var data))
+            {
+                return false;
+            }
+
+            //----------------------------------------
+            // CustomFields未設定なら有効
+            //----------------------------------------
+
+            if (data.CustomFields == null)
+                return true;
+
+            if (!data.CustomFields.TryGetValue(
+                    enabledField,
+                    out string? value))
+            {
+                return true;
+            }
+
+            //----------------------------------------
+            // true / false 判定
+            //----------------------------------------
+
+            if (bool.TryParse(
+                    value,
+                    out bool enabled))
+            {
+                return enabled;
+            }
+
+            //----------------------------------------
+            // 不正な値の場合もデフォルトは有効
+            //----------------------------------------
+
+            return true;
+        }
+
+        //----------------------------------------
+        // Valley Farm限定判定
+        //----------------------------------------
+
+        /// <summary>
+        /// 指定したBuildingTypeが
+        /// バレーのメイン農場限定か判定します。
+        /// </summary>
+        internal static bool IsValleyFarmOnly(
+            string buildingType)
+        {
+            return Providers.Values
+                .Any(provider =>
+                    string.Equals(
+                        provider.BuildingType,
+                        buildingType,
+                        StringComparison.Ordinal)
+                    && provider.ValleyFarmOnly
+                    && IsProviderEnabled(provider));
         }
 
         //----------------------------------------

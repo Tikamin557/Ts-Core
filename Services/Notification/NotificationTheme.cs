@@ -60,6 +60,23 @@ namespace Ts_Core.Services.Notification
 
         public int? OffsetY { get; set; }
 
+        //----------------------------------------
+        // 表示終了条件
+        //----------------------------------------
+
+        /// <summary>
+        /// Locationが変更された時に通知を消すかどうかです。
+        /// nullの場合は継承元テーマの設定を使用します。
+        /// </summary>
+        public bool? DismissOnLocationChange { get; set; }
+
+        /// <summary>
+        /// 通知を消す対象Location名の一覧です。
+        /// 指定したLocationへ移動した時に通知を消します。
+        /// nullの場合は継承元テーマの設定を使用します。
+        /// </summary>
+        public List<string>? DismissOnEnterLocations { get; set; }
+
         /// <summary>
         /// テーマのコピーを作成します。
         /// </summary>
@@ -104,7 +121,18 @@ namespace Ts_Core.Services.Notification
                 OffsetX = OffsetX,
                 OffsetY = OffsetY,
 
-                TextAnchor = TextAnchor
+                TextAnchor = TextAnchor,
+
+                //----------------------------------------
+                // 表示終了条件
+                //----------------------------------------
+
+                DismissOnLocationChange =
+                    DismissOnLocationChange,
+
+                DismissOnEnterLocations =
+                    DismissOnEnterLocations?
+                        .ToList()
             };
         }
     }

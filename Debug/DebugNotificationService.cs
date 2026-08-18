@@ -67,8 +67,13 @@ namespace Ts_Core.Debug
                 return;
             }
 
+            string[] actionArgs =
+                new[] { "TsCoreNotification" }
+                    .Concat(args)
+                    .ToArray();
+
             NotificationAction.Run(
-                args,
+                actionArgs,
                 default,
                 out _);
         }

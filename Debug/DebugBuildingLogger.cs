@@ -248,11 +248,32 @@ namespace Ts_Core.Debug
 
             DebugLogHelper.LogField(
                 monitor,
-                "Enable Field",
+                "Valley Farm Only",
+                provider.ValleyFarmOnly);
+
+            DebugLogHelper.LogField(
+                monitor,
+                "Buildings Enable Field",
+                string.IsNullOrWhiteSpace(
+                    provider.BuildingsEnabledField)
+                    ? "(none)"
+                    : provider.BuildingsEnabledField);
+
+            DebugLogHelper.LogField(
+                monitor,
+                "Light Enable Field",
                 string.IsNullOrWhiteSpace(
                     provider.LightsEnabledField)
                     ? "(none)"
                     : provider.LightsEnabledField);
+
+            DebugLogHelper.LogField(
+                monitor,
+                "DrawLayers Enable Field",
+                string.IsNullOrWhiteSpace(
+                    provider.DrawLayersEnabledField)
+                    ? "(none)"
+                    : provider.DrawLayersEnabledField);
 
             DebugLogHelper.LogField(
                 monitor,
@@ -524,12 +545,25 @@ namespace Ts_Core.Debug
 
                     DebugLogHelper.LogField(
                         monitor,
+                        "Valley Farm Only",
+                        provider.ValleyFarmOnly);
+
+                    DebugLogHelper.LogField(
+                        monitor,
                         "Lights",
                         provider.Lights.Count);
 
                     DebugLogHelper.LogField(
                         monitor,
-                        "Enable Field",
+                        "Buildings Enable Field",
+                        string.IsNullOrWhiteSpace(
+                            provider.BuildingsEnabledField)
+                            ? "(none)"
+                            : provider.BuildingsEnabledField);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Lights Enable Field",
                         string.IsNullOrWhiteSpace(
                             provider.LightsEnabledField)
                             ? "(none)"
@@ -689,8 +723,29 @@ namespace Ts_Core.Debug
 
                     DebugLogHelper.LogField(
                         monitor,
+                        "Valley Farm Only",
+                        provider.ValleyFarmOnly);
+
+                    DebugLogHelper.LogField(
+                        monitor,
                         "DrawLayers",
                         provider.DrawLayers.Count);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Buildings Enable Field",
+                        string.IsNullOrWhiteSpace(
+                            provider.BuildingsEnabledField)
+                            ? "(none)"
+                            : provider.BuildingsEnabledField);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "DrawLayers Enable Field",
+                        string.IsNullOrWhiteSpace(
+                            provider.DrawLayersEnabledField)
+                            ? "(none)"
+                            : provider.DrawLayersEnabledField);
 
                     DebugLogHelper.LogBlankLine(
                         monitor);

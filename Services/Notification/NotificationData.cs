@@ -39,6 +39,15 @@ namespace Ts_Core.Services.Notification
 
             Priority = request.Priority;
 
+            DismissOnLocationChange =
+                theme.DismissOnLocationChange
+                ?? false;
+
+            DismissOnEnterLocations =
+                theme.DismissOnEnterLocations?
+                    .ToList()
+                ?? new List<string>();
+
             BackgroundColor = theme.BackgroundColor
                 ?? Color.Transparent;
 
@@ -168,6 +177,21 @@ namespace Ts_Core.Services.Notification
         /// </summary>
         public NotificationPriority Priority { get; set; }
             = NotificationPriority.Normal;
+
+        //----------------------------------------
+        // 表示終了条件
+        //----------------------------------------
+
+        /// <summary>
+        /// Locationが変更された時に通知を消すかどうかです。
+        /// </summary>
+        public bool DismissOnLocationChange { get; set; }
+
+        /// <summary>
+        /// 通知を消す対象Location名の一覧です。
+        /// </summary>
+        public IReadOnlyList<string> DismissOnEnterLocations { get; set; }
+            = Array.Empty<string>();
 
         /// <summary>
         /// バニラ会話ウィンドウのおおよそのY座標

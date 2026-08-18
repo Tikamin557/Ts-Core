@@ -588,6 +588,17 @@ namespace Ts_Core.Services.Notification
             child.Anchor ??= parent.Anchor;
             child.OffsetX ??= parent.OffsetX;
             child.OffsetY ??= parent.OffsetY;
+
+            //----------------------------------------
+            // 表示終了条件
+            //----------------------------------------
+
+            child.DismissOnLocationChange ??=
+                parent.DismissOnLocationChange;
+
+            child.DismissOnEnterLocations ??=
+                parent.DismissOnEnterLocations?
+                    .ToList();
         }
 
         /// <summary>

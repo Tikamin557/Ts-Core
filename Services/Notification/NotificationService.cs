@@ -33,6 +33,7 @@ namespace Ts_Core.Services.Notification
         {
             helper.Events.Display.RenderedHud += OnRenderedHud;
             helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
+            helper.Events.Player.Warped += OnWarped;
         }
 
         /// <summary>
@@ -122,6 +123,86 @@ namespace Ts_Core.Services.Notification
         /// </summary>
         public static bool IsVisible
             => current != null;
+
+        //----------------------------------------
+        // Location変更
+        //----------------------------------------
+
+        /// <summary>
+        /// プレイヤーのLocation変更時に、
+        /// 条件に一致する通知を削除します。
+        /// </summary>
+        private static void OnWarped(
+            object? sender,
+            WarpedEventArgs e)
+        {
+            if (!e.IsLocalPlayer)
+                return;
+
+            string newLocationName =
+                e.NewLocation.NameOrUniqueName;
+
+            //----------------------------------------
+            // 現在表示中の通知
+            //----------------------------------------
+
+            if (current != null
+                && ShouldDismissOnLocationChange(
+                    current,
+                    newLocationName))
+            {
+                current = null;
+            }
+
+            //----------------------------------------
+            // キュー内の通知
+            //----------------------------------------
+
+            queue.RemoveAll(
+                notification =>
+                    ShouldDismissOnLocationChange(
+                        notification,
+                        newLocationName));
+
+            //----------------------------------------
+            // 次の通知を表示
+            //----------------------------------------
+
+            if (current == null)
+            {
+                ShowNextNotification();
+            }
+        }
+
+        //----------------------------------------
+        // Location変更時の削除判定
+        //----------------------------------------
+
+        /// <summary>
+        /// Location変更によって通知を削除するか判定します。
+        /// </summary>
+        private static bool ShouldDismissOnLocationChange(
+            NotificationData notification,
+            string newLocationName)
+        {
+            //----------------------------------------
+            // Location変更時に常に削除
+            //----------------------------------------
+
+            if (notification.DismissOnLocationChange)
+                return true;
+
+            //----------------------------------------
+            // 指定Locationへ入った場合のみ削除
+            //----------------------------------------
+
+            if (notification.DismissOnEnterLocations.Count == 0)
+                return false;
+
+            return notification.DismissOnEnterLocations.Contains(
+                newLocationName,
+                StringComparer.OrdinalIgnoreCase);
+        }
 
         /// <summary>
         /// 通知の表示時間を更新します。

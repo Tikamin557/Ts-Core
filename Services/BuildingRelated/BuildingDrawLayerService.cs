@@ -338,6 +338,27 @@ namespace Ts_Core.Services.BuildingRelated
 
             foreach (BuildingProviderModel provider in providers)
             {
+                //----------------------------------------
+                // Building Provider全体
+                //----------------------------------------
+
+                if (!BuildingProviderService.IsProviderEnabled(
+                        provider))
+                {
+                    continue;
+                }
+
+                //----------------------------------------
+                // DrawLayers
+                //----------------------------------------
+
+                if (!BuildingProviderService.IsEnabledField(
+                        provider,
+                        provider.DrawLayersEnabledField))
+                {
+                    continue;
+                }
+
                 DrawLayers(
                     building,
                     spriteBatch,

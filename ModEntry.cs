@@ -69,6 +69,10 @@ namespace Ts_Core
             BuildingDrawLayerPatch.Apply(
                 harmony);
 
+            // Buildingの建築Location制限を適用
+            BuildingLocationRestrictionPatch.Apply(
+                harmony);
+
             InitializeServices(helper);
             RegisterSystems(helper);
             RegisterEvents(helper);

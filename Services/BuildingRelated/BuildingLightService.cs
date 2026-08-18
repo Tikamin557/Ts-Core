@@ -21,11 +21,11 @@ namespace Ts_Core.Services.BuildingRelated
         /// </summary>
         public static void UpdateLights()
         {
+            if (!StardewModdingAPI.Context.IsWorldReady)
+                return;
+
             Farm farm =
                 Game1.getFarm();
-
-            if (farm == null)
-                return;
 
             //----------------------------------------
             // 現在存在するLight ID
@@ -44,9 +44,14 @@ namespace Ts_Core.Services.BuildingRelated
             foreach (BuildingProviderModel provider
                      in BuildingProviderService.GetProviders())
             {
-                bool providerEnabled =
-                    IsProviderEnabled(
+                bool buildingProviderEnabled =
+                    BuildingProviderService.IsProviderEnabled(
                         provider);
+
+                bool lightsEnabled =
+                    BuildingProviderService.IsEnabledField(
+                        provider,
+                        provider.LightsEnabledField);
 
                 List<Building> buildings =
                     farm.buildings
@@ -85,10 +90,12 @@ namespace Ts_Core.Services.BuildingRelated
                             lightId);
 
                         //----------------------------------------
-                        // 昼間またはProvider無効時はLight削除
+                        // 昼間またはBuilding / Light無効時はLight削除
                         //----------------------------------------
 
-                        if (!shouldLight || !providerEnabled)
+                        if (!buildingProviderEnabled
+                            || !shouldLight
+                            || !lightsEnabled)
                         {
                             farm.removeLightSource(
                                 lightId);
@@ -161,74 +168,6 @@ namespace Ts_Core.Services.BuildingRelated
                 farm.removeLightSource(
                     lightId);
             }
-        }
-
-        //----------------------------------------
-        // Provider有効判定
-        //----------------------------------------
-
-        /// <summary>
-        /// Data/Buildings の CustomFields を確認して、
-        /// Building Light Providerが有効か判定します。
-        /// </summary>
-        private static bool IsProviderEnabled(
-            BuildingProviderModel provider)
-        {
-            //----------------------------------------
-            // EnableField未指定なら常に有効
-            //----------------------------------------
-
-            if (string.IsNullOrWhiteSpace(
-                    provider.LightsEnabledField))
-            {
-                return true;
-            }
-
-            //----------------------------------------
-            // BuildingData取得
-            //----------------------------------------
-
-            var buildingData =
-                DataLoader.Buildings(
-                    Game1.content);
-
-            if (!buildingData.TryGetValue(
-                    provider.BuildingType,
-                    out var data))
-            {
-                return false;
-            }
-
-            //----------------------------------------
-            // CustomFields未設定なら有効
-            //----------------------------------------
-
-            if (data.CustomFields == null)
-                return true;
-
-            if (!data.CustomFields.TryGetValue(
-                    provider.LightsEnabledField,
-                    out string? value))
-            {
-                return true;
-            }
-
-            //----------------------------------------
-            // true / false 判定
-            //----------------------------------------
-
-            if (bool.TryParse(
-                    value,
-                    out bool enabled))
-            {
-                return enabled;
-            }
-
-            //----------------------------------------
-            // 不正な値の場合もデフォルトは有効
-            //----------------------------------------
-
-            return true;
         }
 
         //----------------------------------------
@@ -328,11 +267,11 @@ namespace Ts_Core.Services.BuildingRelated
         /// </summary>
         public static void RemoveAllLights()
         {
+            if (!StardewModdingAPI.Context.IsWorldReady)
+                return;
+
             Farm farm =
                 Game1.getFarm();
-
-            if (farm == null)
-                return;
 
             List<string> lightIds =
                 farm.sharedLights.Keys
