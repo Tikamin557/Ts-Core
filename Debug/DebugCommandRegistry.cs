@@ -1,5 +1,6 @@
 ﻿using StardewModdingAPI;
 using Ts_Core.Providers;
+using Ts_Core.Services.ContentPatcherRelated;
 using Ts_Core.Services.Relationship;
 
 namespace Ts_Core.Debug
@@ -71,6 +72,28 @@ namespace Ts_Core.Debug
                         helper,
                         monitor,
                         args));
+
+            // Content PatcherのContent Packを再読み込み
+            helper.ConsoleCommands.Add(
+                "tscore_cp_reload",
+                "Reload a Content Patcher content pack. Usage: tscore_cp_reload <ContentPackId>",
+                (command, args) =>
+                {
+                    if (args.Length == 0
+                        || string.IsNullOrWhiteSpace(args[0]))
+                    {
+                        monitor.Log(
+                            "Content Pack ID is required. Usage: tscore_cp_reload <ContentPackId>",
+                            LogLevel.Warn);
+
+                        return;
+                    }
+
+                    ContentPatcherConfigReloadService.ReloadContentPack(
+                        args[0],
+                        helper,
+                        monitor);
+                });
 
             // 登録されているWarp Providerを表示
             helper.ConsoleCommands.Add(

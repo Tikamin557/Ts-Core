@@ -11,6 +11,12 @@
         public string Id { get; set; } = "";
 
         /// <summary>
+        /// このLightの有効・無効を制御するCustomFieldsのキーです。
+        /// 未指定の場合は常に有効です。
+        /// </summary>
+        public string? EnabledField { get; set; }
+
+        /// <summary>
         /// 建物左上からのX方向オフセットです。
         /// 負の値も使用できます。
         /// </summary>

@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
 using Microsoft.Xna.Framework.Graphics;
+using StardewValley;
 using StardewValley.Buildings;
+using StardewValley.Menus;
 using Ts_Core.Services.BuildingRelated;
 
 namespace Ts_Core.Patches
@@ -24,6 +26,9 @@ namespace Ts_Core.Patches
                 harmony);
 
             PatchDrawBackground(
+                harmony);
+
+            PatchDrawInMenu(
                 harmony);
         }
 
@@ -103,6 +108,58 @@ namespace Ts_Core.Patches
                 __instance,
                 b,
                 drawInBackground: true);
+        }
+
+        //----------------------------------------
+        // 建設メニューDrawLayer
+        //----------------------------------------
+
+        private static void PatchDrawInMenu(
+            Harmony harmony)
+        {
+            var method =
+                AccessTools.Method(
+                    typeof(Building),
+                    nameof(Building.drawInMenu),
+                    new[]
+                    {
+                        typeof(SpriteBatch),
+                        typeof(int),
+                        typeof(int)
+                    });
+
+            if (method == null)
+                return;
+
+            harmony.Patch(
+                method,
+                postfix: new HarmonyMethod(
+                    typeof(BuildingDrawLayerPatch),
+                    nameof(DrawInMenuPostfix)));
+        }
+
+        /// <summary>
+        /// 建設メニューのBuilding描画後に
+        /// TsCore DrawLayerを追加します。
+        /// </summary>
+        private static void DrawInMenuPostfix(
+            Building __instance,
+            SpriteBatch b,
+            int x,
+            int y)
+        {
+            if (Game1.activeClickableMenu
+                is not CarpenterMenu carpenterMenu)
+            {
+                return;
+            }
+
+            BuildingDrawLayerService.DrawLayersInMenu(
+                __instance,
+                b,
+                x,
+                y,
+                carpenterMenu.TargetLocation);
         }
     }
 }

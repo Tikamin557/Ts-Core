@@ -23,6 +23,7 @@ namespace Ts_Core.Services.BuildingRelated
         public static void DrawLayers(
             Building building,
             SpriteBatch spriteBatch,
+            BuildingProviderModel provider,
             IReadOnlyList<BuildingDrawLayerModel> drawLayers,
             bool drawInBackground)
         {
@@ -70,6 +71,17 @@ namespace Ts_Core.Services.BuildingRelated
 
             foreach (BuildingDrawLayerModel drawLayer in drawLayers)
             {
+                //----------------------------------------
+                // 個別DrawLayer有効判定
+                //----------------------------------------
+
+                if (!BuildingProviderService.IsEnabledField(
+                        provider,
+                        drawLayer.EnabledField))
+                {
+                    continue;
+                }
+
                 //----------------------------------------
                 // Background / Foreground判定
                 //----------------------------------------
@@ -264,13 +276,8 @@ namespace Ts_Core.Services.BuildingRelated
                 return sourceRect;
 
             //----------------------------------------
-            // 不正値対策
+            // フレーム数
             //----------------------------------------
-
-            int frameDuration =
-                Math.Max(
-                    1,
-                    drawLayer.FrameDuration);
 
             int frameCount =
                 Math.Max(
@@ -278,7 +285,7 @@ namespace Ts_Core.Services.BuildingRelated
                     drawLayer.FrameCount);
 
             //----------------------------------------
-            // 現在フレーム
+            // 現在時刻
             //----------------------------------------
 
             int time =
@@ -286,10 +293,53 @@ namespace Ts_Core.Services.BuildingRelated
                     .TotalGameTime
                     .TotalMilliseconds;
 
-            int frame =
-                time / frameDuration;
+            //----------------------------------------
+            // 1ループ分の総時間
+            //----------------------------------------
 
-            frame %= frameCount;
+            int totalDuration = 0;
+
+            for (int i = 0;
+                 i < frameCount;
+                 i++)
+            {
+                totalDuration +=
+                    drawLayer.GetFrameDuration(
+                        i);
+            }
+
+            //----------------------------------------
+            // 不正値対策
+            //----------------------------------------
+
+            if (totalDuration <= 0)
+                totalDuration = 1;
+
+            //----------------------------------------
+            // 現在フレーム
+            //----------------------------------------
+
+            int animationTime =
+                time % totalDuration;
+
+            int frame = 0;
+
+            int elapsed = 0;
+
+            for (int i = 0;
+                 i < frameCount;
+                 i++)
+            {
+                elapsed +=
+                    drawLayer.GetFrameDuration(
+                        i);
+
+                if (animationTime < elapsed)
+                {
+                    frame = i;
+                    break;
+                }
+            }
 
             //----------------------------------------
             // SourceRect移動
@@ -362,8 +412,187 @@ namespace Ts_Core.Services.BuildingRelated
                 DrawLayers(
                     building,
                     spriteBatch,
+                    provider,
                     provider.DrawLayers,
                     drawInBackground);
+            }
+        }
+
+        //----------------------------------------
+        // 建設メニュー用DrawLayer描画
+        //----------------------------------------
+
+        /// <summary>
+        /// 建設メニューのBuildingプレビューに
+        /// TsCore DrawLayerを描画します。
+        /// </summary>
+        public static void DrawLayersInMenu(
+            Building building,
+            SpriteBatch spriteBatch,
+            int x,
+            int y,
+            GameLocation targetLocation)
+        {
+            IReadOnlyList<BuildingProviderModel> providers =
+                BuildingProviderService.GetProvidersForBuilding(
+                    building.buildingType.Value);
+
+            if (providers.Count == 0)
+                return;
+
+            var buildingData =
+                building.GetData();
+
+            //----------------------------------------
+            // BuildingData.DrawOffset
+            //----------------------------------------
+
+            if (buildingData != null)
+            {
+                x +=
+                    (int)(buildingData.DrawOffset.X * 4f);
+
+                y +=
+                    (int)(buildingData.DrawOffset.Y * 4f);
+            }
+
+            //----------------------------------------
+            // 基本SortY
+            //----------------------------------------
+
+            float baseSortY =
+                building.tilesHigh.Value * 64f;
+
+            //----------------------------------------
+            // Provider一覧
+            //----------------------------------------
+
+            foreach (BuildingProviderModel provider in providers)
+            {
+                //----------------------------------------
+                // Building Provider全体
+                //----------------------------------------
+
+                if (!BuildingProviderService.IsProviderEnabled(
+                        provider))
+                {
+                    continue;
+                }
+
+                //----------------------------------------
+                // DrawLayers全体
+                //----------------------------------------
+
+                if (!BuildingProviderService.IsEnabledField(
+                        provider,
+                        provider.DrawLayersEnabledField))
+                {
+                    continue;
+                }
+
+                //----------------------------------------
+                // DrawLayer一覧
+                //----------------------------------------
+
+                foreach (BuildingDrawLayerModel drawLayer
+                         in provider.DrawLayers)
+                {
+                    //----------------------------------------
+                    // 個別DrawLayer
+                    //----------------------------------------
+
+                    if (!BuildingProviderService.IsEnabledField(
+                            provider,
+                            drawLayer.EnabledField))
+                    {
+                        continue;
+                    }
+
+                    //----------------------------------------
+                    // Condition
+                    //----------------------------------------
+
+                    if (!CheckCondition(
+                            drawLayer.Condition,
+                            targetLocation))
+                    {
+                        continue;
+                    }
+
+                    //----------------------------------------
+                    // Chest条件
+                    //----------------------------------------
+                    //
+                    // 建設メニューには実際のChestが存在しないため、
+                    // バニラdrawInMenuと同様に表示しません。
+                    //----------------------------------------
+
+                    if (!string.IsNullOrWhiteSpace(
+                            drawLayer.OnlyDrawIfChestHasContents))
+                    {
+                        continue;
+                    }
+
+                    //----------------------------------------
+                    // SortY
+                    //----------------------------------------
+
+                    float sortY =
+                        baseSortY
+                        - drawLayer.SortTileOffset * 64f;
+
+                    sortY += 1f;
+
+                    if (drawLayer.DrawInBackground)
+                    {
+                        sortY = 0f;
+                    }
+
+                    sortY /= 10000f;
+
+                    //----------------------------------------
+                    // SourceRect
+                    //----------------------------------------
+
+                    Rectangle sourceRect =
+                        GetSourceRect(
+                            drawLayer);
+
+                    sourceRect =
+                        building.ApplySourceRectOffsets(
+                            sourceRect);
+
+                    //----------------------------------------
+                    // Texture
+                    //----------------------------------------
+
+                    Texture2D layerTexture =
+                        building.texture.Value;
+
+                    if (!string.IsNullOrWhiteSpace(
+                            drawLayer.Texture))
+                    {
+                        layerTexture =
+                            Game1.content.Load<Texture2D>(
+                                drawLayer.Texture);
+                    }
+
+                    //----------------------------------------
+                    // 描画
+                    //----------------------------------------
+
+                    spriteBatch.Draw(
+                        layerTexture,
+                        new Vector2(x, y)
+                            + drawLayer.DrawPosition * 4f,
+                        sourceRect,
+                        Color.White,
+                        0f,
+                        Vector2.Zero,
+                        4f,
+                        SpriteEffects.None,
+                        sortY);
+                }
             }
         }
     }

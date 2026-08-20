@@ -90,12 +90,22 @@ namespace Ts_Core.Services.BuildingRelated
                             lightId);
 
                         //----------------------------------------
+                        // 個別Light有効判定
+                        //----------------------------------------
+
+                        bool lightEnabled =
+                            BuildingProviderService.IsEnabledField(
+                                provider,
+                                light.EnabledField);
+
+                        //----------------------------------------
                         // 昼間またはBuilding / Light無効時はLight削除
                         //----------------------------------------
 
                         if (!buildingProviderEnabled
                             || !shouldLight
-                            || !lightsEnabled)
+                            || !lightsEnabled
+                            || !lightEnabled)
                         {
                             farm.removeLightSource(
                                 lightId);

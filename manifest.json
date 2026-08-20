@@ -1,7 +1,7 @@
 {
   "Name": "T's Core",
   "Author": "Tikamin557",
-  "Version": "1.5",
+  "Version": "1.6",
   "Description": "A shared core library for T's Stardew Valley Mods, providing common services, APIs, and utilities.",
   "UniqueID": "Tikamin557.TsCore",
   "UpdateKeys": [ "Nexus:50043" ],

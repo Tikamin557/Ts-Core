@@ -9,6 +9,7 @@ using Ts_Core.Patches;
 using Ts_Core.Providers;
 using Ts_Core.Services.BuildingRelated;
 using Ts_Core.Services.Location;
+using Ts_Core.Services.Migration;
 using Ts_Core.Services.Notification;
 using Ts_Core.Services.Relationship;
 using Ts_Core.Services.WarpRelated;
@@ -131,6 +132,11 @@ namespace Ts_Core
             BuildingProviderLoader.Load(
                 helper,
                 Monitor);
+
+            // Migration定義読み込み
+            MigrationService.Load(
+                helper,
+                Monitor);
         }
 
         //----------------------------------------
@@ -184,6 +190,9 @@ namespace Ts_Core
             object? sender,
             SaveLoadedEventArgs e)
         {
+            BuildingMigrationService.ApplyMigrations(
+                Monitor);
+
             BuildingLightService.UpdateLights();
         }
 
