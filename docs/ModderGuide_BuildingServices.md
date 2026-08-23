@@ -11,7 +11,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Warp Services](ModderGuide_WarpServices.md)
 - ✅ **Building Services** *(Current Page)*
 - 📄 [Notification System](ModderGuide_NotificationSystem.md)
-- 📄 [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
+- 📄 [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
 
 ← [Back to README](../README.md)
 
