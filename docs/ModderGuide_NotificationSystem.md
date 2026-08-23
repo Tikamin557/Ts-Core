@@ -45,6 +45,7 @@ T's Core also supports custom Notification Themes through Content Packs. Themes 
 - [Examples](#examples)
 - [Debugging](#debugging)
 - [Reloading Notification Themes](#reloading-notification-themes)
+- [Reloading Content Patcher Content Packs](#reloading-content-patcher-content-packs)
 - [Notes](#notes)
 
 ---
@@ -768,7 +769,17 @@ tscore_reload all
 
 to reload all supported T's Core resources.
 
-> **Note:** Reloading T's Core resources does not reload Content Patcher patches or other SMAPI mods.
+> **Note:** `tscore_reload` only reloads resources managed directly by T's Core. To reload a Content Patcher Content Pack, use `tscore_cp_reload` instead.
+
+---
+
+## Reloading Content Patcher Content Packs
+
+T's Core also provides development tools for reloading Content Patcher Content Packs while the game is running.
+
+This includes support for reloading patches, ConfigSchema, Config Tokens, GMCM settings, and DynamicTokens without restarting the game.
+
+For details about `tscore_cp_reload` and other Content Patcher integration features, see the [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md) guide.
 
 ---
 
