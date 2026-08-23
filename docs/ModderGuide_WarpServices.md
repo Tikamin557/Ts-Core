@@ -48,13 +48,21 @@ T's Core provides three custom warp actions:
 
 | Action | Description |
 |--------|-------------|
-| `TsCoreWarp` | Performs a standard warp without visual effects. |
-| `TsCoreMagicWarp` | Performs the same warp using Stardew Valley's built-in magic warp animation and sound effect. |
+| `TsCoreWarp` | Performs a standard warp without magic warp visual effects. |
+| `TsCoreMagicWarp` | Performs a magic warp using effects similar to Stardew Valley's built-in magic warp. |
 | `TsCoreMagicWarp_Simple` | Performs a simplified magic warp. Some of the standard magic warp effects are omitted, and the player remains visible during the warp animation. |
 
-All three actions support Warp Providers, location names, direct coordinates, and optional facing directions.
+All three actions support:
 
-All three actions also support a custom audio cue.
+- Warp Providers
+- Location names
+- Direct coordinates
+- Optional facing directions
+- Custom audio cues
+- Repeated audio playback
+- Custom audio intervals
+- Custom blackout durations
+- Delayed audio playback
 
 They can be used with:
 
@@ -69,14 +77,17 @@ They can be used with:
 
 All T's Core Warp Actions use the same syntax.
 
-| Destination | Syntax | Example |
-|-------------|--------|---------|
-| Provider / Location | `<Action> <ProviderOrLocation>` | `TsCoreWarp FarmHouseFront` |
-| Provider / Location + facing direction | `<Action> <ProviderOrLocation> <FacingDirection>` | `TsCoreMagicWarp FarmHouseFront Left` |
-| Provider / Location + facing direction + audio cue | `<Action> <ProviderOrLocation> <FacingDirection> <AudioCue>` | `TsCoreMagicWarp_Simple FarmHouseFront Auto wand` |
-| Direct coordinates | `<Action> <LocationName> <X> <Y>` | `TsCoreWarp Farm 64 15` |
-| Direct coordinates + facing direction | `<Action> <LocationName> <X> <Y> <FacingDirection>` | `TsCoreMagicWarp Farm 64 15 Down` |
-| Direct coordinates + facing direction + audio cue | `<Action> <LocationName> <X> <Y> <FacingDirection> <AudioCue>` | `TsCoreMagicWarp_Simple Farm 64 15 Auto wand` |
+#### Provider / Location
+
+```text
+<Action> <ProviderOrLocation> [FacingDirection] [AudioCue] [RepeatCount] [IntervalMs] [BlackoutDurationMs] [AudioStartDelayMs]
+```
+
+#### Direct Coordinates
+
+```text
+<Action> <LocationName> <X> <Y> [FacingDirection] [AudioCue] [RepeatCount] [IntervalMs] [BlackoutDurationMs] [AudioStartDelayMs]
+```
 
 Replace `<Action>` with:
 
@@ -84,9 +95,25 @@ Replace `<Action>` with:
 - `TsCoreMagicWarp`
 - `TsCoreMagicWarp_Simple`
 
+Examples:
+
+```text
+TsCoreWarp FarmHouseFront
+TsCoreMagicWarp FarmHouseFront Down
+TsCoreMagicWarp_Simple FarmHouseFront Auto wand
+TsCoreMagicWarp FarmHouseFront Auto wand 3 100
+TsCoreMagicWarp FarmHouseFront Auto wand 3 100 200
+TsCoreMagicWarp FarmHouseFront Auto wand 3 100 200 250
+
+TsCoreWarp Farm 64 15
+TsCoreMagicWarp Farm 64 15 Down
+TsCoreMagicWarp_Simple Farm 64 15 Auto wand
+TsCoreMagicWarp Farm 64 15 Auto wand 3 100 200 250
+```
+
 When only a location name is specified, T's Core automatically uses the location's default warp point.
 
-> **Note:** A custom audio cue requires a `FacingDirection` argument. Use `Auto` if you want to keep the player's current facing direction.
+> **Note:** Optional arguments are positional. To specify a later argument, all preceding arguments must also be specified.
 
 ---
 
@@ -102,29 +129,21 @@ Facing direction can be specified using either its name or numeric value.
 | `Left` | `3` | Face left after warping. |
 | `Auto` | `4` | Keep the player's current facing direction. |
 
-`Auto` is useful when a facing direction argument is required, such as when specifying a custom audio cue, but you don't want to change the player's current facing direction.
+`Auto` is useful when a later optional argument needs to be specified but you don't want to change the player's current facing direction.
+
+For example:
+
+```text
+TsCoreMagicWarp FarmHouseFront Auto wand
+```
 
 ---
 
 ### Custom Audio Cue
 
-T's Core Warp Actions can optionally play a custom audio cue when the warp is performed.
+T's Core Warp Actions can optionally play an audio cue when the warp is performed.
 
-To specify a custom audio cue, a `FacingDirection` must also be specified.
-
-For a Warp Provider or location name:
-
-```text
-<Action> <ProviderOrLocation> <FacingDirection> <AudioCue>
-```
-
-For direct coordinates:
-
-```text
-<Action> <LocationName> <X> <Y> <FacingDirection> <AudioCue>
-```
-
-Examples:
+The audio cue is specified immediately after `FacingDirection`.
 
 ```text
 TsCoreMagicWarp FarmHouseFront Down wand
@@ -132,15 +151,148 @@ TsCoreMagicWarp_Simple FarmHouseFront Auto wand
 TsCoreWarp Farm 64 15 Left doorClose
 ```
 
-The final argument is the audio cue name to play when the warp is performed.
-
-If you want to specify a custom audio cue without changing the player's facing direction, use `Auto` for `FacingDirection`.
+If you want to specify an audio cue without changing the player's facing direction, use `Auto`.
 
 ```text
 TsCoreMagicWarp_Simple FarmHouseFront Auto MyAudioCue
 ```
 
-> **Note:** A custom audio cue cannot be specified without `FacingDirection`, since the audio cue is always the argument immediately following it.
+For `TsCoreMagicWarp` and `TsCoreMagicWarp_Simple`, the default audio cue is:
+
+```text
+wand
+```
+
+If a custom audio cue is specified, it replaces the default `wand` sound.
+
+`TsCoreWarp` does not play a warp sound by default, but a custom audio cue can still be specified.
+
+---
+
+### Audio Repeat Count
+
+`RepeatCount` controls how many times the audio cue is played.
+
+```text
+TsCoreMagicWarp FarmHouseFront Auto wand 3
+```
+
+In this example, `wand` is played three times.
+
+The value must be `1` or greater.
+
+Default:
+
+```text
+1
+```
+
+---
+
+### Audio Interval
+
+`IntervalMs` controls the interval between repeated audio cues in milliseconds.
+
+```text
+TsCoreMagicWarp FarmHouseFront Auto wand 3 200
+```
+
+This plays the audio cue three times with a 200 ms interval between each playback.
+
+The value must be `0` or greater.
+
+Default:
+
+```text
+100
+```
+
+`IntervalMs` only has a noticeable effect when `RepeatCount` is greater than `1`.
+
+---
+
+### Blackout Duration
+
+`BlackoutDurationMs` controls how long the screen remains completely black before the actual warp is performed.
+
+```text
+TsCoreMagicWarp FarmHouseFront Auto wand 1 100 500
+```
+
+In this example, the screen remains fully black for 500 ms before the warp occurs.
+
+The value must be `0` or greater.
+
+If this argument is omitted, T's Core uses the default blackout duration for the selected Warp Action.
+
+Current default:
+
+```text
+100 ms
+```
+
+A value of `0` performs the warp immediately after the screen becomes fully black.
+
+---
+
+### Audio Start Delay
+
+`AudioStartDelayMs` controls how long T's Core waits before starting audio playback.
+
+```text
+TsCoreMagicWarp FarmHouseFront Auto wand 1 100 100 300
+```
+
+In this example, playback of `wand` begins after a 300 ms delay.
+
+The value must be `0` or greater.
+
+Default:
+
+```text
+0
+```
+
+When combined with repeated playback, the timing is calculated from the start delay.
+
+For example:
+
+```text
+TsCoreMagicWarp FarmHouseFront Auto wand 3 200 100 300
+```
+
+plays the audio cue at approximately:
+
+```text
+300 ms
+500 ms
+700 ms
+```
+
+after the Warp Action begins.
+
+---
+
+### Optional Argument Order
+
+The complete optional argument order is:
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `FacingDirection` | Current direction | Direction the player faces after warping. |
+| `AudioCue` | `wand` for Magic types, none for normal Warp | Audio cue played during the warp. |
+| `RepeatCount` | `1` | Number of times the audio cue is played. |
+| `IntervalMs` | `100` | Interval between repeated audio cues. |
+| `BlackoutDurationMs` | `100` | Time the screen remains completely black before warping. |
+| `AudioStartDelayMs` | `0` | Delay before audio playback begins. |
+
+Because these arguments are positional, preceding values must be included when specifying later options.
+
+For example, to specify only a custom blackout duration while keeping the other settings at their normal values:
+
+```text
+TsCoreMagicWarp FarmHouseFront Auto wand 1 100 500
+```
 
 ---
 
@@ -180,6 +332,8 @@ TsCoreWarp BusStop
 ```
 
 `FarmHouseFront` resolves to a registered provider, while `BusStop` is treated as a location name if no provider with that name exists.
+
+When a location name is used directly, T's Core uses Stardew Valley's default warp location for that map.
 
 ---
 
@@ -240,7 +394,13 @@ JSON filenames may be chosen freely.
 
 Each JSON file inside `assets/warp` defines one Warp Provider.
 
-T's Core currently supports `Warp` and `Building` providers.
+T's Core currently supports three provider types:
+
+| Type | Purpose |
+|------|---------|
+| `Warp` | Resolves the destination of an existing map warp. |
+| `MapEntry` | Resolves the source position of an existing map warp. |
+| `Building` | Resolves a position relative to a building placed on the farm. |
 
 ---
 
@@ -253,7 +413,8 @@ A **Warp** provider resolves its destination by reading an existing warp from a 
   "Id": "MyFarmHouseFront",
   "Type": "Warp",
   "Source": "FarmHouse",
-  "Target": "Farm"
+  "Target": "Farm",
+  "Fallback": "FarmHouseFront"
 }
 ```
 
@@ -263,12 +424,130 @@ A **Warp** provider resolves its destination by reading an existing warp from a 
 | `Type` | ✅ | Must be `"Warp"`. |
 | `Source` | ✅ | Location containing the warp to inspect. |
 | `Target` | ✅ | Destination location of the warp to resolve. |
+| `Fallback` | Optional | Provider used if the destination cannot be resolved. |
 
-T's Core searches `Source` for a warp leading to `Target` and uses that warp's destination coordinates.
+T's Core searches `Source` for a warp leading to `Target`.
+
+If a matching warp is found, the provider returns that warp's **destination location and destination coordinates**.
+
+For example:
+
+```text
+FarmHouse
+    Warp at (4, 11)
+        → Farm (64, 15)
+```
+
+A `Warp` provider configured with:
+
+```json
+{
+  "Type": "Warp",
+  "Source": "FarmHouse",
+  "Target": "Farm"
+}
+```
+
+resolves to:
+
+```text
+Farm (64, 15)
+```
 
 Because the destination is resolved at runtime, this provider can adapt when another mod changes the corresponding map warp.
 
+If the warp cannot be found and `Fallback` is specified, T's Core attempts to resolve the fallback provider instead.
+
 > **Note:** Provider IDs should be unique. If another provider with the same ID is already registered, the duplicate provider will not be registered.
+
+---
+
+### Warp Provider (Type: MapEntry)
+
+A **MapEntry** provider resolves the position of an existing warp **inside the map containing that warp**.
+
+Unlike a `Warp` provider, which returns where an existing warp leads, a `MapEntry` provider returns where that warp is located.
+
+```json
+{
+  "Id": "MyFarmHouseEntry",
+  "Type": "MapEntry",
+  "Map": "FarmHouse",
+  "Target": "Farm",
+  "OffsetX": 0,
+  "OffsetY": -1,
+  "Fallback": "FarmHouseFront"
+}
+```
+
+| Property | Required | Description |
+|----------|----------|-------------|
+| `Id` | ✅ | Unique provider name used by T's Core Warp Actions. |
+| `Type` | ✅ | Must be `"MapEntry"`. |
+| `Map` | ✅ | Location containing the warp to inspect. |
+| `Target` | ✅ | Destination location used to identify the warp. |
+| `OffsetX` | Optional | Horizontal offset from the warp's source tile. Defaults to `0`. |
+| `OffsetY` | Optional | Vertical offset from the warp's source tile. Defaults to `0`. |
+| `Fallback` | Optional | Provider used if the destination cannot be resolved. |
+
+T's Core searches `Map` for a warp leading to `Target`.
+
+If a matching warp is found, T's Core returns the **source position of that warp inside `Map`**, optionally adjusted by `OffsetX` and `OffsetY`.
+
+For example:
+
+```text
+FarmHouse
+    Warp at (4, 11)
+        → Farm (64, 15)
+```
+
+A `MapEntry` provider configured with:
+
+```json
+{
+  "Type": "MapEntry",
+  "Map": "FarmHouse",
+  "Target": "Farm"
+}
+```
+
+resolves to:
+
+```text
+FarmHouse (4, 11)
+```
+
+By comparison, a `Warp` provider using the same map relationship would resolve to:
+
+```text
+Farm (64, 15)
+```
+
+This makes `MapEntry` useful when you need a destination near a map's entrance or exit without hardcoding the tile coordinates.
+
+Offsets can be used to move the destination relative to the detected warp.
+
+For example:
+
+```json
+{
+  "Id": "MyFarmHouseEntry",
+  "Type": "MapEntry",
+  "Map": "FarmHouse",
+  "Target": "Farm",
+  "OffsetX": 0,
+  "OffsetY": -1
+}
+```
+
+If the matching warp is located at `(4, 11)`, this provider resolves to:
+
+```text
+FarmHouse (4, 10)
+```
+
+If the map or matching warp cannot be found and `Fallback` is specified, T's Core attempts to resolve the fallback provider instead.
 
 ---
 
@@ -276,7 +555,7 @@ Because the destination is resolved at runtime, this provider can adapt when ano
 
 A **Building** provider calculates its destination from the position of a building placed on the player's farm.
 
-The following example shows the actual Building Provider used by the **[(SF) Monster House](https://www.nexusmods.com/stardewvalley/mods/20586)** mod.
+The following example shows the Building Provider used by the **[(SF) Monster House](https://www.nexusmods.com/stardewvalley/mods/20586)** mod.
 
 ```json
 {
@@ -294,9 +573,9 @@ The following example shows the actual Building Provider used by the **[(SF) Mon
 | `Id` | ✅ | Unique provider name used by T's Core Warp Actions. |
 | `Type` | ✅ | Must be `"Building"`. |
 | `BuildingType` | ✅ | Internal building type to search for on the player's farm. |
-| `OffsetX` | ✅ | Horizontal offset from the building's top-left tile. |
-| `OffsetY` | ✅ | Vertical offset from the building's top-left tile. |
-| `Fallback` | Optional | Provider used if the building cannot be found. Defaults to `FarmHouseFront`. |
+| `OffsetX` | Optional | Horizontal offset from the building's top-left tile. Defaults to `0`. |
+| `OffsetY` | Optional | Vertical offset from the building's top-left tile. Defaults to `0`. |
+| `Fallback` | Optional | Provider used if the building cannot be found. |
 
 T's Core searches the farm for the specified `BuildingType` and calculates the destination from the building's top-left tile plus `OffsetX` and `OffsetY`.
 
@@ -370,6 +649,34 @@ To perform the same warp without the magic warp effect, replace `TsCoreMagicWarp
 
 To use the simplified magic warp effect while keeping the player visible during the animation, use `TsCoreMagicWarp_Simple` instead.
 
+For example:
+
+```json
+{
+    "Action": "EditMap",
+    "Target": "Maps/Town",
+    "MapTiles": [
+        {
+            "Position": { "X": 26, "Y": 28 },
+            "Layer": "Buildings",
+            "SetProperties": {
+                "Action": "TsCoreMagicWarp_Simple FarmHouseFront Auto wand 2 150 100 0"
+            }
+        }
+    ]
+}
+```
+
+This example:
+
+- uses the `FarmHouseFront` provider;
+- keeps the player's current facing direction;
+- uses the `wand` audio cue;
+- plays the cue twice;
+- uses a 150 ms audio interval;
+- keeps the screen completely black for 100 ms before warping;
+- starts audio playback immediately.
+
 ---
 
 ## Debugging
@@ -397,7 +704,17 @@ Any JSON files that have been added, modified, or removed are detected and appli
 
 This makes it possible to test changes and add new Warp Providers or Notification Themes while the game is running.
 
-> **Note:** Reloading only refreshes data loaded by T's Core. It does not reload Content Patcher patches or other SMAPI mods.
+> **Note:** `tscore_reload` reloads resources handled by T's Core. It does not reload Content Patcher content packs.
+
+---
+
+### Reloading Content Patcher Content Packs
+
+T's Core also provides development tools for reloading Content Patcher Content Packs while the game is running.
+
+This includes support for reloading patches, ConfigSchema, Config Tokens, GMCM settings, and DynamicTokens without restarting the game.
+
+For details about `tscore_cp_reload` and other Content Patcher integration features, see the [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md) guide.
 
 ---
 
@@ -408,6 +725,16 @@ Use the following command to display all currently registered Warp Providers:
 ```text
 tscore_debug_warp
 ```
+
+The output includes information such as:
+
+- Provider ID
+- Provider type
+- Source / target locations
+- Map used by `MapEntry`
+- Building type
+- Coordinate offsets
+- Fallback provider
 
 The following example shows the built-in providers and a custom provider registered by the T's Core Content Pack included with the **[(SF) Monster House](https://www.nexusmods.com/stardewvalley/mods/20586)** mod.
 
@@ -504,6 +831,14 @@ The `Tile` value represents the building's top-left tile and can be used to veri
 Warp Services are designed for use with Content Patcher and require no C# code.
 
 Whenever possible, use Warp Providers instead of hardcoded map names or coordinates to improve compatibility with custom maps and other mods.
+
+Use:
+
+- `Warp` when you want the **destination of an existing warp**.
+- `MapEntry` when you want the **position where an existing warp is located**.
+- `Building` when you want a position relative to a **building placed on the farm**.
+
+Warp destinations are resolved at runtime, allowing compatible Content Packs to adapt to map changes without hardcoding coordinates.
 
 Additional providers and features may be added in future versions of T's Core.
 
