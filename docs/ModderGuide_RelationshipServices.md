@@ -239,6 +239,16 @@ The index shown under `OrderedPartners Index` corresponds directly to the `value
 
 ---
 
+### Reloading Content Patcher Content Packs
+
+T's Core also provides development tools for reloading Content Patcher Content Packs while the game is running.
+
+This includes support for reloading patches, ConfigSchema, Config Tokens, GMCM settings, and DynamicTokens without restarting the game.
+
+For details about `tscore_cp_reload` and other Content Patcher integration features, see the [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md) guide.
+
+---
+
 ## Notes
 
 Relationship Services are **read-only**.
