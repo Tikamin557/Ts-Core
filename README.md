@@ -5,7 +5,7 @@
 
 A shared library and framework for Stardew Valley SMAPI mods.
 
-It provides reusable APIs, Content Patcher tokens, custom actions, and Content Pack systems that other mods can use to improve compatibility and reduce duplicated code.
+It provides reusable APIs, Content Patcher tokens, custom actions, Content Pack systems, migration support, and development tools that other mods can use to improve compatibility and reduce duplicated code.
 
 > **Players:** You only need to install this mod if another mod lists it as a requirement.
 
@@ -28,8 +28,10 @@ It provides reusable APIs, Content Patcher tokens, custom actions, and Content P
   - Conditional Building Draw Layers
   - Feature enable/disable controls
   - Construction location restrictions
+- Migration System for updating IDs stored in existing save data
 - Customizable notification system and Notification Themes
 - Content Patcher tokens
+- Content Patcher development and reload tools
 - T's Core Content Pack support
 - Common utilities shared between T's Mods
 
@@ -56,7 +58,9 @@ The guide includes documentation for:
 - Location Services
 - Warp Services
 - Building Services
+- Migration System
 - Notification System
+- Content Patcher Integration
 - Content Patcher Tokens
 - T's Core Content Packs
 - Debug and reload commands
@@ -66,6 +70,7 @@ T's Core Content Packs can currently provide:
 - Custom Building Providers
 - Custom Notification Themes
 - Custom Warp Providers
+- Migration definitions
 
 These features can be configured without writing any C# code.
 
