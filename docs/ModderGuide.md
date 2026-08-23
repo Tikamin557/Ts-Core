@@ -161,6 +161,7 @@ Detailed documentation for each system is available below.
 - [Location Services](ModderGuide_LocationServices.md)
 - [Warp Services](ModderGuide_WarpServices.md)
 - [Building Services](ModderGuide_BuildingServices.md)
+- [Migration System](ModderGuide_MigrationSystem.md)
 - [Notification System](ModderGuide_NotificationSystem.md)
 - [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
 
