@@ -2,7 +2,7 @@
 
 Welcome to the T's Core developer documentation.
 
-T's Core is a shared library for Stardew Valley SMAPI mods. It provides reusable APIs, Content Patcher tokens, Content Pack features, and shared systems to simplify mod development and improve compatibility between mods.
+T's Core is a shared library for Stardew Valley SMAPI mods. It provides reusable APIs, Content Patcher tokens, Content Pack features, migration support, development tools, and shared systems to simplify mod development and improve compatibility between mods.
 
 ---
 
@@ -68,7 +68,9 @@ T's Core currently provides the following systems.
 | Location Services | Player location information |
 | Warp Services | Shared warp actions and reusable Warp Providers |
 | Building Services | Building Providers, Building Lights, conditional Draw Layers, and building-related restrictions |
+| Migration System | Migration support for IDs stored in existing save data |
 | Notification System | Customizable HUD notifications and Notification Themes |
+| Content Patcher Integration | Development tools for reloading Content Patcher Content Packs while the game is running |
 | Content Patcher Tokens | Custom CP tokens |
 | Shared Utilities | Common helper functions |
 
@@ -85,6 +87,7 @@ Currently, Content Packs can provide:
 - Custom Building Providers
 - Custom Notification Themes
 - Custom Warp Providers
+- Migration definitions
 
 Each feature has its own file format and setup requirements.
 
@@ -92,6 +95,7 @@ For detailed instructions, see the corresponding guide:
 
 - **[Building Services Guide](ModderGuide_BuildingServices.md)**
 - **[Warp Services Guide](ModderGuide_WarpServices.md)**
+- **[Migration System Guide](ModderGuide_MigrationSystem.md)**
 - **[Notification System Guide](ModderGuide_NotificationSystem.md)**
 
 ---
@@ -129,8 +133,15 @@ The following commands are available during development.
 | `tscore_reload warp` | Reloads all registered Warp Providers |
 | `tscore_reload building` | Reloads all registered Building Providers |
 | `tscore_reload notification` | Reloads all registered Notification Themes |
+| `tscore_cp_reload <ContentPackId>` | Reloads the specified Content Patcher Content Pack |
 
-> **Note:** Reload commands only refresh data managed by T's Core. They do not reload Content Patcher patches or other SMAPI mods.
+`tscore_reload` commands reload resources managed directly by T's Core.
+
+`tscore_cp_reload` is a separate development command for Content Patcher Content Packs. It reloads the specified Content Pack's patches and refreshes related Content Patcher data, including ConfigSchema, Config Tokens, GMCM settings, and DynamicTokens.
+
+For details, see the [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md) guide.
+
+> **Note:** Migration definitions are loaded when T's Core initializes and Building Migrations are applied when a save is loaded. There is currently no command for reloading or manually applying Migration definitions while the game is running.
 
 ---
 
