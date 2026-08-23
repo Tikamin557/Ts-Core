@@ -11,7 +11,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Warp Services](ModderGuide_WarpServices.md)
 - 📄 [Building Services](ModderGuide_BuildingServices.md)
 - ✅ **Notification System** *(Current Page)*
-- 📄 [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
+- 📄 [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
 
 ← [Back to README](../README.md)
 
@@ -811,7 +811,7 @@ During development, `tscore_debug_notification_themes`, `tscore_debug_notificati
 
 - ← [Building Services](ModderGuide_BuildingServices.md)
 - ↑ [Guide Index](#top)
-- → [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
+- → [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
 
 ← [Back to README](../README.md)
 
