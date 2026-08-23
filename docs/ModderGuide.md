@@ -162,6 +162,6 @@ Detailed documentation for each system is available below.
 - [Warp Services](ModderGuide_WarpServices.md)
 - [Building Services](ModderGuide_BuildingServices.md)
 - [Notification System](ModderGuide_NotificationSystem.md)
-- [Content Patcher Tokens](ModderGuide_ContentPatcherTokens.md) *(Coming Soon)*
+- [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
 
 ← [Back to README](../README.md)
