@@ -17,7 +17,7 @@
 
         /// <summary>
         /// Warp Providerの種類です。
-        /// （Warp / Building）
+        /// （Warp / MapEntry / Building）
         /// </summary>
         public string Type { get; set; } = "";
 
@@ -45,8 +45,7 @@
         public string? BuildingType { get; set; }
 
         /// <summary>
-        /// 建物が存在するマップ名です。
-        /// （現在は未使用）
+        /// MapEntryで検索対象となるマップ名です。
         /// </summary>
         public string? Map { get; set; }
 

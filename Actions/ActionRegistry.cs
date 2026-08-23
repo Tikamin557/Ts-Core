@@ -196,21 +196,33 @@ namespace Ts_Core.Actions
             //----------------------------------------
             // 座標Warp
             //----------------------------------------
-            //
             // <Action> <Location> <X> <Y>
             // <Action> <Location> <X> <Y> <Facing>
             // <Action> <Location> <X> <Y> <Facing> <AudioCue>
+            // <Action> <Location> <X> <Y> <Facing> <AudioCue> <RepeatCount>
+            // <Action> <Location> <X> <Y> <Facing> <AudioCue> <RepeatCount> <IntervalMs>
+            // <Action> <Location> <X> <Y> <Facing> <AudioCue> <RepeatCount> <IntervalMs> <BlackoutDurationMs>
+            // <Action> <Location> <X> <Y> <Facing> <AudioCue> <RepeatCount> <IntervalMs> <BlackoutDurationMs> <AudioStartDelayMs>
             //----------------------------------------
 
             if (action.Length >= 4
                 && int.TryParse(action[2], out int x)
                 && int.TryParse(action[3], out int y))
             {
-                if (action.Length > 6)
+                if (action.Length > 10)
                     return false;
 
                 int? facingDirection = null;
                 string? audioCue = null;
+
+                int audioRepeatCount = 1;
+                int audioIntervalMs = 100;
+                int? blackoutDurationMs = null;
+                int audioStartDelayMs = 0;
+
+                //----------------------------------------
+                // Facing
+                //----------------------------------------
 
                 if (action.Length >= 5)
                 {
@@ -222,18 +234,93 @@ namespace Ts_Core.Actions
                     }
                 }
 
-                if (action.Length == 6)
+                //----------------------------------------
+                // Audio Cue
+                //----------------------------------------
+
+                if (action.Length >= 6)
                 {
                     audioCue =
                         action[5];
                 }
+
+                //----------------------------------------
+                // Audio Repeat Count
+                //----------------------------------------
+
+                if (action.Length >= 7)
+                {
+                    if (!int.TryParse(
+                            action[6],
+                            out audioRepeatCount)
+                        || audioRepeatCount < 1)
+                    {
+                        return false;
+                    }
+                }
+
+                //----------------------------------------
+                // Audio Interval
+                //----------------------------------------
+
+                if (action.Length >= 8)
+                {
+                    if (!int.TryParse(
+                            action[7],
+                            out audioIntervalMs)
+                        || audioIntervalMs < 0)
+                    {
+                        return false;
+                    }
+                }
+
+                //----------------------------------------
+                // Blackout Duration
+                //----------------------------------------
+
+                if (action.Length >= 9)
+                {
+                    if (!int.TryParse(
+                            action[8],
+                            out int parsedBlackoutDuration)
+                        || parsedBlackoutDuration < 0)
+                    {
+                        return false;
+                    }
+
+                    blackoutDurationMs =
+                        parsedBlackoutDuration;
+                }
+
+                //----------------------------------------
+                // Audio Start Delay
+                //----------------------------------------
+
+                if (action.Length >= 10)
+                {
+                    if (!int.TryParse(
+                            action[9],
+                            out audioStartDelayMs)
+                        || audioStartDelayMs < 0)
+                    {
+                        return false;
+                    }
+                }
+
+                //----------------------------------------
+                // Warp実行
+                //----------------------------------------
 
                 WarpService.Warp(
                     action[1],
                     new Point(x, y),
                     effectMode,
                     facingDirection,
-                    audioCue);
+                    audioCue,
+                    audioRepeatCount,
+                    audioIntervalMs,
+                    blackoutDurationMs,
+                    audioStartDelayMs);
 
                 return true;
             }
@@ -241,20 +328,32 @@ namespace Ts_Core.Actions
             //----------------------------------------
             // Provider / Map Warp
             //----------------------------------------
-            //
             // <Action> <Provider>
             // <Action> <Provider> <Facing>
             // <Action> <Provider> <Facing> <AudioCue>
+            // <Action> <Provider> <Facing> <AudioCue> <RepeatCount>
+            // <Action> <Provider> <Facing> <AudioCue> <RepeatCount> <IntervalMs>
+            // <Action> <Provider> <Facing> <AudioCue> <RepeatCount> <IntervalMs> <BlackoutDurationMs>
+            // <Action> <Provider> <Facing> <AudioCue> <RepeatCount> <IntervalMs> <BlackoutDurationMs> <AudioStartDelayMs>
             //----------------------------------------
 
             if (action.Length < 2
-                || action.Length > 4)
+                || action.Length > 8)
             {
                 return false;
             }
 
             int? providerFacingDirection = null;
             string? providerAudioCue = null;
+
+            int providerAudioRepeatCount = 1;
+            int providerAudioIntervalMs = 100;
+            int? providerBlackoutDurationMs = null;
+            int providerAudioStartDelayMs = 0;
+
+            //----------------------------------------
+            // Facing
+            //----------------------------------------
 
             if (action.Length >= 3)
             {
@@ -266,27 +365,110 @@ namespace Ts_Core.Actions
                 }
             }
 
-            if (action.Length == 4)
+            //----------------------------------------
+            // Audio Cue
+            //----------------------------------------
+
+            if (action.Length >= 4)
             {
                 providerAudioCue =
                     action[3];
             }
 
+            //----------------------------------------
+            // Audio Repeat Count
+            //----------------------------------------
+
+            if (action.Length >= 5)
+            {
+                if (!int.TryParse(
+                        action[4],
+                        out providerAudioRepeatCount)
+                    || providerAudioRepeatCount < 1)
+                {
+                    return false;
+                }
+            }
+
+            //----------------------------------------
+            // Audio Interval
+            //----------------------------------------
+
+            if (action.Length >= 6)
+            {
+                if (!int.TryParse(
+                        action[5],
+                        out providerAudioIntervalMs)
+                    || providerAudioIntervalMs < 0)
+                {
+                    return false;
+                }
+            }
+
+            //----------------------------------------
+            // Blackout Duration
+            //----------------------------------------
+
+            if (action.Length >= 7)
+            {
+                if (!int.TryParse(
+                        action[6],
+                        out int parsedBlackoutDuration)
+                    || parsedBlackoutDuration < 0)
+                {
+                    return false;
+                }
+
+                providerBlackoutDurationMs =
+                    parsedBlackoutDuration;
+            }
+
+            //----------------------------------------
+            // Audio Start Delay
+            //----------------------------------------
+
+            if (action.Length >= 8)
+            {
+                if (!int.TryParse(
+                        action[7],
+                        out providerAudioStartDelayMs)
+                    || providerAudioStartDelayMs < 0)
+                {
+                    return false;
+                }
+            }
+
+            //----------------------------------------
+            // Provider Warp
+            //----------------------------------------
+
             if (WarpService.Warp(
                     action[1],
                     effectMode,
                     providerFacingDirection,
-                    providerAudioCue))
+                    providerAudioCue,
+                    providerAudioRepeatCount,
+                    providerAudioIntervalMs,
+                    providerBlackoutDurationMs,
+                    providerAudioStartDelayMs))
             {
                 return true;
             }
+
+            //----------------------------------------
+            // Map Warp
+            //----------------------------------------
 
             // Providerが見つからない場合はMap名として扱う
             return WarpService.WarpToMap(
                 action[1],
                 effectMode,
                 providerFacingDirection,
-                providerAudioCue);
+                providerAudioCue,
+                providerAudioRepeatCount,
+                providerAudioIntervalMs,
+                providerBlackoutDurationMs,
+                providerAudioStartDelayMs);
         }
 
         //----------------------------------------

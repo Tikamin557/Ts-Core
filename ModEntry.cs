@@ -56,6 +56,10 @@ namespace Ts_Core
             // Stardew Valley標準のWarp警告を抑制
             WarpWarningPatch.Apply(harmony);
 
+            // Warp暗転オーバーレイを最終描画
+            WarpBlackoutOverlayPatch.Apply(
+                harmony);
+
             // Stardew Valley標準のレイントーテムの
             // 不具合を修正
             RainTotemPatch.Apply(
@@ -122,6 +126,10 @@ namespace Ts_Core
 
             // Warpサービス初期化
             WarpService.Initialize(Monitor);
+
+            // Warp暗転オーバーレイ初期化
+            WarpBlackoutOverlayService.Initialize(
+                helper);
 
             // Warp定義読み込み
             WarpLoader.Load(

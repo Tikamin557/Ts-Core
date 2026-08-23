@@ -128,6 +128,11 @@ namespace Ts_Core.Debug
 
                 case "Warp":
 
+                    string warpFallback =
+                        string.IsNullOrWhiteSpace(provider.Fallback)
+                            ? "(none)"
+                            : provider.Fallback;
+
                     DebugLogHelper.LogField(
                         monitor,
                         "Type",
@@ -143,6 +148,49 @@ namespace Ts_Core.Debug
                         "Target",
                         provider.TargetLocation);
 
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Fallback",
+                        warpFallback);
+
+                    break;
+
+                //----------------------------------------
+                // MapEntry
+                //----------------------------------------
+
+                case "MapEntry":
+
+                    string mapEntryFallback =
+                        string.IsNullOrWhiteSpace(provider.Fallback)
+                            ? "(none)"
+                            : provider.Fallback;
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Type",
+                        "MapEntry");
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Map",
+                        provider.MapLocation);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Target",
+                        provider.TargetLocation);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Offset",
+                        $"({provider.OffsetX}, {provider.OffsetY})");
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Fallback",
+                        mapEntryFallback);
+
                     break;
 
                 //----------------------------------------
@@ -151,9 +199,9 @@ namespace Ts_Core.Debug
 
                 case "Building":
 
-                    string fallback =
+                    string buildingFallback =
                         string.IsNullOrWhiteSpace(provider.Fallback)
-                            ? "FarmHouseFront"
+                            ? "(none)"
                             : provider.Fallback;
 
                     DebugLogHelper.LogField(
@@ -174,7 +222,7 @@ namespace Ts_Core.Debug
                     DebugLogHelper.LogField(
                         monitor,
                         "Fallback",
-                        fallback);
+                        buildingFallback);
 
                     break;
 

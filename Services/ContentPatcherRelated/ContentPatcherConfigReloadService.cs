@@ -11,649 +11,152 @@ namespace Ts_Core.Services.ContentPatcherRelated
     internal static class ContentPatcherConfigReloadService
     {
         //----------------------------------------
-        // Mod ID
-        //----------------------------------------
-
-        private const string ContentPatcherModId =
-            "Pathoschild.ContentPatcher";
-
-        //----------------------------------------
-        // Content Patcher内部情報
-        //----------------------------------------
-
-        private static object? contentPatcherMod;
-        private static object? contentPacks;
-        private static object? screenManagerContainer;
-
-        private static object? commandHandler;
-        private static MethodInfo? commandHandleMethod;
-
-        private static bool initialized;
-
-        //----------------------------------------
-        // 初期化
+        // ConfigSchema再読み込み
         //----------------------------------------
 
         /// <summary>
-        /// Content Patcher内部の必要なオブジェクトを取得します。
+        /// 最新のConfigSchemaからConfigを再構築し、
+        /// Config TokenとGMCMを更新します。
         /// </summary>
-        internal static bool Initialize(
+        internal static int Refresh(
+            object contentPatcherMod,
+            object screenManagerContainer,
+            object contentPack,
+            object rawContentPack,
+            object content,
+            object currentConfig,
+            HashSet<string> oldConfigKeys,
             IModHelper helper,
             IMonitor monitor)
         {
             //----------------------------------------
-            // 初期化済み
+            // ConfigSchema取得
             //----------------------------------------
 
-            if (initialized)
+            object? configSchema =
+                GetPropertyValue(
+                    content,
+                    "ConfigSchema");
+
+            object? format =
+                GetPropertyValue(
+                    content,
+                    "Format");
+
+            if (format == null)
             {
-                return contentPatcherMod != null
-                    && contentPacks != null
-                    && screenManagerContainer != null
-                    && commandHandler != null
-                    && commandHandleMethod != null;
+                throw new InvalidOperationException(
+                    "Could not access Content Patcher Format.");
             }
 
             //----------------------------------------
-            // Content Patcher確認
+            // ConfigFileHandler取得
             //----------------------------------------
 
-            IModInfo? modInfo =
-                helper.ModRegistry.Get(
-                    ContentPatcherModId);
-
-            if (modInfo == null)
-            {
-                monitor.Log(
-                    "Content Patcher was not found. " +
-                    "Content Patcher config reload is unavailable.",
-                    LogLevel.Trace);
-
-                return false;
-            }
-
-            try
-            {
-                //----------------------------------------
-                // Content Patcher ModEntry取得
-                //----------------------------------------
-
-                PropertyInfo? modProperty =
-                    modInfo
-                        .GetType()
-                        .GetProperty(
-                            "Mod",
-                            BindingFlags.Instance
-                            | BindingFlags.Public
-                            | BindingFlags.NonPublic);
-
-                if (modProperty == null)
-                {
-                    monitor.Log(
-                        "Could not access the Content Patcher mod instance.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                contentPatcherMod =
-                    modProperty.GetValue(
-                        modInfo);
-
-                if (contentPatcherMod == null)
-                {
-                    monitor.Log(
-                        "Content Patcher mod instance was null.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                //----------------------------------------
-                // ContentPacks取得
-                //----------------------------------------
-
-                FieldInfo? contentPacksField =
-                    contentPatcherMod
-                        .GetType()
-                        .GetField(
-                            "ContentPacks",
-                            BindingFlags.Instance
-                            | BindingFlags.Public
-                            | BindingFlags.NonPublic);
-
-                if (contentPacksField == null)
-                {
-                    monitor.Log(
-                        "Could not access Content Patcher ContentPacks.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                contentPacks =
-                    contentPacksField.GetValue(
-                        contentPatcherMod);
-
-                if (contentPacks == null)
-                {
-                    monitor.Log(
-                        "Content Patcher ContentPacks was null.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                //----------------------------------------
-                // ScreenManager取得
-                //----------------------------------------
-
-                FieldInfo? screenManagerField =
-                    contentPatcherMod
-                        .GetType()
-                        .GetField(
-                            "ScreenManager",
-                            BindingFlags.Instance
-                            | BindingFlags.Public
-                            | BindingFlags.NonPublic);
-
-                if (screenManagerField == null)
-                {
-                    monitor.Log(
-                        "Could not access Content Patcher ScreenManager.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                screenManagerContainer =
-                    screenManagerField.GetValue(
-                        contentPatcherMod);
-
-                if (screenManagerContainer == null)
-                {
-                    monitor.Log(
-                        "Content Patcher ScreenManager was null.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                //----------------------------------------
-                // CommandHandler取得
-                //----------------------------------------
-
-                FieldInfo? commandHandlerField =
-                    contentPatcherMod
-                        .GetType()
-                        .GetField(
-                            "CommandHandler",
-                            BindingFlags.Instance
-                            | BindingFlags.Public
-                            | BindingFlags.NonPublic);
-
-                if (commandHandlerField == null)
-                {
-                    monitor.Log(
-                        "Could not access Content Patcher CommandHandler.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                object? handler =
-                    commandHandlerField.GetValue(
-                        contentPatcherMod);
-
-                if (handler == null)
-                {
-                    monitor.Log(
-                        "Content Patcher CommandHandler was null.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                //----------------------------------------
-                // CommandHandler.Handle取得
-                //----------------------------------------
-
-                MethodInfo? handleMethod =
-                    handler
-                        .GetType()
-                        .GetMethod(
-                            "Handle",
-                            BindingFlags.Instance
-                            | BindingFlags.Public
-                            | BindingFlags.NonPublic,
-                            binder: null,
-                            types:
-                            new[]
-                            {
-                                typeof(string[])
-                            },
-                            modifiers: null);
-
-                if (handleMethod == null)
-                {
-                    monitor.Log(
-                        "Could not access Content Patcher CommandHandler.Handle().",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                //----------------------------------------
-                // 取得結果を保存
-                //----------------------------------------
-
-                commandHandler =
-                    handler;
-
-                commandHandleMethod =
-                    handleMethod;
-
-                //----------------------------------------
-                // 成功
-                //----------------------------------------
-
-                initialized = true;
-
-                monitor.Log(
-                    "Content Patcher config reload service initialized.",
-                    LogLevel.Trace);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                initialized = false;
-
-                contentPatcherMod = null;
-                contentPacks = null;
-                screenManagerContainer = null;
-                commandHandler = null;
-                commandHandleMethod = null;
-
-                monitor.Log(
-                    "Failed to initialize Content Patcher config reload service.\n" +
-                    ex,
-                    LogLevel.Warn);
-
-                return false;
-            }
-
-
-        }
-
-        //----------------------------------------
-        // Content Pack再読み込み
-        //----------------------------------------
-
-        /// <summary>
-        /// 指定したContent Patcher Content Packの
-        /// ConfigSchemaを再読み込みします。
-        /// </summary>
-        internal static bool ReloadContentPack(
-            string contentPackId,
-            IModHelper helper,
-            IMonitor monitor)
-        {
-            //----------------------------------------
-            // ID確認
-            //----------------------------------------
-
-            if (string.IsNullOrWhiteSpace(
-                    contentPackId))
-            {
-                monitor.Log(
-                    "Content Pack ID is required.",
-                    LogLevel.Warn);
-
-                return false;
-            }
-
-            //----------------------------------------
-            // 初期化
-            //----------------------------------------
-
-            if (!Initialize(
-                    helper,
-                    monitor))
-            {
-                return false;
-            }
-
-            try
-            {
-                //----------------------------------------
-                // 対象Content Pack取得
-                //----------------------------------------
-
-                object? contentPack =
-                    FindContentPack(
-                        contentPackId);
-
-                if (contentPack == null)
-                {
-                    monitor.Log(
-                        $"No Content Patcher content pack with the unique ID '{contentPackId}'.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                monitor.Log(
-                    $"Reloading Content Patcher config schema for '{contentPackId}'...",
-                    LogLevel.Info);
-
-                //----------------------------------------
-                // 現在のConfig取得
-                //----------------------------------------
-
-                object? currentConfig =
-                    GetPropertyValue(
-                        contentPack,
-                        "Config");
-
-                if (currentConfig == null)
-                {
-                    monitor.Log(
-                        $"Could not access Config for '{contentPackId}'.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                //----------------------------------------
-                // 旧Configキー保存
-                //----------------------------------------
-
-                HashSet<string> oldConfigKeys =
-                    GetDictionaryKeys(
-                        currentConfig);
-
-                //----------------------------------------
-                // content.json再読み込み
-                //----------------------------------------
-
-                MethodInfo? tryReloadContentMethod =
-                    contentPack
-                        .GetType()
-                        .GetMethod(
-                            "TryReloadContent",
-                            BindingFlags.Instance
-                            | BindingFlags.Public
-                            | BindingFlags.NonPublic);
-
-                if (tryReloadContentMethod == null)
-                {
-                    monitor.Log(
-                        $"Could not access TryReloadContent() for '{contentPackId}'.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                object?[] reloadArguments =
-                {
-                    null
-                };
-
-                bool reloadSuccess =
-                    tryReloadContentMethod.Invoke(
-                        contentPack,
-                        reloadArguments)
-                    is true;
-
-                if (!reloadSuccess)
-                {
-                    string error =
-                        reloadArguments[0]?.ToString()
-                        ?? "Unknown error.";
-
-                    monitor.Log(
-                        $"Failed to reload content pack '{contentPackId}': {error}",
-                        LogLevel.Error);
-
-                    return false;
-                }
-
-                //----------------------------------------
-                // 最新Content取得
-                //----------------------------------------
-
-                object? content =
-                    GetPropertyValue(
-                        contentPack,
-                        "Content");
-
-                if (content == null)
-                {
-                    monitor.Log(
-                        $"Could not access Content for '{contentPackId}'.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                object? configSchema =
-                    GetPropertyValue(
-                        content,
-                        "ConfigSchema");
-
-                object? format =
-                    GetPropertyValue(
-                        content,
-                        "Format");
-
-                if (format == null)
-                {
-                    monitor.Log(
-                        $"Could not access Format for '{contentPackId}'.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                //----------------------------------------
-                // ConfigFileHandler取得
-                //----------------------------------------
-
-                object? configFileHandler =
-                    GetPropertyValue(
-                        contentPack,
-                        "ConfigFileHandler");
-
-                object? rawContentPack =
-                    GetPropertyValue(
-                        contentPack,
-                        "ContentPack");
-
-                if (configFileHandler == null
-                    || rawContentPack == null)
-                {
-                    monitor.Log(
-                        $"Could not access configuration objects for '{contentPackId}'.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                //----------------------------------------
-                // 新ConfigSchemaからConfig再構築
-                //----------------------------------------
-
-                MethodInfo? readMethod =
-                    configFileHandler
-                        .GetType()
-                        .GetMethods(
-                            BindingFlags.Instance
-                            | BindingFlags.Public
-                            | BindingFlags.NonPublic)
-                        .FirstOrDefault(method =>
-                            method.Name == "Read"
-                            && method.GetParameters().Length == 3);
-
-                if (readMethod == null)
-                {
-                    monitor.Log(
-                        $"Could not access ConfigFileHandler.Read() for '{contentPackId}'.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                object? newConfig =
-                    readMethod.Invoke(
-                        configFileHandler,
-                        new[]
-                        {
-                            rawContentPack,
-                            configSchema,
-                            format
-                        });
-
-                if (newConfig == null)
-                {
-                    monitor.Log(
-                        $"Failed to rebuild ConfigSchema for '{contentPackId}'.",
-                        LogLevel.Warn);
-
-                    return false;
-                }
-
-                //----------------------------------------
-                // Config内容を置換
-                //----------------------------------------
-
-                ReplaceDictionaryContents(
-                    currentConfig,
-                    newConfig);
-
-                //----------------------------------------
-                // 新Configキー取得
-                //----------------------------------------
-
-                HashSet<string> newConfigKeys =
-                    GetDictionaryKeys(
-                        currentConfig);
-
-                //----------------------------------------
-                // config.json保存
-                //----------------------------------------
-
-                SaveConfig(
-                    configFileHandler,
-                    rawContentPack,
-                    currentConfig,
-                    helper);
-
-                //----------------------------------------
-                // Config Token再構築
-                //----------------------------------------
-
-                RefreshConfigTokens(
+            object? configFileHandler =
+                GetPropertyValue(
                     contentPack,
-                    rawContentPack,
-                    currentConfig,
-                    oldConfigKeys,
-                    monitor);
+                    "ConfigFileHandler");
 
-                //----------------------------------------
-                // Content Patcher自身のPatch Reload
-                //----------------------------------------
+            if (configFileHandler == null)
+            {
+                throw new InvalidOperationException(
+                    "Could not access Content Patcher ConfigFileHandler.");
+            }
 
-                ReloadPatches(
-                    contentPackId,
-                    monitor);
+            //----------------------------------------
+            // 新ConfigSchemaからConfig再構築
+            //----------------------------------------
 
-                //----------------------------------------
-                // GMCM再登録
-                //----------------------------------------
+            MethodInfo? readMethod =
+                configFileHandler
+                    .GetType()
+                    .GetMethods(
+                        BindingFlags.Instance
+                        | BindingFlags.Public
+                        | BindingFlags.NonPublic)
+                    .FirstOrDefault(method =>
+                        method.Name == "Read"
+                        && method.GetParameters().Length == 3);
 
-                RefreshConfigMenu(
-                    contentPack,
-                    rawContentPack,
-                    currentConfig,
+            if (readMethod == null)
+            {
+                throw new InvalidOperationException(
+                    "Could not access Content Patcher ConfigFileHandler.Read().");
+            }
+
+            object? newConfig =
+                readMethod.Invoke(
                     configFileHandler,
-                    helper,
-                    monitor);
+                    new[]
+                    {
+                        rawContentPack,
+                        configSchema,
+                        format
+                    });
 
-                //----------------------------------------
-                // 完了
-                //----------------------------------------
-
-                monitor.Log(
-                    $"Content Patcher config schema reloaded for '{contentPackId}'. " +
-                    $"Config fields: {oldConfigKeys.Count} -> {newConfigKeys.Count}",
-                    LogLevel.Info);
-
-                return true;
-            }
-            catch (TargetInvocationException ex)
+            if (newConfig == null)
             {
-                Exception actualException =
-                    ex.InnerException
-                    ?? ex;
-
-                monitor.Log(
-                    $"Content Patcher config reload failed for '{contentPackId}'.\n" +
-                    actualException,
-                    LogLevel.Error);
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                monitor.Log(
-                    $"Content Patcher config reload failed for '{contentPackId}'.\n" +
-                    ex,
-                    LogLevel.Error);
-
-                return false;
-            }
-        }
-
-        //----------------------------------------
-        // Content Pack検索
-        //----------------------------------------
-
-        /// <summary>
-        /// UniqueIDからLoadedContentPackを検索します。
-        /// </summary>
-        private static object? FindContentPack(
-            string contentPackId)
-        {
-            if (contentPacks is not IEnumerable enumerable)
-                return null;
-
-            foreach (object? pack in enumerable)
-            {
-                if (pack == null)
-                    continue;
-
-                object? manifest =
-                    GetPropertyValue(
-                        pack,
-                        "Manifest");
-
-                string? uniqueId =
-                    GetPropertyValue(
-                        manifest,
-                        "UniqueID")
-                        ?.ToString();
-
-                if (string.Equals(
-                        uniqueId,
-                        contentPackId,
-                        StringComparison.OrdinalIgnoreCase))
-                {
-                    return pack;
-                }
+                throw new InvalidOperationException(
+                    "Failed to rebuild Content Patcher ConfigSchema.");
             }
 
-            return null;
+            //----------------------------------------
+            // Config内容置換
+            //----------------------------------------
+
+            ReplaceDictionaryContents(
+                currentConfig,
+                newConfig);
+
+            //----------------------------------------
+            // 新Configキー取得
+            //----------------------------------------
+
+            HashSet<string> newConfigKeys =
+                GetDictionaryKeys(
+                    currentConfig);
+
+            //----------------------------------------
+            // config.json保存
+            //----------------------------------------
+
+            SaveConfig(
+                configFileHandler,
+                rawContentPack,
+                currentConfig,
+                helper);
+
+            //----------------------------------------
+            // Config Token再構築
+            //----------------------------------------
+
+            RefreshConfigTokens(
+                screenManagerContainer,
+                contentPack,
+                rawContentPack,
+                currentConfig,
+                oldConfigKeys,
+                monitor);
+
+            //----------------------------------------
+            // GMCM再登録
+            //----------------------------------------
+
+            RefreshConfigMenu(
+                contentPatcherMod,
+                contentPack,
+                rawContentPack,
+                currentConfig,
+                configFileHandler,
+                helper,
+                monitor);
+
+            //----------------------------------------
+            // 結果
+            //----------------------------------------
+
+            return newConfigKeys.Count;
         }
 
         //----------------------------------------
@@ -665,15 +168,13 @@ namespace Ts_Core.Services.ContentPatcherRelated
         /// 現在のConfigSchemaに合わせて再構築します。
         /// </summary>
         private static void RefreshConfigTokens(
+            object screenManagerContainer,
             object contentPack,
             object rawContentPack,
             object currentConfig,
             HashSet<string> oldConfigKeys,
             IMonitor monitor)
         {
-            if (screenManagerContainer == null)
-                return;
-
             //----------------------------------------
             // Active Screen一覧取得
             //----------------------------------------
@@ -836,41 +337,44 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 // 新Config Tokenを追加
                 //----------------------------------------
 
-                if (currentConfig is IEnumerable configEnumerable)
+                if (currentConfig is not IEnumerable configEnumerable)
                 {
-                    foreach (object? item in configEnumerable)
+                    throw new InvalidOperationException(
+                        "Could not enumerate Content Patcher Config.");
+                }
+
+                foreach (object? item in configEnumerable)
+                {
+                    if (item == null)
+                        continue;
+
+                    string? key =
+                        GetPropertyValue(
+                            item,
+                            "Key")
+                            ?.ToString();
+
+                    object? value =
+                        GetPropertyValue(
+                            item,
+                            "Value");
+
+                    if (string.IsNullOrWhiteSpace(
+                            key)
+                        || value == null)
                     {
-                        if (item == null)
-                            continue;
-
-                        string? key =
-                            GetPropertyValue(
-                                item,
-                                "Key")
-                                ?.ToString();
-
-                        object? value =
-                            GetPropertyValue(
-                                item,
-                                "Value");
-
-                        if (string.IsNullOrWhiteSpace(
-                                key)
-                            || value == null)
-                        {
-                            continue;
-                        }
-
-                        addConfigTokenMethod.Invoke(
-                            screenManager,
-                            new object[]
-                            {
-                        key,
-                        value,
-                        modContext,
-                        contentPack
-                            });
+                        continue;
                     }
+
+                    addConfigTokenMethod.Invoke(
+                        screenManager,
+                        new object[]
+                        {
+                            key,
+                            value,
+                            modContext,
+                            contentPack
+                        });
                 }
 
                 //----------------------------------------
@@ -934,7 +438,10 @@ namespace Ts_Core.Services.ContentPatcherRelated
                         && method.GetParameters().Length == 3);
 
             if (saveMethod == null)
-                return;
+            {
+                throw new InvalidOperationException(
+                    "Could not access Content Patcher ConfigFileHandler.Save().");
+            }
 
             saveMethod.Invoke(
                 configFileHandler,
@@ -947,41 +454,6 @@ namespace Ts_Core.Services.ContentPatcherRelated
         }
 
         //----------------------------------------
-        // Patch Reload
-        //----------------------------------------
-
-        /// <summary>
-        /// Content Patcher自身のreloadコマンドを使用して
-        /// Content PackのPatchを再読み込みします。
-        /// </summary>
-        private static void ReloadPatches(
-            string contentPackId,
-            IMonitor monitor)
-        {
-            if (commandHandler == null
-                || commandHandleMethod == null)
-            {
-                throw new InvalidOperationException(
-                    "Content Patcher CommandHandler is unavailable.");
-            }
-
-            monitor.Log(
-                $"Reloading Content Patcher patches for '{contentPackId}'...",
-                LogLevel.Trace);
-
-            commandHandleMethod.Invoke(
-                commandHandler,
-                new object[]
-                {
-            new[]
-            {
-                "reload",
-                contentPackId
-            }
-                });
-        }
-
-        //----------------------------------------
         // GMCM再登録
         //----------------------------------------
 
@@ -990,6 +462,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
         /// Content PackのGMCM項目を再登録します。
         /// </summary>
         private static void RefreshConfigMenu(
+            object contentPatcherMod,
             object contentPack,
             object rawContentPack,
             object currentConfig,
@@ -997,12 +470,6 @@ namespace Ts_Core.Services.ContentPatcherRelated
             IModHelper helper,
             IMonitor monitor)
         {
-            if (contentPatcherMod == null)
-            {
-                throw new InvalidOperationException(
-                    "Content Patcher mod instance is unavailable.");
-            }
-
             //----------------------------------------
             // Content Patcher Assembly
             //----------------------------------------
@@ -1219,9 +686,9 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 contentPackMenuConstructor.Invoke(
                     new object[]
                     {
-                rawContentPack,
-                parseDelegate,
-                currentConfig
+                        rawContentPack,
+                        parseDelegate,
+                        currentConfig
                     });
 
             //----------------------------------------
@@ -1403,7 +870,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
         /// <summary>
         /// Config Dictionaryのキー一覧を取得します。
         /// </summary>
-        private static HashSet<string> GetDictionaryKeys(
+        internal static HashSet<string> GetDictionaryKeys(
             object dictionary)
         {
             HashSet<string> keys =
@@ -1439,27 +906,14 @@ namespace Ts_Core.Services.ContentPatcherRelated
         // Property取得
         //----------------------------------------
 
-        /// <summary>
-        /// Reflectionでプロパティ値を取得します。
-        /// </summary>
         private static object? GetPropertyValue(
             object? instance,
             string propertyName)
         {
-            if (instance == null)
-                return null;
-
-            PropertyInfo? property =
-                instance
-                    .GetType()
-                    .GetProperty(
-                        propertyName,
-                        BindingFlags.Instance
-                        | BindingFlags.Public
-                        | BindingFlags.NonPublic);
-
-            return property?.GetValue(
-                instance);
+            return ContentPatcherReloadService
+                .GetPropertyValue(
+                    instance,
+                    propertyName);
         }
     }
 }

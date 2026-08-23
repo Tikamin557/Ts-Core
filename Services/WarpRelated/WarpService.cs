@@ -1,68 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Buildings;
-using StardewValley.Extensions;
 using Ts_Core.Models;
 
 namespace Ts_Core.Services.WarpRelated
 {
-    /// <summary>
-    /// 登録済みWarp Providerのデバッグ情報です。
-    /// </summary>
-    internal sealed class RegisteredWarpProviderInfo
-    {
-        /// <summary>
-        /// Provider IDです。
-        /// </summary>
-        public string Id { get; init; } = "";
-
-        /// <summary>
-        /// Providerを登録したModまたはContent Packです。
-        /// </summary>
-        public string Owner { get; init; } = "";
-
-        /// <summary>
-        /// Provider定義ファイルのパスです。
-        /// </summary>
-        public string SourceFile { get; init; } = "";
-
-        /// <summary>
-        /// Providerの種類です。
-        /// </summary>
-        public string Type { get; init; } = "";
-
-        /// <summary>
-        /// Warp検索元のLocation名です。
-        /// </summary>
-        public string? SourceLocation { get; init; }
-
-        /// <summary>
-        /// Warpの移動先Location名です。
-        /// </summary>
-        public string? TargetLocation { get; init; }
-
-        /// <summary>
-        /// 検索対象の建物タイプです。
-        /// </summary>
-        public string? BuildingType { get; init; }
-
-        /// <summary>
-        /// 建物座標から加算するX座標です。
-        /// </summary>
-        public int OffsetX { get; init; }
-
-        /// <summary>
-        /// 建物座標から加算するY座標です。
-        /// </summary>
-        public int OffsetY { get; init; }
-
-        /// <summary>
-        /// 建物が見つからなかった場合に使用するProviderです。
-        /// </summary>
-        public string? Fallback { get; init; }
-    }
-
     /// <summary>
     /// Warp時に使用する演出の種類です。
     /// </summary>
@@ -90,6 +32,19 @@ namespace Ts_Core.Services.WarpRelated
     public static class WarpService
     {
         //----------------------------------------
+        // Blackout Duration
+        //----------------------------------------
+
+        // 通常Warpで、完全に暗転してからWarpを実行するまでの時間
+        private const int NormalBlackoutDuration = 100;
+
+        // MagicWarpで、完全に暗転してからWarpを実行するまでの時間
+        private const int MagicBlackoutDuration = 100;
+
+        // Simple MagicWarpで、完全に暗転してからWarpを実行するまでの時間
+        private const int SimpleMagicBlackoutDuration = 100;
+
+        //----------------------------------------
         // Monitor
         //----------------------------------------
 
@@ -108,20 +63,14 @@ namespace Ts_Core.Services.WarpRelated
         // 登録済みProvider情報
         //----------------------------------------
 
-        private static readonly Dictionary<string, RegisteredWarpProviderInfo>
-            RegisteredProviders =
-                new(StringComparer.OrdinalIgnoreCase);
-
         /// <summary>
         /// 現在登録されているWarp Provider情報を取得します。
         /// </summary>
         internal static IReadOnlyList<RegisteredWarpProviderInfo>
             GetRegisteredProviders()
         {
-            return RegisteredProviders.Values
-                .OrderBy(provider => provider.Owner)
-                .ThenBy(provider => provider.Id)
-                .ToList();
+            return WarpProviderService
+                .GetRegisteredProviders();
         }
 
         //----------------------------------------
@@ -134,54 +83,12 @@ namespace Ts_Core.Services.WarpRelated
         /// </summary>
         internal static void ClearProviders()
         {
-            WarpProviders.Clear();
-            RegisteredProviders.Clear();
+            WarpProviderService.ClearProviders();
         }
-
-        //----------------------------------------
-        // Warp取得
-        //----------------------------------------
-
-        private static Warp GetWarp(
-            GameLocation location,
-            Func<Warp, bool> predicate)
-        {
-            return location.warps.FirstOrDefault(predicate)
-                ?? throw new InvalidOperationException(
-                    $"No matching warp was found in '{location.Name}'.");
-        }
-
-        private static (string Location, Point Point) GetWarpDestination(
-                string sourceLocation,
-                string targetLocation)
-        {
-            Warp warp = GetWarp(
-                Game1.getLocationFromName(sourceLocation),
-                w => w.TargetName == targetLocation);
-
-            return (
-                warp.TargetName,
-                new Point(warp.TargetX, warp.TargetY)
-            );
-        }
-
-        //----------------------------------------
-        // 登録済みProvider
-        //----------------------------------------
-
-        private static readonly Dictionary<string, Func<(string Location, Point Point)>> WarpProviders
-            = new();
 
         //----------------------------------------
         // Provider登録
         //----------------------------------------
-
-        private static void AddProvider(
-            string key,
-            Func<(string Location, Point Point)> provider)
-        {
-            WarpProviders[key] = provider;
-        }
 
         /// <summary>
         /// Warp Providerを登録します。
@@ -192,88 +99,11 @@ namespace Ts_Core.Services.WarpRelated
             string sourceFile,
             IMonitor monitor)
         {
-            //----------------------------------------
-            // 重複チェック
-            //----------------------------------------
-
-            if (RegisteredProviders.TryGetValue(
-                    model.Id,
-                    out RegisteredWarpProviderInfo? existingProvider))
-            {
-                monitor.Log(
-                    $"Duplicate Warp Provider '{model.Id}' ignored.\n" +
-                    $"Already registered by: {existingProvider.Owner}\n" +
-                    $"Existing file: {existingProvider.SourceFile}\n" +
-                    $"Ignored provider owner: {owner}\n" +
-                    $"Ignored file: {sourceFile}",
-                    LogLevel.Warn);
-
-                return;
-            }
-
-            //----------------------------------------
-            // Provider登録
-            //----------------------------------------
-
-            switch (model.Type)
-            {
-                case "Warp":
-
-                    AddProvider(
-                        model.Id,
-                        () => GetWarpDestination(
-                            model.Source!,
-                            model.Target!));
-
-                    break;
-
-                case "Building":
-
-                    RegisterBuildingWarp(
-                        model.Id,
-                        model.BuildingType!,
-                        model.OffsetX,
-                        model.OffsetY,
-                        model.Fallback ?? "FarmHouseFront");
-
-                    break;
-
-                default:
-
-                    monitor.Log(
-                        $"Unknown Warp Provider type '{model.Type}' " +
-                        $"in '{Path.GetFileName(sourceFile)}'.",
-                        LogLevel.Warn);
-
-                    return;
-            }
-
-            //----------------------------------------
-            // Provider情報を保存
-            //----------------------------------------
-
-            RegisteredProviders[model.Id] =
-                new RegisteredWarpProviderInfo
-                {
-                    Id = model.Id,
-                    Owner = owner,
-                    SourceFile = sourceFile,
-                    Type = model.Type,
-
-                    SourceLocation = model.Source,
-                    TargetLocation = model.Target,
-
-                    BuildingType = model.BuildingType,
-                    OffsetX = model.OffsetX,
-                    OffsetY = model.OffsetY,
-
-                    Fallback = model.Fallback
-                };
-
-            monitor.Log(
-                $"Registered Warp Provider '{model.Id}' " +
-                $"from '{owner}'.",
-                LogLevel.Trace);
+            WarpProviderService.RegisterProvider(
+                model,
+                owner,
+                sourceFile,
+                monitor);
         }
 
         //----------------------------------------
@@ -287,25 +117,65 @@ namespace Ts_Core.Services.WarpRelated
             string key,
             WarpEffectMode effectMode,
             int? facingDirection = null,
-            string? audioCue = null)
+            string? audioCue = null,
+            int audioRepeatCount = 1,
+            int audioIntervalMs = 100,
+            int? blackoutDurationMs = null,
+            int audioStartDelayMs = 0)
         {
-            if (!WarpProviders.TryGetValue(
-                    key,
-                    out Func<(string Location, Point Point)>? provider))
+            //----------------------------------------
+            // Provider確認
+            //----------------------------------------
+
+            if (!WarpProviderService.ContainsProvider(
+                    key))
             {
+                Monitor?.Log(
+                    $"Warp Provider '{key}' was not found.",
+                    LogLevel.Warn);
+
                 return false;
             }
 
-            var destination = provider();
+            try
+            {
+                //----------------------------------------
+                // Warp先解決
+                //----------------------------------------
 
-            Warp(
-                destination.Location,
-                destination.Point,
-                effectMode,
-                facingDirection,
-                audioCue);
+                var destination =
+                    WarpProviderService.Resolve(
+                        key);
 
-            return true;
+                //----------------------------------------
+                // Warp実行
+                //----------------------------------------
+
+                Warp(
+                    destination.Location,
+                    destination.Point,
+                    effectMode,
+                    facingDirection,
+                    audioCue,
+                    audioRepeatCount,
+                    audioIntervalMs,
+                    blackoutDurationMs,
+                    audioStartDelayMs);
+
+                return true;
+            }
+            catch (InvalidOperationException ex)
+            {
+                //----------------------------------------
+                // Provider解決失敗
+                //----------------------------------------
+
+                Monitor?.Log(
+                    $"Warp Provider '{key}' could not be resolved. {ex.Message}",
+                    LogLevel.Warn);
+
+                return false;
+            }
         }
 
         /// <summary>
@@ -316,14 +186,22 @@ namespace Ts_Core.Services.WarpRelated
             Point point,
             WarpEffectMode effectMode,
             int? facingDirection = null,
-            string? audioCue = null)
+            string? audioCue = null,
+            int audioRepeatCount = 1,
+            int audioIntervalMs = 100,
+            int? blackoutDurationMs = null,
+            int audioStartDelayMs = 0)
         {
             WarpInternal(
                 location,
                 point,
                 effectMode,
                 facingDirection,
-                audioCue);
+                audioCue,
+                audioRepeatCount,
+                audioIntervalMs,
+                blackoutDurationMs,
+                audioStartDelayMs);
         }
 
         //----------------------------------------
@@ -365,46 +243,6 @@ namespace Ts_Core.Services.WarpRelated
         }
 
         //----------------------------------------
-        // Building Warp
-        //----------------------------------------
-
-        private static void RegisterBuildingWarp(
-            string key,
-            string buildingType,
-            int xoffset,
-            int yoffset,
-            string fallback = "FarmHouseFront")
-        {
-            AddProvider(
-                key,
-                () =>
-                {
-                    Farm farm = Game1.getFarm();
-
-                    Building? building = farm.buildings
-                        .FirstOrDefault(b => b.buildingType.Value == buildingType);
-
-                    if (building != null)
-                    {
-                        return (
-                            "Farm",
-                            new Point(
-                                building.tileX.Value + xoffset,
-                                building.tileY.Value + yoffset
-                            )
-                        );
-                    }
-
-                    if (WarpProviders.TryGetValue(fallback, out var fallbackProvider))
-                        return fallbackProvider();
-
-                    throw new InvalidOperationException(
-                        $"Fallback warp '{fallback}' was not found.");
-                }
-            );
-        }
-
-        //----------------------------------------
         // Map Warp
         //----------------------------------------
 
@@ -412,7 +250,11 @@ namespace Ts_Core.Services.WarpRelated
             string locationName,
             WarpEffectMode effectMode,
             int? facingDirection = null,
-            string? audioCue = null)
+            string? audioCue = null,
+            int audioRepeatCount = 1,
+            int audioIntervalMs = 100,
+            int? blackoutDurationMs = null,
+            int audioStartDelayMs = 0)
         {
             GameLocation? location =
                 Game1.getLocationFromName(locationName);
@@ -442,7 +284,11 @@ namespace Ts_Core.Services.WarpRelated
                 new Point(x, y),
                 effectMode,
                 facingDirection,
-                audioCue);
+                audioCue,
+                audioRepeatCount,
+                audioIntervalMs,
+                blackoutDurationMs,
+                audioStartDelayMs);
 
             return true;
         }
@@ -469,88 +315,16 @@ namespace Ts_Core.Services.WarpRelated
         //----------------------------------------
 
         private static void WarpInternal(
-     string location,
-     Point point,
-     WarpEffectMode effectMode,
-     int? facingDirection,
-     string? audioCue)
-        {
-            switch (effectMode)
-            {
-                //----------------------------------------
-                // Magic Warp
-                //----------------------------------------
-
-                case WarpEffectMode.Magic:
-
-                    MagicWarp(
-                        location,
-                        point,
-                        facingDirection,
-                        simple: false,
-                        audioCue);
-
-                    return;
-
-                //----------------------------------------
-                // Simple Magic Warp
-                //----------------------------------------
-
-                case WarpEffectMode.MagicSimple:
-
-                    MagicWarp(
-                        location,
-                        point,
-                        facingDirection,
-                        simple: true,
-                        audioCue);
-
-                    return;
-
-                //----------------------------------------
-                // Normal Warp
-                //----------------------------------------
-
-                default:
-
-                    int direction =
-                        facingDirection
-                        ?? Game1.player.FacingDirection;
-
-                    // Audio Cueが指定されている場合のみ再生
-                    if (!string.IsNullOrWhiteSpace(audioCue))
-                    {
-                        Game1.currentLocation?.playSound(
-                            audioCue);
-                    }
-
-                    Game1.warpFarmer(
-                        location,
-                        point.X,
-                        point.Y,
-                        direction);
-
-                    return;
-            }
-        }
-
-        //----------------------------------------
-        // Magic Warp
-        //----------------------------------------
-
-        private const int MagicWarpDelay = 1000;
-        private const int SimpleMagicWarpDelay = 500;
-
-        private static void MagicWarp(
             string location,
             Point point,
+            WarpEffectMode effectMode,
             int? facingDirection,
-            bool simple,
-            string? audioCue)
+            string? audioCue,
+            int audioRepeatCount,
+            int audioIntervalMs,
+            int? blackoutDurationMs,
+            int audioStartDelayMs)
         {
-            GameLocation? currentLocation =
-                Game1.currentLocation;
-
             Farmer player =
                 Game1.player;
 
@@ -558,121 +332,259 @@ namespace Ts_Core.Services.WarpRelated
                 facingDirection
                 ?? player.FacingDirection;
 
-            if (currentLocation == null)
-                return;
-
             //----------------------------------------
-            // Full Magic Warp専用エフェクト
+            // デフォルト暗転時間
             //----------------------------------------
 
-            if (!simple)
+            int defaultBlackoutDuration;
+
+            switch (effectMode)
             {
-                // プレイヤー周囲に魔法エフェクトを表示
-                for (int j = 0; j < 12; j++)
-                {
-                    currentLocation.TemporarySprites.Add(
-                        new TemporaryAnimatedSprite(
-                            354,
-                            Game1.random.Next(25, 75),
-                            6,
-                            1,
-                            new Vector2(
-                                Game1.random.Next(
-                                    (int)player.Position.X - 256,
-                                    (int)player.Position.X + 192),
-                                Game1.random.Next(
-                                    (int)player.Position.Y - 256,
-                                    (int)player.Position.Y + 192)
-                            ),
-                            flicker: false,
-                            Game1.random.NextBool()
-                        ));
-                }
+                case WarpEffectMode.Magic:
 
-                // 横方向の光エフェクト
-                int j2 = 0;
-                Point playerTile =
-                    player.TilePoint;
+                    defaultBlackoutDuration =
+                        MagicBlackoutDuration;
 
-                for (int x = playerTile.X + 8;
-                     x >= playerTile.X - 8;
-                     x--)
-                {
-                    currentLocation.TemporarySprites.Add(
-                        new TemporaryAnimatedSprite(
-                            6,
-                            new Vector2(
-                                x,
-                                playerTile.Y) * 64f,
-                            Color.White,
-                            8,
-                            flipped: false,
-                            50f)
-                        {
-                            layerDepth = 1f,
-                            delayBeforeAnimationStart =
-                                j2 * 25,
-                            motion =
-                                new Vector2(-0.25f, 0f)
-                        });
+                    break;
 
-                    j2++;
-                }
+                case WarpEffectMode.MagicSimple:
+
+                    defaultBlackoutDuration =
+                        SimpleMagicBlackoutDuration;
+
+                    break;
+
+                default:
+
+                    defaultBlackoutDuration =
+                        NormalBlackoutDuration;
+
+                    break;
+            }
+
+            int blackoutDuration =
+                blackoutDurationMs
+                ?? defaultBlackoutDuration;
+
+            //----------------------------------------
+            // Warp演出開始
+            //----------------------------------------
+
+            switch (effectMode)
+            {
+                case WarpEffectMode.Magic:
+
+                    WarpEffectService.StartMagicWarpEffect(
+                        simple: false);
+
+                    break;
+
+                case WarpEffectMode.MagicSimple:
+
+                    WarpEffectService.StartMagicWarpEffect(
+                        simple: true);
+
+                    break;
             }
 
             //----------------------------------------
-            // 共通Magic Warp演出
+            // Audio Cue
             //----------------------------------------
 
-            // Warp効果音
-            string warpSound =
-                string.IsNullOrWhiteSpace(audioCue)
-                    ? "wand"
-                    : audioCue;
+            string? warpSound =
+                effectMode == WarpEffectMode.None
+                    ? audioCue
+                    : string.IsNullOrWhiteSpace(audioCue)
+                        ? "wand"
+                        : audioCue;
 
-            currentLocation.playSound(
-                warpSound);
+            if (!string.IsNullOrWhiteSpace(
+                    warpSound))
+            {
+                WarpAudioService.PlayAudioCue(
+                    warpSound,
+                    audioRepeatCount,
+                    audioIntervalMs,
+                    audioStartDelayMs);
+            }
 
-            // プレイヤー操作を一時停止
-            Game1.freezeControls = true;
+            //----------------------------------------
+            // プレイヤー操作停止
+            //----------------------------------------
+
             player.CanMove = false;
 
-            if (simple)
-            {
-                // 移動を停止して立ち状態に戻す
-                player.Halt();
-                player.FarmerSprite.StopAnimation();
-            }
-            else
-            {
-                Game1.displayFarmer = false;
-            }
+            //----------------------------------------
+            // Warp実行処理
+            //----------------------------------------
 
-            // 画面を白くフラッシュ
-            Game1.flashAlpha = 1f;
-
-            int warpDelay =
-                simple
-                    ? SimpleMagicWarpDelay
-                    : MagicWarpDelay;
-
-            // 一定時間後にWarp
-            DelayedAction.fadeAfterDelay(() =>
+            void CompleteWarp()
             {
+                //----------------------------------------
+                // Location Request取得
+                //----------------------------------------
+
+                LocationRequest locationRequest =
+                    Game1.getLocationRequest(
+                        location);
+
+                //----------------------------------------
+                // Warp完了時
+                //----------------------------------------
+
+                locationRequest.OnWarp += () =>
+                {
+                    //----------------------------------------
+                    // プレイヤー再表示
+                    //----------------------------------------
+
+                    Game1.displayFarmer = true;
+
+                    //----------------------------------------
+                    // 暗転解除
+                    //----------------------------------------
+
+                    WarpBlackoutOverlayService.Hide(
+                        () =>
+                        {
+                            //----------------------------------------
+                            // 操作再開
+                            //----------------------------------------
+
+                            Game1.screenGlow = false;
+                            player.CanMove = true;
+                        });
+                };
+
+                //----------------------------------------
+                // Warp要求
+                //----------------------------------------
+
                 Game1.warpFarmer(
-                    location,
+                    locationRequest,
                     point.X,
                     point.Y,
                     direction);
 
-                // プレイヤー操作を再開
-                Game1.fadeToBlackAlpha = 0.99f;
-                Game1.screenGlow = false;
-                Game1.displayFarmer = true;
-                player.CanMove = true;
-                Game1.freezeControls = false;
+                //----------------------------------------
+                // バニラWarpのフェードを即時完了させる
+                //----------------------------------------
 
-            }, warpDelay);
+                Game1.globalFade = false;
+                Game1.fadeToBlack = true;
+                Game1.fadeIn = true;
+                Game1.nonWarpFade = false;
+                Game1.fadeToBlackAlpha = 1.2f;
+            }
+
+            //----------------------------------------
+            // 暗転開始処理
+            //----------------------------------------
+
+            void StartBlackout()
+            {
+                Action onShown =
+                    () =>
+                    {
+                        //----------------------------------------
+                        // 完全暗転
+                        //----------------------------------------
+
+                        if (blackoutDuration <= 0)
+                        {
+                            CompleteWarp();
+
+                            return;
+                        }
+
+                        //----------------------------------------
+                        // 指定時間だけ完全暗転を維持
+                        //----------------------------------------
+
+                        DelayedAction.functionAfterDelay(
+                            CompleteWarp,
+                            blackoutDuration);
+                    };
+
+                //----------------------------------------
+                // Magic Warp
+                //----------------------------------------
+
+                if (effectMode == WarpEffectMode.Magic)
+                {
+                    WarpBlackoutOverlayService.Show(
+                        onShown,
+                        WarpEffectService.MagicFadeDuration,
+                        WarpEffectService.MagicFadeOutDuration);
+
+                    return;
+                }
+
+                //----------------------------------------
+                // Simple Magic Warp
+                //----------------------------------------
+
+                if (effectMode == WarpEffectMode.MagicSimple)
+                {
+                    WarpBlackoutOverlayService.Show(
+                        onShown,
+                        WarpEffectService.SimpleMagicFadeDuration,
+                        WarpEffectService.MagicFadeOutDuration);
+
+                    return;
+                }
+
+                //----------------------------------------
+                // 通常Warp
+                //----------------------------------------
+
+                WarpBlackoutOverlayService.Show(
+                    onShown);
+            }
+
+            //----------------------------------------
+            // Magic演出時間
+            //----------------------------------------
+
+            int effectDuration;
+
+            switch (effectMode)
+            {
+                case WarpEffectMode.Magic:
+
+                    effectDuration =
+                        WarpEffectService.MagicEffectDuration;
+
+                    break;
+
+                case WarpEffectMode.MagicSimple:
+
+                    effectDuration =
+                        WarpEffectService.SimpleMagicEffectDuration;
+
+                    break;
+
+                default:
+
+                    effectDuration = 0;
+
+                    break;
+            }
+
+            //----------------------------------------
+            // 暗転開始
+            //----------------------------------------
+
+            if (effectDuration <= 0)
+            {
+                StartBlackout();
+
+                return;
+            }
+
+            DelayedAction.functionAfterDelay(
+                StartBlackout,
+                effectDuration);
         }
     }
 }

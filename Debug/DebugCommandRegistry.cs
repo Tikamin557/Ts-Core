@@ -89,7 +89,7 @@ namespace Ts_Core.Debug
                         return;
                     }
 
-                    ContentPatcherConfigReloadService.ReloadContentPack(
+                    ContentPatcherReloadService.ReloadContentPack(
                         args[0],
                         helper,
                         monitor);
