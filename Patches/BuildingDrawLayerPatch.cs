@@ -8,7 +8,8 @@ using Ts_Core.Services.BuildingRelated;
 namespace Ts_Core.Patches
 {
     /// <summary>
-    /// Building描画時にTsCoreの条件付きDrawLayerを追加します。
+    /// Building描画時にTsCoreの条件付きDrawLayerを追加し、
+    /// 新規建設アニメーションにも対応します。
     /// </summary>
     internal static class BuildingDrawLayerPatch
     {
@@ -59,12 +60,31 @@ namespace Ts_Core.Patches
         }
 
         /// <summary>
-        /// Building本体の描画後に前面DrawLayerを追加します。
+        /// Building本体の描画後にTsCore DrawLayerを追加します。
+        /// 新規建設アニメーション中は専用描画を行います。
         /// </summary>
         private static void DrawPostfix(
             Building __instance,
             SpriteBatch b)
         {
+            //----------------------------------------
+            // 新規建設アニメーション
+            //----------------------------------------
+
+            if (BuildingDrawLayerService.IsNewConstruction(
+                    __instance))
+            {
+                BuildingDrawLayerService.DrawLayersInConstruction(
+                    __instance,
+                    b);
+
+                return;
+            }
+
+            //----------------------------------------
+            // 通常描画
+            //----------------------------------------
+
             BuildingDrawLayerService.DrawLayers(
                 __instance,
                 b,
@@ -99,11 +119,27 @@ namespace Ts_Core.Patches
 
         /// <summary>
         /// Building背景の描画後に背景DrawLayerを追加します。
+        /// 新規建設アニメーション中はdraw側でまとめて描画します。
         /// </summary>
         private static void DrawBackgroundPostfix(
             Building __instance,
             SpriteBatch b)
         {
+            //----------------------------------------
+            // 新規建設アニメーション中は
+            // draw側でまとめて描画
+            //----------------------------------------
+
+            if (BuildingDrawLayerService.IsNewConstruction(
+                    __instance))
+            {
+                return;
+            }
+
+            //----------------------------------------
+            // 通常描画
+            //----------------------------------------
+
             BuildingDrawLayerService.DrawLayers(
                 __instance,
                 b,

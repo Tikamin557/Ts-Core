@@ -1,5 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using HarmonyLib;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Netcode;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Delegates;
@@ -13,6 +15,32 @@ namespace Ts_Core.Services.BuildingRelated
     /// </summary>
     public static class BuildingDrawLayerService
     {
+        //----------------------------------------
+        // Building内部Field
+        //----------------------------------------
+
+        /// <summary>
+        /// Buildingの新規建設アニメーションタイマーです。
+        /// </summary>
+        private static readonly AccessTools.FieldRef<Building, NetInt>
+            NewConstructionTimer =
+                AccessTools.FieldRefAccess<Building, NetInt>(
+                    "newConstructionTimer");
+
+        //----------------------------------------
+        // 新規建設アニメーション判定
+        //----------------------------------------
+
+        /// <summary>
+        /// Buildingが新規建設アニメーション中か取得します。
+        /// </summary>
+        internal static bool IsNewConstruction(
+            Building building)
+        {
+            return NewConstructionTimer(
+                building).Value > 0;
+        }
+
         //----------------------------------------
         // DrawLayer描画
         //----------------------------------------
@@ -225,6 +253,297 @@ namespace Ts_Core.Services.BuildingRelated
                     4f,
                     SpriteEffects.None,
                     sortY);
+            }
+        }
+
+        //----------------------------------------
+        // 新規建設アニメーションDrawLayer描画
+        //----------------------------------------
+
+        /// <summary>
+        /// 新規建設アニメーション中のBuildingに
+        /// TsCore DrawLayerを下から上へ段階的に描画します。
+        /// </summary>
+        internal static void DrawLayersInConstruction(
+            Building building,
+            SpriteBatch spriteBatch)
+        {
+            //----------------------------------------
+            // 描画対象確認
+            //----------------------------------------
+
+            if (building.isMoving)
+                return;
+
+            if (building.daysOfConstructionLeft.Value > 0)
+                return;
+
+            NetInt newConstructionTimer =
+                NewConstructionTimer(
+                    building);
+
+            if (newConstructionTimer.Value <= 0)
+                return;
+
+            GameLocation? location =
+                building.GetParentLocation();
+
+            if (location == null)
+                return;
+
+            //----------------------------------------
+            // Provider取得
+            //----------------------------------------
+
+            IReadOnlyList<BuildingProviderModel> providers =
+                BuildingProviderService.GetProvidersForBuilding(
+                    building.buildingType.Value);
+
+            if (providers.Count == 0)
+                return;
+
+            //----------------------------------------
+            // バニラ建設アニメーションと同じ基本値
+            //----------------------------------------
+
+            Rectangle mainSourceRect =
+                building.getSourceRect();
+
+            float drawPercentageReal =
+                (2000f - newConstructionTimer.Value)
+                / 2000f;
+
+            int yPos =
+                (int)(
+                    mainSourceRect.Height
+                    * 4f
+                    * (1f - drawPercentageReal));
+
+            Vector2 drawOrigin =
+                new(
+                    0f,
+                    mainSourceRect.Height);
+
+            Vector2 drawPosition =
+                new(
+                    building.tileX.Value * 64,
+                    building.tileY.Value * 64
+                        + building.tilesHigh.Value * 64);
+
+            float baseSortY =
+                (building.tileY.Value
+                    + building.tilesHigh.Value)
+                * 64f;
+
+            //----------------------------------------
+            // Provider一覧
+            //----------------------------------------
+
+            foreach (BuildingProviderModel provider in providers)
+            {
+                //----------------------------------------
+                // Building Provider全体
+                //----------------------------------------
+
+                if (!BuildingProviderService.IsProviderEnabled(
+                        provider))
+                {
+                    continue;
+                }
+
+                //----------------------------------------
+                // DrawLayers全体
+                //----------------------------------------
+
+                if (!BuildingProviderService.IsEnabledField(
+                        provider,
+                        provider.DrawLayersEnabledField))
+                {
+                    continue;
+                }
+
+                //----------------------------------------
+                // DrawLayer一覧
+                //----------------------------------------
+
+                foreach (BuildingDrawLayerModel drawLayer
+                         in provider.DrawLayers)
+                {
+                    //----------------------------------------
+                    // 個別DrawLayer有効判定
+                    //----------------------------------------
+
+                    if (!BuildingProviderService.IsEnabledField(
+                            provider,
+                            drawLayer.EnabledField))
+                    {
+                        continue;
+                    }
+
+                    //----------------------------------------
+                    // Condition判定
+                    //----------------------------------------
+
+                    if (!CheckCondition(
+                            drawLayer.Condition,
+                            location))
+                    {
+                        continue;
+                    }
+
+                    //----------------------------------------
+                    // Chest条件
+                    //----------------------------------------
+                    //
+                    // バニラdrawInConstructionと同様に、
+                    // Chest条件付きDrawLayerは建設中に描画しません。
+                    //----------------------------------------
+
+                    if (!string.IsNullOrWhiteSpace(
+                            drawLayer.OnlyDrawIfChestHasContents))
+                    {
+                        continue;
+                    }
+
+                    //----------------------------------------
+                    // SortY
+                    //----------------------------------------
+                    //
+                    // 建設中はDrawInBackgroundを区別せず、
+                    // バニラdrawInConstructionと同じSortYを使用します。
+                    //----------------------------------------
+
+                    float sortY =
+                        baseSortY
+                        - drawLayer.SortTileOffset * 64f;
+
+                    sortY += 1f;
+                    sortY /= 10000f;
+
+                    //----------------------------------------
+                    // SourceRect
+                    //----------------------------------------
+
+                    Rectangle sourceRect =
+                        GetSourceRect(
+                            drawLayer);
+
+                    sourceRect =
+                        building.ApplySourceRectOffsets(
+                            sourceRect);
+
+                    //----------------------------------------
+                    // 建設進行位置
+                    //----------------------------------------
+                    //
+                    // バニラBuilding.drawInConstructionと同じ計算。
+                    //----------------------------------------
+
+                    float cutoffPixels =
+                        (float)(yPos / 4)
+                        - drawLayer.DrawPosition.Y;
+
+                    //----------------------------------------
+                    // まだDrawLayerの位置まで建設されていない
+                    //----------------------------------------
+
+                    if (cutoffPixels > sourceRect.Height)
+                        continue;
+
+                    //----------------------------------------
+                    // Animal Door Offset
+                    //----------------------------------------
+
+                    Vector2 drawOffset =
+                        Vector2.Zero;
+
+                    if (drawLayer.AnimalDoorOffset != Point.Zero)
+                    {
+                        drawOffset =
+                            new Vector2(
+                                drawLayer.AnimalDoorOffset.X
+                                    * building.animalDoorOpenAmount.Value,
+                                drawLayer.AnimalDoorOffset.Y
+                                    * building.animalDoorOpenAmount.Value);
+                    }
+
+                    //----------------------------------------
+                    // 上側を切り取る
+                    //----------------------------------------
+
+                    if (cutoffPixels > 0f)
+                    {
+                        drawOffset.Y +=
+                            cutoffPixels;
+
+                        sourceRect.Y +=
+                            (int)cutoffPixels;
+
+                        sourceRect.Height -=
+                            (int)cutoffPixels;
+                    }
+
+                    //----------------------------------------
+                    // Texture
+                    //----------------------------------------
+
+                    Texture2D layerTexture;
+
+                    if (!string.IsNullOrWhiteSpace(
+                            drawLayer.Texture))
+                    {
+                        layerTexture =
+                            Game1.content.Load<Texture2D>(
+                                drawLayer.Texture);
+                    }
+                    else
+                    {
+                        var buildingData =
+                            building.GetData();
+
+                        if (buildingData == null
+                            || string.IsNullOrWhiteSpace(
+                                buildingData.Texture))
+                        {
+                            layerTexture =
+                                building.texture.Value;
+                        }
+                        else
+                        {
+                            layerTexture =
+                                Game1.content.Load<Texture2D>(
+                                    buildingData.Texture);
+                        }
+                    }
+
+                    //----------------------------------------
+                    // DrawPosition
+                    //----------------------------------------
+
+                    Vector2 position =
+                        Game1.GlobalToLocal(
+                            Game1.viewport,
+                            drawPosition
+                            + (drawOffset
+                               - drawOrigin
+                               + drawLayer.DrawPosition)
+                            * 4f);
+
+                    //----------------------------------------
+                    // 描画
+                    //----------------------------------------
+
+                    spriteBatch.Draw(
+                        layerTexture,
+                        position,
+                        sourceRect,
+                        building.color * building.alpha,
+                        0f,
+                        Vector2.Zero,
+                        4f,
+                        SpriteEffects.None,
+                        sortY);
+                }
             }
         }
 
