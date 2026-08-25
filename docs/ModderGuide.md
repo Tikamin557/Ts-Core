@@ -70,7 +70,7 @@ T's Core currently provides the following systems.
 | Building Services | Building Providers, Building Lights, conditional Draw Layers, and building-related restrictions |
 | Migration System | Migration support for IDs stored in existing save data |
 | Notification System | Customizable HUD notifications and Notification Themes |
-| Content Patcher Integration | Development tools for reloading Content Patcher Content Packs while the game is running |
+| Content Patcher Integration | Content Patcher development tools and ConfigSchema extensions, including conditional GMCM visibility |
 | Content Patcher Tokens | Custom CP tokens |
 | Shared Utilities | Common helper functions |
 
@@ -97,6 +97,17 @@ For detailed instructions, see the corresponding guide:
 - **[Warp Services Guide](ModderGuide_WarpServices.md)**
 - **[Migration System Guide](ModderGuide_MigrationSystem.md)**
 - **[Notification System Guide](ModderGuide_NotificationSystem.md)**
+
+T's Core also extends Content Patcher's `ConfigSchema` with optional features for controlling GMCM visibility based on installed mods.
+
+The following properties are available:
+
+- `TsCore.ShowIfMod` — shows a Config field when at least one of the specified mods is loaded.
+- `TsCore.ShowIfAllMods` — shows a Config field only when all specified mods are loaded.
+
+These properties can be used by Content Patcher Content Packs without writing C# code.
+
+For detailed usage and examples, see the **[Content Patcher Integration Guide](ModderGuide_ContentPatcherIntegration.md)**.
 
 ---
 
@@ -137,7 +148,7 @@ The following commands are available during development.
 
 `tscore_reload` commands reload resources managed directly by T's Core.
 
-`tscore_cp_reload` is a separate development command for Content Patcher Content Packs. It reloads the specified Content Pack's patches and refreshes related Content Patcher data, including ConfigSchema, Config Tokens, GMCM settings, and DynamicTokens.
+`tscore_cp_reload` is a separate development command for Content Patcher Content Packs. It reloads the specified Content Pack's patches and refreshes related Content Patcher data, including ConfigSchema, Config Tokens, GMCM settings, DynamicTokens, and T's Core conditional GMCM visibility settings.
 
 For details, see the [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md) guide.
 
@@ -158,7 +169,7 @@ When developing against T's Core:
 - Keep your required version up to date.
 - Test your mod after updating T's Core.
 
-Content Pack file formats may also gain new optional properties as T's Core is expanded.
+Content Pack file formats and Content Patcher extensions may also gain new optional properties as T's Core is expanded.
 
 Existing properties are intended to remain compatible whenever possible.
 
