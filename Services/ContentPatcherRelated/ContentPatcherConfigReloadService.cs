@@ -6,7 +6,8 @@ using System.Reflection;
 namespace Ts_Core.Services.ContentPatcherRelated
 {
     /// <summary>
-    /// Content PatcherのConfigSchema再読み込み処理を管理します。
+    /// Content PatcherのConfigSchema再読み込みと
+    /// GMCM再登録処理を管理します。
     /// </summary>
     internal static class ContentPatcherConfigReloadService
     {
@@ -288,7 +289,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
                             types:
                             new[]
                             {
-                        typeof(string)
+                                typeof(string)
                             },
                             modifiers: null);
 
@@ -308,7 +309,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
                         modContext,
                         new object[]
                         {
-                    key
+                            key
                         });
                 }
 
@@ -400,8 +401,8 @@ namespace Ts_Core.Services.ContentPatcherRelated
 
                 object?[] updateArguments =
                 {
-            null
-        };
+                    null
+                };
 
                 updateContextMethod.Invoke(
                     tokenManager,
@@ -454,11 +455,98 @@ namespace Ts_Core.Services.ContentPatcherRelated
         }
 
         //----------------------------------------
+        // フィルタ済みConfigでGMCM再登録
+        //----------------------------------------
+
+        /// <summary>
+        /// あらかじめ生成されたGMCM表示用Configを使用して、
+        /// Content PackのGMCM項目だけを再登録します。
+        /// </summary>
+        internal static void RefreshConfigMenuOnly(
+            object contentPatcherMod,
+            object contentPack,
+            object rawContentPack,
+            object currentConfig,
+            object gmcmConfig,
+            IModHelper helper,
+            IMonitor monitor)
+        {
+            //----------------------------------------
+            // ConfigFileHandler取得
+            //----------------------------------------
+
+            object? configFileHandler =
+                GetPropertyValue(
+                    contentPack,
+                    "ConfigFileHandler");
+
+            if (configFileHandler == null)
+            {
+                throw new InvalidOperationException(
+                    "Could not access Content Patcher ConfigFileHandler.");
+            }
+
+            //----------------------------------------
+            // GMCM再登録
+            //----------------------------------------
+
+            RefreshConfigMenu(
+                contentPatcherMod,
+                contentPack,
+                rawContentPack,
+                currentConfig,
+                gmcmConfig,
+                configFileHandler,
+                helper,
+                monitor);
+        }
+
+        //----------------------------------------
         // GMCM再登録
         //----------------------------------------
 
         /// <summary>
-        /// 現在のConfigを使用して
+        /// 現在のConfigを使用して、
+        /// T's Core独自の表示条件を適用したGMCM項目を再登録します。
+        /// </summary>
+        private static void RefreshConfigMenu(
+            object contentPatcherMod,
+            object contentPack,
+            object rawContentPack,
+            object currentConfig,
+            object configFileHandler,
+            IModHelper helper,
+            IMonitor monitor)
+        {
+            //----------------------------------------
+            // GMCM表示用Config生成
+            //----------------------------------------
+
+            object gmcmConfig =
+                ContentPatcherConfigMenuFilterService
+                    .CreateFilteredConfig(
+                        currentConfig,
+                        rawContentPack,
+                        helper,
+                        monitor);
+
+            //----------------------------------------
+            // GMCM再登録
+            //----------------------------------------
+
+            RefreshConfigMenu(
+                contentPatcherMod,
+                contentPack,
+                rawContentPack,
+                currentConfig,
+                gmcmConfig,
+                configFileHandler,
+                helper,
+                monitor);
+        }
+
+        /// <summary>
+        /// 指定されたGMCM表示用Configを使用して、
         /// Content PackのGMCM項目を再登録します。
         /// </summary>
         private static void RefreshConfigMenu(
@@ -466,6 +554,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
             object contentPack,
             object rawContentPack,
             object currentConfig,
+            object gmcmConfig,
             object configFileHandler,
             IModHelper helper,
             IMonitor monitor)
@@ -581,7 +670,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
                         contentPatcherMod,
                         new[]
                         {
-                    contentPack
+                            contentPack
                         });
                 };
 
@@ -608,12 +697,12 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 genericMenuConstructor.Invoke(
                     new object[]
                     {
-                helper.ModRegistry,
-                monitor,
-                manifest,
-                getConfigDelegate,
-                resetAction,
-                saveAndApplyAction
+                        helper.ModRegistry,
+                        monitor,
+                        manifest,
+                        getConfigDelegate,
+                        resetAction,
+                        saveAndApplyAction
                     });
 
             //----------------------------------------
@@ -688,7 +777,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
                     {
                         rawContentPack,
                         parseDelegate,
-                        currentConfig
+                        gmcmConfig
                     });
 
             //----------------------------------------
@@ -788,7 +877,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
                     field,
                     new[]
                     {
-                defaultValues
+                        defaultValues
                     });
             }
         }

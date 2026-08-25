@@ -8,6 +8,7 @@ using Ts_Core.Interfaces;
 using Ts_Core.Patches;
 using Ts_Core.Providers;
 using Ts_Core.Services.BuildingRelated;
+using Ts_Core.Services.ContentPatcherRelated;
 using Ts_Core.Services.Location;
 using Ts_Core.Services.Migration;
 using Ts_Core.Services.Notification;
@@ -44,6 +45,9 @@ namespace Ts_Core
         private PartnerService service = null!;
         private IPartnerProvider provider = null!;
         private Harmony? harmony;
+
+        // GameLaunched後にGMCM表示条件を1回だけ反映するためのフラグ
+        private bool refreshContentPatcherConfigMenus;
 
         //----------------------------------------
         // エントリーポイント
@@ -154,6 +158,7 @@ namespace Ts_Core
         private void RegisterEvents(IModHelper helper)
         {
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+            helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
 
             // Building Light
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
@@ -188,6 +193,44 @@ namespace Ts_Core
                 provider);
 
             RegisterContentPatcherTokens();
+
+            // Content Patcher自身のGMCM初期登録後に
+            // T's Core独自のGMCM表示条件を反映する
+            refreshContentPatcherConfigMenus = true;
+        }
+
+        //----------------------------------------
+        // UpdateTicked
+        //----------------------------------------
+
+        private void OnUpdateTicked(
+            object? sender,
+            UpdateTickedEventArgs e)
+        {
+            //----------------------------------------
+            // 起動時GMCM更新待ち
+            //----------------------------------------
+
+            if (!refreshContentPatcherConfigMenus)
+                return;
+
+            refreshContentPatcherConfigMenus = false;
+
+            //----------------------------------------
+            // T's Core GMCM表示条件反映
+            //----------------------------------------
+
+            ContentPatcherReloadService
+                .RefreshConfigMenus(
+                    Helper,
+                    Monitor);
+
+            //----------------------------------------
+            // 起動時の1回だけ使用
+            //----------------------------------------
+
+            Helper.Events.GameLoop.UpdateTicked
+                -= OnUpdateTicked;
         }
 
         //----------------------------------------

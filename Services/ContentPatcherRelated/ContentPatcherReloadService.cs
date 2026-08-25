@@ -6,7 +6,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
 {
     /// <summary>
     /// Content Patcher Content Packの
-    /// 再読み込み処理全体を管理します。
+    /// 再読み込みとGMCM更新処理を管理します。
     /// </summary>
     internal static class ContentPatcherReloadService
     {
@@ -281,6 +281,156 @@ namespace Ts_Core.Services.ContentPatcherRelated
                     LogLevel.Warn);
 
                 return false;
+            }
+        }
+
+        //----------------------------------------
+        // GMCM初期表示更新
+        //----------------------------------------
+
+        /// <summary>
+        /// 読み込まれているContent Patcher Content Packの
+        /// GMCM設定をT's Core独自の表示条件に合わせて再登録します。
+        /// </summary>
+        internal static void RefreshConfigMenus(
+            IModHelper helper,
+            IMonitor monitor)
+        {
+            //----------------------------------------
+            // 初期化
+            //----------------------------------------
+
+            if (!Initialize(
+                    helper,
+                    monitor))
+            {
+                return;
+            }
+
+            //----------------------------------------
+            // Content Pack一覧確認
+            //----------------------------------------
+
+            if (contentPacks is not IEnumerable enumerable)
+            {
+                monitor.Log(
+                    "Could not enumerate Content Patcher content packs.",
+                    LogLevel.Warn);
+
+                return;
+            }
+
+            //----------------------------------------
+            // 各Content Pack
+            //----------------------------------------
+
+            foreach (object? contentPack in enumerable)
+            {
+                if (contentPack == null)
+                    continue;
+
+                string uniqueId =
+                    "unknown";
+
+                try
+                {
+                    //----------------------------------------
+                    // Config取得
+                    //----------------------------------------
+
+                    object? currentConfig =
+                        GetPropertyValue(
+                            contentPack,
+                            "Config");
+
+                    if (currentConfig == null)
+                        continue;
+
+                    //----------------------------------------
+                    // Config項目がない場合は対象外
+                    //----------------------------------------
+
+                    HashSet<string> configKeys =
+                        ContentPatcherConfigReloadService
+                            .GetDictionaryKeys(
+                                currentConfig);
+
+                    if (configKeys.Count == 0)
+                        continue;
+
+                    //----------------------------------------
+                    // ContentPack取得
+                    //----------------------------------------
+
+                    object? rawContentPack =
+                        GetPropertyValue(
+                            contentPack,
+                            "ContentPack");
+
+                    if (rawContentPack == null)
+                        continue;
+
+                    //----------------------------------------
+                    // Manifest / UniqueID
+                    //----------------------------------------
+
+                    object? manifest =
+                        GetPropertyValue(
+                            contentPack,
+                            "Manifest");
+
+                    uniqueId =
+                        GetPropertyValue(
+                            manifest,
+                            "UniqueID")
+                            ?.ToString()
+                        ?? "unknown";
+
+                    //----------------------------------------
+                    // T's Core独自表示条件確認
+                    //----------------------------------------
+
+                    if (!ContentPatcherConfigMenuFilterService
+                            .TryCreateFilteredConfig(
+                                currentConfig,
+                                rawContentPack,
+                                helper,
+                                monitor,
+                                out object? gmcmConfig))
+                    {
+                        continue;
+                    }
+
+                    if (gmcmConfig == null)
+                    {
+                        continue;
+                    }
+
+                    //----------------------------------------
+                    // GMCM再登録
+                    //----------------------------------------
+
+                    ContentPatcherConfigReloadService
+                        .RefreshConfigMenuOnly(
+                            contentPatcherMod!,
+                            contentPack,
+                            rawContentPack,
+                            currentConfig,
+                            gmcmConfig,
+                            helper,
+                            monitor);
+
+                    monitor.Log(
+                        $"Applied T's Core GMCM conditions to '{uniqueId}'.",
+                        LogLevel.Trace);
+                }
+                catch (Exception ex)
+                {
+                    monitor.Log(
+                        $"Failed to apply T's Core GMCM conditions to '{uniqueId}'.\n" +
+                        ex,
+                        LogLevel.Warn);
+                }
             }
         }
 
