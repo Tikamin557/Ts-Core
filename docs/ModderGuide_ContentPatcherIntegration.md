@@ -223,6 +223,146 @@ The GMCM registration uses the Content Pack's current Config and Content Patcher
 
 > **Note:** Generic Mod Config Menu must already be available for Content Patcher's GMCM integration to be used.
 
+### Conditional GMCM Visibility
+
+T's Core extends Content Patcher's `ConfigSchema` with optional properties for controlling whether individual Config fields are shown in Generic Mod Config Menu based on which mods are currently loaded.
+
+The following properties are supported:
+
+| Property | Behavior |
+|----------|----------|
+| `TsCore.ShowIfMod` | Shows the field if **at least one** of the specified mods is loaded. |
+| `TsCore.ShowIfAllMods` | Shows the field only if **all** of the specified mods are loaded. |
+
+These properties only control whether the Config field is shown in GMCM.
+
+They do **not** remove the Config field itself. Hidden fields remain in `config.json`, retain their values, and can still be used normally by Content Patcher.
+
+#### TsCore.ShowIfMod
+
+Use `TsCore.ShowIfMod` when a Config field should only be shown if one or more specified mods are loaded.
+
+For example:
+
+```json
+"ConfigSchema": {
+  "CompatibilityOption": {
+    "AllowValues": "true, false",
+    "Default": "true",
+    "TsCore.ShowIfMod": "Example.AuthorMod"
+  }
+}
+```
+
+`CompatibilityOption` will only be shown in GMCM when `Example.AuthorMod` is loaded.
+
+Multiple mod IDs can be specified as a comma-separated list:
+
+```json
+"TsCore.ShowIfMod": "Example.ModA, Example.ModB"
+```
+
+Multiple IDs use **OR logic**.
+
+In this example, the field is shown when either `Example.ModA` **or** `Example.ModB` is loaded.
+
+Conceptually:
+
+```text
+Example.ModA OR Example.ModB
+```
+
+#### TsCore.ShowIfAllMods
+
+Use `TsCore.ShowIfAllMods` when all specified mods must be loaded for the Config field to be shown.
+
+For example:
+
+```json
+"ConfigSchema": {
+  "CompatibilityOption": {
+    "AllowValues": "true, false",
+    "Default": "true",
+    "TsCore.ShowIfAllMods": "Example.ModA, Example.ModB"
+  }
+}
+```
+
+The field is only shown when both mods are loaded.
+
+Multiple IDs use **AND logic**.
+
+Conceptually:
+
+```text
+Example.ModA AND Example.ModB
+```
+
+If either mod is missing, the field is hidden from GMCM.
+
+#### Combining Both Conditions
+
+`TsCore.ShowIfMod` and `TsCore.ShowIfAllMods` can be used together on the same ConfigSchema field.
+
+For example:
+
+```json
+"ConfigSchema": {
+  "CompatibilityOption": {
+    "AllowValues": "true, false",
+    "Default": "true",
+    "TsCore.ShowIfMod": "Example.ModA, Example.ModB",
+    "TsCore.ShowIfAllMods": "Example.FrameworkA, Example.FrameworkB"
+  }
+}
+```
+
+When both properties are specified, **both conditions must pass**.
+
+The example above is equivalent to:
+
+```text
+(Example.ModA OR Example.ModB)
+AND
+(Example.FrameworkA AND Example.FrameworkB)
+```
+
+The field is therefore shown only when:
+
+- at least one of `Example.ModA` or `Example.ModB` is loaded; and
+- both `Example.FrameworkA` and `Example.FrameworkB` are loaded.
+
+#### Reloading Visibility Conditions
+
+T's Core applies these visibility conditions when the Content Pack's GMCM configuration is registered.
+
+The conditions are also re-evaluated when using:
+
+```text
+tscore_cp_reload <ContentPackId>
+```
+
+This means the properties can be added, removed, or changed while developing a Content Pack and then tested without restarting the game.
+
+For example:
+
+```text
+tscore_cp_reload YourName.MyContentPack
+```
+
+will reload the latest ConfigSchema and re-register the GMCM configuration using the current `TsCore.ShowIfMod` and `TsCore.ShowIfAllMods` conditions.
+
+#### Notes
+
+- Mod IDs are checked against mods currently loaded by SMAPI.
+- Multiple mod IDs must be separated by commas.
+- Whitespace around each mod ID is ignored.
+- `TsCore.ShowIfMod` uses OR logic when multiple mod IDs are specified.
+- `TsCore.ShowIfAllMods` uses AND logic when multiple mod IDs are specified.
+- When both properties are used on the same field, both conditions must pass.
+- These properties only affect GMCM visibility. They do not remove the Config field or its value.
+- Hidden Config fields can still be used by Content Patcher Config Tokens, Dynamic Tokens, and patches.
+
 ---
 
 ## Dynamic Tokens
