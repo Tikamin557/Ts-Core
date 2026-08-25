@@ -368,30 +368,24 @@ namespace Ts_Core.Services.ContentPatcherRelated
 
                 object? managedValue;
 
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    if (!TryParseString(
-                            tokenParser,
-                            value,
-                            immutableRequiredModIds,
-                            logPath,
-                            out managedValue,
-                            out string valueError))
-                    {
-                        monitor.Log(
-                            $"Ignored dynamic token '{name}': " +
-                            $"the token value is invalid: {valueError}",
-                            LogLevel.Warn);
+                string parsedValue =
+                    value
+                    ?? "";
 
-                        continue;
-                    }
-                }
-                else
+                if (!TryParseString(
+                        tokenParser,
+                        parsedValue,
+                        immutableRequiredModIds,
+                        logPath,
+                        out managedValue,
+                        out string valueError))
                 {
-                    managedValue =
-                        CreateLiteralString(
-                            contentPack,
-                            logPath);
+                    monitor.Log(
+                        $"Ignored dynamic token '{name}': " +
+                        $"the token value is invalid: {valueError}",
+                        LogLevel.Warn);
+
+                    continue;
                 }
 
                 if (managedValue == null)
@@ -810,55 +804,6 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 arguments[4];
 
             return success;
-        }
-
-        //----------------------------------------
-        // LiteralString生成
-        //----------------------------------------
-
-        /// <summary>
-        /// 空のDynamic Token Value用LiteralStringを生成します。
-        /// </summary>
-        private static object CreateLiteralString(
-            object contentPack,
-            object logPath)
-        {
-            Assembly assembly =
-                contentPack
-                    .GetType()
-                    .Assembly;
-
-            Type? literalStringType =
-                assembly.GetType(
-                    "ContentPatcher.Framework.LiteralString");
-
-            if (literalStringType == null)
-            {
-                throw new InvalidOperationException(
-                    "Could not find Content Patcher LiteralString.");
-            }
-
-            ConstructorInfo? constructor =
-                literalStringType
-                    .GetConstructors(
-                        BindingFlags.Instance
-                        | BindingFlags.Public
-                        | BindingFlags.NonPublic)
-                    .FirstOrDefault(candidate =>
-                        candidate.GetParameters().Length == 2);
-
-            if (constructor == null)
-            {
-                throw new InvalidOperationException(
-                    "Could not find Content Patcher LiteralString constructor.");
-            }
-
-            return constructor.Invoke(
-                new object[]
-                {
-                    "",
-                    logPath
-                });
         }
 
         //----------------------------------------
