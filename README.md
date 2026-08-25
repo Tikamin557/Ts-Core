@@ -31,7 +31,9 @@ It provides reusable APIs, Content Patcher tokens, custom actions, Content Pack 
 - Migration System for updating IDs stored in existing save data
 - Customizable notification system and Notification Themes
 - Content Patcher tokens
-- Content Patcher development and reload tools
+- Content Patcher integration
+  - Extended Content Pack reload tools for development
+  - Conditional GMCM field visibility based on installed mods
 - T's Core Content Pack support
 - Common utilities shared between T's Mods
 
@@ -64,6 +66,10 @@ The guide includes documentation for:
 - Content Patcher Tokens
 - T's Core Content Packs
 - Debug and reload commands
+
+T's Core also provides additional Content Patcher integration features, including extended Content Pack reloading for development and conditional GMCM field visibility based on installed mods.
+
+See the **[Content Patcher Integration Guide](docs/ModderGuide_ContentPatcherIntegration.md)** for details.
 
 T's Core Content Packs can currently provide:
 
