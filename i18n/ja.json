@@ -1,0 +1,4 @@
+﻿{
+  "config.EnableSpouseRoomTileFix.name": "配偶者部屋のタイル修正",
+  "config.EnableSpouseRoomTileFix.description": "Farmhouse Modを使用している場合に、配偶者部屋付近のカスタムタイルが上書きされる問題を修正します。使用しているFarmhouse Modによっては、この設定は必要ありません。この設定を変更する場合は、タイトル画面で変更してください。"
+}

@@ -44,23 +44,35 @@
         /// </summary>
         public string? BuildingType { get; set; }
 
+        //----------------------------------------
+        // MapEntry用
+        //----------------------------------------
+
         /// <summary>
         /// MapEntryで検索対象となるマップ名です。
         /// </summary>
         public string? Map { get; set; }
 
+        //----------------------------------------
+        // MapEntry / Building用
+        //----------------------------------------
+
         /// <summary>
-        /// 建物基準のXオフセットです。
+        /// 基準座標から加算するXオフセットです。
         /// </summary>
         public int OffsetX { get; set; }
 
         /// <summary>
-        /// 建物基準のYオフセットです。
+        /// 基準座標から加算するYオフセットです。
         /// </summary>
         public int OffsetY { get; set; }
 
+        //----------------------------------------
+        // Fallback
+        //----------------------------------------
+
         /// <summary>
-        /// 建物が存在しない場合に使用するWarp Provider IDです。
+        /// Warp先を解決できなかった場合に使用するWarp Provider IDです。
         /// </summary>
         public string? Fallback { get; set; }
     }

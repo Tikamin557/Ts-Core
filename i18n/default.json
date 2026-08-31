@@ -1,0 +1,4 @@
+﻿{
+  "config.EnableSpouseRoomTileFix.name": "Spouse Room Tile Fix",
+  "config.EnableSpouseRoomTileFix.description": "Prevents custom tiles near the spouse room from being overwritten when using farmhouse mods. This setting may not be necessary depending on the farmhouse mod you use. Please change this setting from the title screen."
+}

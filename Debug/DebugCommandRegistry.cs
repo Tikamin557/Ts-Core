@@ -103,6 +103,10 @@ namespace Ts_Core.Debug
                     DebugWarpLogger.LogWarpProviders(
                         monitor));
 
+            //----------------------------------------
+            // Building
+            //----------------------------------------
+
             // 農場に存在する建物情報を表示
             helper.ConsoleCommands.Add(
                 "tscore_debug_farmbuildings",

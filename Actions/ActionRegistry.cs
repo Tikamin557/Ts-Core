@@ -21,6 +21,10 @@ namespace Ts_Core.Actions
         /// </summary>
         public static void Register()
         {
+            //----------------------------------------
+            // Warp Action
+            //----------------------------------------
+
             RegisterAction(
                 "TsCoreWarp",
                 HandleTouchAction,
@@ -36,10 +40,18 @@ namespace Ts_Core.Actions
                 HandleTouchAction,
                 HandleTileAction);
 
+            //----------------------------------------
+            // Notification Action
+            //----------------------------------------
+
             RegisterAction(
                 "TsCoreNotification",
                 NotificationAction.HandleTouchAction,
                 NotificationAction.HandleTileAction);
+
+            //----------------------------------------
+            // Trigger Action
+            //----------------------------------------
 
             TriggerActionManager.RegisterAction(
                 "TsCoreNotification",
@@ -160,7 +172,9 @@ namespace Ts_Core.Actions
         /// <summary>
         /// Ts_CoreのWarpActionを実行します。
         /// </summary>
-        private static bool ExecuteWarp(string[] action)
+        private static bool ExecuteWarp(
+            GameLocation sourceLocation,
+            string[] action)
         {
             if (action.Length < 1)
                 return false;
@@ -174,18 +188,28 @@ namespace Ts_Core.Actions
             switch (action[0])
             {
                 case "TsCoreWarp":
-                    effectMode = WarpEffectMode.None;
+
+                    effectMode =
+                        WarpEffectMode.None;
+
                     break;
 
                 case "TsCoreMagicWarp":
-                    effectMode = WarpEffectMode.Magic;
+
+                    effectMode =
+                        WarpEffectMode.Magic;
+
                     break;
 
                 case "TsCoreMagicWarp_Simple":
-                    effectMode = WarpEffectMode.MagicSimple;
+
+                    effectMode =
+                        WarpEffectMode.MagicSimple;
+
                     break;
 
                 default:
+
                     return false;
             }
 
@@ -206,6 +230,8 @@ namespace Ts_Core.Actions
             //----------------------------------------
 
             if (action.Length >= 4
+                && (!WarpProviderService.ContainsProvider(action[1])
+                    || WarpProviderService.HasLocationNameConflict(action[1]))
                 && int.TryParse(action[2], out int x)
                 && int.TryParse(action[3], out int y))
             {
@@ -313,7 +339,157 @@ namespace Ts_Core.Actions
 
                 WarpService.Warp(
                     action[1],
-                    new Point(x, y),
+                    new Point(
+                        x,
+                        y),
+                    effectMode,
+                    facingDirection,
+                    audioCue,
+                    audioRepeatCount,
+                    audioIntervalMs,
+                    blackoutDurationMs,
+                    audioStartDelayMs);
+
+                return true;
+            }
+
+            //----------------------------------------
+            // Provider + 座標Warp
+            //----------------------------------------
+            // <Action> <Provider> <X> <Y>
+            // <Action> <Provider> <X> <Y> <Facing>
+            // <Action> <Provider> <X> <Y> <Facing> <AudioCue>
+            // <Action> <Provider> <X> <Y> <Facing> <AudioCue> <RepeatCount>
+            // <Action> <Provider> <X> <Y> <Facing> <AudioCue> <RepeatCount> <IntervalMs>
+            // <Action> <Provider> <X> <Y> <Facing> <AudioCue> <RepeatCount> <IntervalMs> <BlackoutDurationMs>
+            // <Action> <Provider> <X> <Y> <Facing> <AudioCue> <RepeatCount> <IntervalMs> <BlackoutDurationMs> <AudioStartDelayMs>
+            //----------------------------------------
+
+            if (action.Length >= 4
+                && WarpProviderService.ContainsProvider(action[1])
+                && !WarpProviderService.HasLocationNameConflict(action[1])
+                && int.TryParse(action[2], out int providerX)
+                && int.TryParse(action[3], out int providerY))
+            {
+                if (action.Length > 10)
+                    return false;
+
+                int? facingDirection = null;
+                string? audioCue = null;
+
+                int audioRepeatCount = 1;
+                int audioIntervalMs = 100;
+                int? blackoutDurationMs = null;
+                int audioStartDelayMs = 0;
+
+                //----------------------------------------
+                // Facing
+                //----------------------------------------
+
+                if (action.Length >= 5)
+                {
+                    if (!TryParseFacingDirection(
+                            action[4],
+                            out facingDirection))
+                    {
+                        return false;
+                    }
+                }
+
+                //----------------------------------------
+                // Audio Cue
+                //----------------------------------------
+
+                if (action.Length >= 6)
+                {
+                    audioCue =
+                        action[5];
+                }
+
+                //----------------------------------------
+                // Audio Repeat Count
+                //----------------------------------------
+
+                if (action.Length >= 7)
+                {
+                    if (!int.TryParse(
+                            action[6],
+                            out audioRepeatCount)
+                        || audioRepeatCount < 1)
+                    {
+                        return false;
+                    }
+                }
+
+                //----------------------------------------
+                // Audio Interval
+                //----------------------------------------
+
+                if (action.Length >= 8)
+                {
+                    if (!int.TryParse(
+                            action[7],
+                            out audioIntervalMs)
+                        || audioIntervalMs < 0)
+                    {
+                        return false;
+                    }
+                }
+
+                //----------------------------------------
+                // Blackout Duration
+                //----------------------------------------
+
+                if (action.Length >= 9)
+                {
+                    if (!int.TryParse(
+                            action[8],
+                            out int parsedBlackoutDuration)
+                        || parsedBlackoutDuration < 0)
+                    {
+                        return false;
+                    }
+
+                    blackoutDurationMs =
+                        parsedBlackoutDuration;
+                }
+
+                //----------------------------------------
+                // Audio Start Delay
+                //----------------------------------------
+
+                if (action.Length >= 10)
+                {
+                    if (!int.TryParse(
+                            action[9],
+                            out audioStartDelayMs)
+                        || audioStartDelayMs < 0)
+                    {
+                        return false;
+                    }
+                }
+
+                //----------------------------------------
+                // ProviderからLocationを取得
+                //----------------------------------------
+
+                if (!WarpService.TryResolveProvider(
+                        action[1],
+                        sourceLocation,
+                        out (string Location, Point Point) destination))
+                {
+                    return false;
+                }
+
+                //----------------------------------------
+                // Warp実行
+                //----------------------------------------
+
+                WarpService.Warp(
+                    destination.Location,
+                    new Point(
+                        providerX,
+                        providerY),
                     effectMode,
                     facingDirection,
                     audioCue,
@@ -442,7 +618,12 @@ namespace Ts_Core.Actions
             // Provider Warp
             //----------------------------------------
 
-            if (WarpService.Warp(
+            if (!WarpProviderService.HasLocationNameConflict(
+                    action[1])
+                && WarpProviderService.ContainsProvider(
+                    action[1]))
+            {
+                return WarpService.Warp(
                     action[1],
                     effectMode,
                     providerFacingDirection,
@@ -450,16 +631,14 @@ namespace Ts_Core.Actions
                     providerAudioRepeatCount,
                     providerAudioIntervalMs,
                     providerBlackoutDurationMs,
-                    providerAudioStartDelayMs))
-            {
-                return true;
+                    providerAudioStartDelayMs,
+                    sourceLocation);
             }
 
             //----------------------------------------
             // Map Warp
             //----------------------------------------
 
-            // Providerが見つからない場合はMap名として扱う
             return WarpService.WarpToMap(
                 action[1],
                 effectMode,
@@ -484,7 +663,9 @@ namespace Ts_Core.Actions
             Farmer who,
             Vector2 playerStandingPosition)
         {
-            ExecuteWarp(action);
+            ExecuteWarp(
+                location,
+                action);
         }
 
         //----------------------------------------
@@ -500,7 +681,9 @@ namespace Ts_Core.Actions
             Farmer who,
             Point tile)
         {
-            return ExecuteWarp(action);
+            return ExecuteWarp(
+                location,
+                action);
         }
     }
 }

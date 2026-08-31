@@ -25,8 +25,21 @@ namespace Ts_Core.Debug
                 "===== Warp Providers =====",
                 LogLevel.Info);
 
+            DebugLogHelper.LogBlankLine(
+                monitor);
+
+            //----------------------------------------
+            // TsCore組み込みProvider
+            //----------------------------------------
+
+            LogBuiltInProviders(
+                monitor);
+
+            DebugLogHelper.LogBlankLine(
+                monitor);
+
             monitor.Log(
-                $"Registered Providers: {providers.Count}",
+                $"Registered JSON Providers: {providers.Count}",
                 LogLevel.Info);
 
             if (providers.Count == 0)
@@ -35,7 +48,7 @@ namespace Ts_Core.Debug
                     monitor);
 
                 monitor.Log(
-                    "No warp providers are registered.",
+                    "No JSON warp providers are registered.",
                     LogLevel.Info);
 
                 return;
@@ -103,6 +116,84 @@ namespace Ts_Core.Debug
                         monitor);
                 }
             }
+        }
+
+        //----------------------------------------
+        // TsCore組み込みProvider
+        //----------------------------------------
+
+        /// <summary>
+        /// TsCore組み込みWarp Providerを表示します。
+        /// </summary>
+        private static void LogBuiltInProviders(
+            IMonitor monitor)
+        {
+            monitor.Log(
+                "----- Built-in Providers -----",
+                LogLevel.Info);
+
+            DebugLogHelper.LogBlankLine(
+                monitor);
+
+            //----------------------------------------
+            // PlayerHome
+            //----------------------------------------
+
+            monitor.Log(
+                "PlayerHome",
+                LogLevel.Info);
+
+            DebugLogHelper.LogField(
+                monitor,
+                "Type",
+                "Built-in");
+
+            DebugLogHelper.LogField(
+                monitor,
+                "Destination",
+                "Player's own home");
+
+            DebugLogHelper.LogBlankLine(
+                monitor);
+
+            //----------------------------------------
+            // PreviousHome
+            //----------------------------------------
+
+            monitor.Log(
+                "PreviousHome",
+                LogLevel.Info);
+
+            DebugLogHelper.LogField(
+                monitor,
+                "Type",
+                "Built-in");
+
+            DebugLogHelper.LogField(
+                monitor,
+                "Destination",
+                "Previously exited home");
+
+            DebugLogHelper.LogBlankLine(
+                monitor);
+
+            //----------------------------------------
+            // CurrentHome
+            //----------------------------------------
+
+            monitor.Log(
+                "CurrentHome",
+                LogLevel.Info);
+
+            DebugLogHelper.LogField(
+                monitor,
+                "Type",
+                "Built-in");
+
+            DebugLogHelper.LogField(
+                monitor,
+                "Destination",
+                "Current FarmHouse/Cabin");
         }
 
         //----------------------------------------

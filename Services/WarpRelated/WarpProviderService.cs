@@ -2,6 +2,7 @@
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
+using StardewValley.Locations;
 using Ts_Core.Models;
 
 namespace Ts_Core.Services.WarpRelated
@@ -52,12 +53,12 @@ namespace Ts_Core.Services.WarpRelated
         public string? BuildingType { get; init; }
 
         /// <summary>
-        /// 建物座標から加算するX座標です。
+        /// 基準座標から加算するX座標です。
         /// </summary>
         public int OffsetX { get; init; }
 
         /// <summary>
-        /// 建物座標から加算するY座標です。
+        /// 基準座標から加算するY座標です。
         /// </summary>
         public int OffsetY { get; init; }
 
@@ -73,12 +74,25 @@ namespace Ts_Core.Services.WarpRelated
     internal static class WarpProviderService
     {
         //----------------------------------------
+        // 組み込みProvider ID
+        //----------------------------------------
+
+        private const string PlayerHomeProviderId =
+            "PlayerHome";
+
+        private const string PreviousHomeProviderId =
+            "PreviousHome";
+
+        private const string CurrentHomeProviderId =
+            "CurrentHome";
+
+        //----------------------------------------
         // 登録済みProvider
         //----------------------------------------
 
         private static readonly Dictionary<
             string,
-            Func<(string Location, Point Point)>>
+            Func<GameLocation?, (string Location, Point Point)>>
             WarpProviders =
                 new(
                     StringComparer.OrdinalIgnoreCase);
@@ -99,7 +113,7 @@ namespace Ts_Core.Services.WarpRelated
         //----------------------------------------
 
         /// <summary>
-        /// 現在登録されているWarp Provider情報を取得します。
+        /// 現在登録されているJSON Warp Provider情報を取得します。
         /// </summary>
         internal static IReadOnlyList<RegisteredWarpProviderInfo>
             GetRegisteredProviders()
@@ -124,6 +138,44 @@ namespace Ts_Core.Services.WarpRelated
         }
 
         //----------------------------------------
+        // 組み込みProvider登録
+        //----------------------------------------
+
+        /// <summary>
+        /// TsCore組み込みのWarp Providerを登録します。
+        /// </summary>
+        internal static void RegisterBuiltInProviders()
+        {
+            //----------------------------------------
+            // PlayerHome
+            //----------------------------------------
+
+            AddProvider(
+                PlayerHomeProviderId,
+                sourceLocation =>
+                    GetPlayerHomeDestination());
+
+            //----------------------------------------
+            // PreviousHome
+            //----------------------------------------
+
+            AddProvider(
+                PreviousHomeProviderId,
+                sourceLocation =>
+                    GetPreviousHomeDestination());
+
+            //----------------------------------------
+            // CurrentHome
+            //----------------------------------------
+
+            AddProvider(
+                CurrentHomeProviderId,
+                sourceLocation =>
+                    GetCurrentHomeDestination(
+                        sourceLocation));
+        }
+
+        //----------------------------------------
         // Provider存在確認
         //----------------------------------------
 
@@ -138,6 +190,70 @@ namespace Ts_Core.Services.WarpRelated
         }
 
         //----------------------------------------
+        // 組み込みProvider確認
+        //----------------------------------------
+
+        /// <summary>
+        /// 指定されたIDがTsCore組み込みProviderの
+        /// 予約IDか確認します。
+        /// </summary>
+        private static bool IsBuiltInProviderId(
+            string key)
+        {
+            return string.Equals(
+                    key,
+                    PlayerHomeProviderId,
+                    StringComparison.OrdinalIgnoreCase)
+                || string.Equals(
+                    key,
+                    PreviousHomeProviderId,
+                    StringComparison.OrdinalIgnoreCase)
+                || string.Equals(
+                    key,
+                    CurrentHomeProviderId,
+                    StringComparison.OrdinalIgnoreCase);
+        }
+
+        //----------------------------------------
+        // Location名との重複確認
+        //----------------------------------------
+
+        /// <summary>
+        /// 指定された名前と同名のGameLocationが存在するか確認します。
+        /// </summary>
+        internal static bool HasLocationNameConflict(
+            string key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+                return false;
+
+            //----------------------------------------
+            // 通常検索
+            //----------------------------------------
+
+            GameLocation? location =
+                Game1.getLocationFromName(
+                    key);
+
+            if (location != null)
+                return true;
+
+            //----------------------------------------
+            // 大文字小文字を無視して確認
+            //----------------------------------------
+
+            return Game1.locations.Any(location =>
+                string.Equals(
+                    location.Name,
+                    key,
+                    StringComparison.OrdinalIgnoreCase)
+                || string.Equals(
+                    location.NameOrUniqueName,
+                    key,
+                    StringComparison.OrdinalIgnoreCase));
+        }
+
+        //----------------------------------------
         // Provider解決
         //----------------------------------------
 
@@ -146,17 +262,19 @@ namespace Ts_Core.Services.WarpRelated
         /// </summary>
         internal static (string Location, Point Point)
             Resolve(
-                string key)
+                string key,
+                GameLocation? sourceLocation = null)
         {
             if (!WarpProviders.TryGetValue(
                     key,
-                    out Func<(string Location, Point Point)>? provider))
+                    out Func<GameLocation?, (string Location, Point Point)>? provider))
             {
                 throw new InvalidOperationException(
                     $"Warp Provider '{key}' was not found.");
             }
 
-            return provider();
+            return provider(
+                sourceLocation);
         }
 
         //----------------------------------------
@@ -165,7 +283,7 @@ namespace Ts_Core.Services.WarpRelated
 
         private static void AddProvider(
             string key,
-            Func<(string Location, Point Point)> provider)
+            Func<GameLocation?, (string Location, Point Point)> provider)
         {
             WarpProviders[key] =
                 provider;
@@ -176,7 +294,7 @@ namespace Ts_Core.Services.WarpRelated
         //----------------------------------------
 
         /// <summary>
-        /// Warp Providerを登録します。
+        /// JSONから読み込んだWarp Providerを登録します。
         /// </summary>
         internal static void RegisterProvider(
             WarpProviderModel model,
@@ -193,6 +311,37 @@ namespace Ts_Core.Services.WarpRelated
             {
                 monitor.Log(
                     $"Warp Provider in '{sourceFile}' has no Id.",
+                    LogLevel.Warn);
+
+                return;
+            }
+
+            //----------------------------------------
+            // 組み込みProvider IDチェック
+            //----------------------------------------
+
+            if (IsBuiltInProviderId(
+                    model.Id))
+            {
+                monitor.Log(
+                    $"Warp Provider '{model.Id}' in '{sourceFile}' was ignored because " +
+                    $"the ID is reserved by TsCore.",
+                    LogLevel.Warn);
+
+                return;
+            }
+
+            //----------------------------------------
+            // Location名との重複チェック
+            //----------------------------------------
+
+            if (HasLocationNameConflict(
+                    model.Id))
+            {
+                monitor.Log(
+                    $"Warp Provider '{model.Id}' in '{sourceFile}' was ignored because " +
+                    $"the ID conflicts with an existing GameLocation name. " +
+                    $"Warp Provider IDs must not use GameLocation names.",
                     LogLevel.Warn);
 
                 return;
@@ -296,10 +445,12 @@ namespace Ts_Core.Services.WarpRelated
 
                     AddProvider(
                         model.Id,
-                        () => GetWarpDestination(
-                            model.Source!,
-                            model.Target!,
-                            model.Fallback));
+                        sourceLocation =>
+                            GetWarpDestination(
+                                model.Source!,
+                                model.Target!,
+                                model.Fallback,
+                                sourceLocation));
 
                     break;
 
@@ -307,12 +458,14 @@ namespace Ts_Core.Services.WarpRelated
 
                     AddProvider(
                         model.Id,
-                        () => GetMapEntryDestination(
-                            model.Map!,
-                            model.Target!,
-                            model.OffsetX,
-                            model.OffsetY,
-                            model.Fallback));
+                        sourceLocation =>
+                            GetMapEntryDestination(
+                                model.Map!,
+                                model.Target!,
+                                model.OffsetX,
+                                model.OffsetY,
+                                model.Fallback,
+                                sourceLocation));
 
                     break;
 
@@ -372,13 +525,14 @@ namespace Ts_Core.Services.WarpRelated
 
         private static (string Location, Point Point)
             GetWarpDestination(
-                string sourceLocation,
+                string sourceLocationName,
                 string targetLocation,
-                string? fallback)
+                string? fallback,
+                GameLocation? actionSourceLocation)
         {
             GameLocation? location =
                 Game1.getLocationFromName(
-                    sourceLocation);
+                    sourceLocationName);
 
             if (location != null)
             {
@@ -409,14 +563,15 @@ namespace Ts_Core.Services.WarpRelated
                     fallback)
                 && WarpProviders.TryGetValue(
                     fallback,
-                    out Func<(string Location, Point Point)>? fallbackProvider))
+                    out Func<GameLocation?, (string Location, Point Point)>? fallbackProvider))
             {
-                return fallbackProvider();
+                return fallbackProvider(
+                    actionSourceLocation);
             }
 
             throw new InvalidOperationException(
                 $"Warp Provider could not be resolved. " +
-                $"Source: '{sourceLocation}', " +
+                $"Source: '{sourceLocationName}', " +
                 $"Target: '{targetLocation}', " +
                 $"Fallback: '{fallback ?? "(none)"}'.");
         }
@@ -431,7 +586,8 @@ namespace Ts_Core.Services.WarpRelated
                 string targetLocation,
                 int offsetX,
                 int offsetY,
-                string? fallback)
+                string? fallback,
+                GameLocation? actionSourceLocation)
         {
             GameLocation? location =
                 Game1.getLocationFromName(
@@ -466,9 +622,10 @@ namespace Ts_Core.Services.WarpRelated
                     fallback)
                 && WarpProviders.TryGetValue(
                     fallback,
-                    out Func<(string Location, Point Point)>? fallbackProvider))
+                    out Func<GameLocation?, (string Location, Point Point)>? fallbackProvider))
             {
-                return fallbackProvider();
+                return fallbackProvider(
+                    actionSourceLocation);
             }
 
             throw new InvalidOperationException(
@@ -476,6 +633,64 @@ namespace Ts_Core.Services.WarpRelated
                 $"Map: '{mapLocation}', " +
                 $"Target: '{targetLocation}', " +
                 $"Fallback: '{fallback ?? "(none)"}'.");
+        }
+
+        //----------------------------------------
+        // PlayerHome Provider
+        //----------------------------------------
+
+        private static (string Location, Point Point)
+            GetPlayerHomeDestination()
+        {
+            FarmHouse home =
+                Utility.getHomeOfFarmer(
+                    Game1.player);
+
+            return (
+                home.NameOrUniqueName,
+                home.getEntryLocation()
+            );
+        }
+
+        //----------------------------------------
+        // PreviousHome Provider
+        //----------------------------------------
+
+        private static (string Location, Point Point)
+            GetPreviousHomeDestination()
+        {
+            if (!PreviousHomeService.TryGetPreviousHome(
+                    out FarmHouse? home)
+                || home == null)
+            {
+                throw new InvalidOperationException(
+                    "PreviousHome has not been recorded yet.");
+            }
+
+            return (
+                home.NameOrUniqueName,
+                home.getEntryLocation()
+            );
+        }
+
+        //----------------------------------------
+        // CurrentHome Provider
+        //----------------------------------------
+
+        private static (string Location, Point Point)
+            GetCurrentHomeDestination(
+                GameLocation? sourceLocation)
+        {
+            if (sourceLocation is not FarmHouse home)
+            {
+                throw new InvalidOperationException(
+                    "CurrentHome can only be used inside a FarmHouse or Cabin.");
+            }
+
+            return (
+                home.NameOrUniqueName,
+                home.getEntryLocation()
+            );
         }
 
         //----------------------------------------
@@ -491,7 +706,7 @@ namespace Ts_Core.Services.WarpRelated
         {
             AddProvider(
                 key,
-                () =>
+                actionSourceLocation =>
                 {
                     Farm farm =
                         Game1.getFarm();
@@ -522,9 +737,10 @@ namespace Ts_Core.Services.WarpRelated
                             fallback)
                         && WarpProviders.TryGetValue(
                             fallback,
-                            out Func<(string Location, Point Point)>? fallbackProvider))
+                            out Func<GameLocation?, (string Location, Point Point)>? fallbackProvider))
                     {
-                        return fallbackProvider();
+                        return fallbackProvider(
+                            actionSourceLocation);
                     }
 
                     throw new InvalidOperationException(

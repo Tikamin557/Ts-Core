@@ -111,18 +111,15 @@ namespace Ts_Core.Services.WarpRelated
         //----------------------------------------
 
         /// <summary>
-        /// Warp Providerを使用してWarpします。
+        /// Warp ProviderからWarp先を解決します。
         /// </summary>
-        public static bool Warp(
+        internal static bool TryResolveProvider(
             string key,
-            WarpEffectMode effectMode,
-            int? facingDirection = null,
-            string? audioCue = null,
-            int audioRepeatCount = 1,
-            int audioIntervalMs = 100,
-            int? blackoutDurationMs = null,
-            int audioStartDelayMs = 0)
+            GameLocation? sourceLocation,
+            out (string Location, Point Point) destination)
         {
+            destination = default;
+
             //----------------------------------------
             // Provider確認
             //----------------------------------------
@@ -139,43 +136,65 @@ namespace Ts_Core.Services.WarpRelated
 
             try
             {
-                //----------------------------------------
-                // Warp先解決
-                //----------------------------------------
-
-                var destination =
+                destination =
                     WarpProviderService.Resolve(
-                        key);
-
-                //----------------------------------------
-                // Warp実行
-                //----------------------------------------
-
-                Warp(
-                    destination.Location,
-                    destination.Point,
-                    effectMode,
-                    facingDirection,
-                    audioCue,
-                    audioRepeatCount,
-                    audioIntervalMs,
-                    blackoutDurationMs,
-                    audioStartDelayMs);
+                        key,
+                        sourceLocation);
 
                 return true;
             }
             catch (InvalidOperationException ex)
             {
-                //----------------------------------------
-                // Provider解決失敗
-                //----------------------------------------
-
                 Monitor?.Log(
                     $"Warp Provider '{key}' could not be resolved. {ex.Message}",
                     LogLevel.Warn);
 
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Warp Providerを使用してWarpします。
+        /// </summary>
+        public static bool Warp(
+            string key,
+            WarpEffectMode effectMode,
+            int? facingDirection = null,
+            string? audioCue = null,
+            int audioRepeatCount = 1,
+            int audioIntervalMs = 100,
+            int? blackoutDurationMs = null,
+            int audioStartDelayMs = 0,
+            GameLocation? sourceLocation = null)
+        {
+            //----------------------------------------
+            // Warp先解決
+            //----------------------------------------
+
+            if (!TryResolveProvider(
+                    key,
+                    sourceLocation,
+                    out (string Location, Point Point) destination))
+            {
+                return false;
+            }
+
+            //----------------------------------------
+            // Warp実行
+            //----------------------------------------
+
+            Warp(
+                destination.Location,
+                destination.Point,
+                effectMode,
+                facingDirection,
+                audioCue,
+                audioRepeatCount,
+                audioIntervalMs,
+                blackoutDurationMs,
+                audioStartDelayMs);
+
+            return true;
         }
 
         /// <summary>

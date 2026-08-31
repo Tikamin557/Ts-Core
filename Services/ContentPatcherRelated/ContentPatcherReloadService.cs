@@ -1,6 +1,7 @@
 ﻿using StardewModdingAPI;
 using System.Collections;
 using System.Reflection;
+using Ts_Core.Services.FarmhouseFixes;
 
 namespace Ts_Core.Services.ContentPatcherRelated
 {
@@ -613,6 +614,12 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 ReloadPatches(
                     contentPackId,
                     monitor);
+
+                //----------------------------------------
+                // FarmHouseセラー再適用要求
+                //----------------------------------------
+
+                CellarEntranceFixService.RequestRefresh();
 
                 //----------------------------------------
                 // 完了

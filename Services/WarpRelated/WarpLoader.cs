@@ -63,7 +63,7 @@ namespace Ts_Core.Services.WarpRelated
                     Source = "IslandFarmHouse",
                     Target = "IslandWest"
                 }
-            ),
+            )
         };
 
         //----------------------------------------
@@ -74,7 +74,18 @@ namespace Ts_Core.Services.WarpRelated
             IModHelper helper,
             IMonitor monitor)
         {
+
             ExportDefaultWarps(helper);
+
+            //----------------------------------------
+            // TsCore組み込みProvider
+            //----------------------------------------
+
+            WarpProviderService.RegisterBuiltInProviders();
+
+            //----------------------------------------
+            // JSON Provider
+            //----------------------------------------
 
             ReadBuiltinWarps(
                 helper,
