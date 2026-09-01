@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
+using Ts_Core.Services.ContentPatcherRelated.ContentPatcherOption;
 
 namespace Ts_Core.Services.ContentPatcherRelated
 {
@@ -583,6 +584,14 @@ namespace Ts_Core.Services.ContentPatcherRelated
                     "Could not access Content Patcher Content Pack manifest.");
             }
 
+            string contentPackId =
+                GetPropertyValue(
+                    manifest,
+                    "UniqueID")
+                    ?.ToString()
+                ?? throw new InvalidOperationException(
+                    "Could not access Content Patcher Content Pack UniqueID.");
+
             //----------------------------------------
             // Config型
             //----------------------------------------
@@ -665,6 +674,16 @@ namespace Ts_Core.Services.ContentPatcherRelated
                         rawContentPack,
                         currentConfig,
                         helper);
+
+                    //----------------------------------------
+                    // T's Core Option更新
+                    //----------------------------------------
+
+                    ContentPatcherOptionService.RefreshContentPack(
+                        currentConfig,
+                        rawContentPack,
+                        contentPackId,
+                        monitor);
 
                     onConfigChangedMethod.Invoke(
                         contentPatcherMod,

@@ -5,11 +5,13 @@ using Ts_Core.Actions;
 using Ts_Core.Debug;
 using Ts_Core.Initializers;
 using Ts_Core.Interfaces;
+using Ts_Core.Models;
 using Ts_Core.Patches;
 using Ts_Core.Providers;
 using Ts_Core.Services.BuildingRelated;
 using Ts_Core.Services.ContentPatcherRelated;
 using Ts_Core.Services.FarmhouseFixes;
+using Ts_Core.Services.GenericModConfigMenuRelated;
 using Ts_Core.Services.Location;
 using Ts_Core.Services.LocationFixes;
 using Ts_Core.Services.Migration;
@@ -17,8 +19,6 @@ using Ts_Core.Services.Notification;
 using Ts_Core.Services.Relationship;
 using Ts_Core.Services.WarpRelated;
 using Ts_Core.Tokens;
-using Ts_Core.Models;
-using Ts_Core.Services.GenericModConfigMenuRelated;
 
 namespace Ts_Core
 {
@@ -107,6 +107,11 @@ namespace Ts_Core
 
             // FarmHouse配偶者部屋の不要タイルを修正
             SpouseRoomTileFixPatch.Apply(
+                harmony);
+
+            // FarmHouse配偶者部屋の特殊表示物を
+            // T's Core Option設定に応じて調整
+            SpouseRoomVisualFixPatch.Apply(
                 harmony);
 
             // FarmHouseへのWarp時に指定座標が入口へ
@@ -222,6 +227,13 @@ namespace Ts_Core
             //----------------------------------------
 
             WarpBlackoutOverlayService.Initialize(
+                helper);
+
+            //----------------------------------------
+            // 配偶者部屋特殊表示物修正初期化
+            //----------------------------------------
+
+            SpouseRoomVisualFixService.Initialize(
                 helper);
 
             //----------------------------------------

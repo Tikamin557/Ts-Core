@@ -1,5 +1,6 @@
 ﻿using StardewModdingAPI;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Ts_Core.Services.ContentPatcherRelated
@@ -33,7 +34,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
             object rawContentPack,
             IModHelper helper,
             IMonitor monitor,
-            out object? filteredConfig)
+            [NotNullWhen(true)] out object? filteredConfig)
         {
             filteredConfig = null;
 

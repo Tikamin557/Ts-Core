@@ -1,6 +1,7 @@
 ﻿using StardewModdingAPI;
 using System.Collections;
 using System.Reflection;
+using Ts_Core.Services.ContentPatcherRelated.ContentPatcherOption;
 using Ts_Core.Services.FarmhouseFixes;
 
 namespace Ts_Core.Services.ContentPatcherRelated
@@ -286,11 +287,12 @@ namespace Ts_Core.Services.ContentPatcherRelated
         }
 
         //----------------------------------------
-        // GMCM初期表示更新
+        // Content Pack初期状態更新
         //----------------------------------------
 
         /// <summary>
         /// 読み込まれているContent Patcher Content Packの
+        /// T's Core Option状態を更新し、
         /// GMCM設定をT's Core独自の表示条件に合わせて再登録します。
         /// </summary>
         internal static void RefreshConfigMenus(
@@ -320,6 +322,12 @@ namespace Ts_Core.Services.ContentPatcherRelated
 
                 return;
             }
+
+            //----------------------------------------
+            // T's Core Option状態初期化
+            //----------------------------------------
+
+            ContentPatcherOptionService.Clear();
 
             //----------------------------------------
             // 各Content Pack
@@ -388,6 +396,16 @@ namespace Ts_Core.Services.ContentPatcherRelated
                         ?? "unknown";
 
                     //----------------------------------------
+                    // T's Core Option更新
+                    //----------------------------------------
+
+                    ContentPatcherOptionService.RefreshContentPack(
+                        currentConfig,
+                        rawContentPack,
+                        uniqueId,
+                        monitor);
+
+                    //----------------------------------------
                     // T's Core独自表示条件確認
                     //----------------------------------------
 
@@ -398,11 +416,6 @@ namespace Ts_Core.Services.ContentPatcherRelated
                                 helper,
                                 monitor,
                                 out object? gmcmConfig))
-                    {
-                        continue;
-                    }
-
-                    if (gmcmConfig == null)
                     {
                         continue;
                     }
@@ -586,6 +599,16 @@ namespace Ts_Core.Services.ContentPatcherRelated
                         oldConfigKeys,
                         helper,
                         monitor);
+
+                //----------------------------------------
+                // T's Core Option再読み込み
+                //----------------------------------------
+
+                ContentPatcherOptionService.RefreshContentPack(
+                    currentConfig,
+                    rawContentPack,
+                    contentPackId,
+                    monitor);
 
                 //----------------------------------------
                 // DynamicTokens再読み込み
