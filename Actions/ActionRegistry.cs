@@ -172,7 +172,7 @@ namespace Ts_Core.Actions
         /// <summary>
         /// Ts_CoreのWarpActionを実行します。
         /// </summary>
-        private static bool ExecuteWarp(
+        internal static bool ExecuteWarp(
             GameLocation sourceLocation,
             string[] action)
         {

@@ -19,6 +19,7 @@ using Ts_Core.Services.Notification;
 using Ts_Core.Services.Relationship;
 using Ts_Core.Services.WarpRelated;
 using Ts_Core.Tokens;
+using Ts_Core.Services.MapRelated.TimedExit;
 
 namespace Ts_Core
 {
@@ -213,6 +214,14 @@ namespace Ts_Core
             //----------------------------------------
 
             WarpService.Initialize(
+                Monitor);
+
+            //----------------------------------------
+            // Timed Exitサービス初期化
+            //----------------------------------------
+
+            TimedExitService.Initialize(
+                helper,
                 Monitor);
 
             //----------------------------------------
