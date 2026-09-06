@@ -12,6 +12,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Building Services](ModderGuide_BuildingServices.md)
 - 📄 [Migration System](ModderGuide_MigrationSystem.md)
 - ✅ **Notification System** *(Current Page)*
+- 📄 [Map Properties](ModderGuide_MapProperties.md)
 - 📄 [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
 
 ← [Back to README](../README.md)
@@ -812,7 +813,7 @@ During development, `tscore_debug_notification_themes`, `tscore_debug_notificati
 
 - ← [Migration System](ModderGuide_MigrationSystem.md)
 - ↑ [Guide Index](#top)
-- → [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
+- → [Map Properties](ModderGuide_MapProperties.md)
 
 ← [Back to README](../README.md)
 
