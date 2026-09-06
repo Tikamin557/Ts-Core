@@ -9,10 +9,10 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Relationship Services](ModderGuide_RelationshipServices.md)
 - 📄 [Location Services](ModderGuide_LocationServices.md)
 - 📄 [Warp Services](ModderGuide_WarpServices.md)
+- 📄 [Map Properties](ModderGuide_MapProperties.md)
 - 📄 [Building Services](ModderGuide_BuildingServices.md)
 - 📄 [Migration System](ModderGuide_MigrationSystem.md)
 - 📄 [Notification System](ModderGuide_NotificationSystem.md)
-- 📄 [Map Properties](ModderGuide_MapProperties.md)
 - ✅ **Content Patcher Integration** *(Current Page)*
 
 ← [Back to README](../README.md)
@@ -695,7 +695,7 @@ Although `tscore_cp_reload` can significantly reduce the number of game restarts
 
 ## Modder Guide
 
-- ← [Map Properties](ModderGuide_MapProperties.md)
+- ← [Notification System](ModderGuide_NotificationSystem.md)
 - ↑ [Guide Index](#top)
 - → *(End of Guide)*
 
