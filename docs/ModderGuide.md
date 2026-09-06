@@ -185,6 +185,7 @@ Detailed documentation for each system is available below.
 - [Building Services](ModderGuide_BuildingServices.md)
 - [Migration System](ModderGuide_MigrationSystem.md)
 - [Notification System](ModderGuide_NotificationSystem.md)
+- [Map Properties](ModderGuide_MapProperties.md)
 - [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
 
 ← [Back to README](../README.md)
