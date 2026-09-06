@@ -23,6 +23,8 @@ It provides reusable APIs, Content Patcher tokens, custom actions, Content Pack 
 - Relationship services and support for third-party marriage APIs
 - Location tracking and location-related services
 - Warp Actions and reusable Warp Providers
+- Custom Map Properties for additional location behavior
+  - Timed exits with optional dialogue and sound
 - Building Providers with additional building-related features
   - Building Lights
   - Conditional Building Draw Layers
@@ -59,6 +61,7 @@ The guide includes documentation for:
 - Relationship Services
 - Location Services
 - Warp Services
+- Map Properties
 - Building Services
 - Migration System
 - Notification System
@@ -66,6 +69,10 @@ The guide includes documentation for:
 - Content Patcher Tokens
 - T's Core Content Packs
 - Debug and reload commands
+
+T's Core also provides custom Map Properties for adding location-specific behavior without writing C# code. This includes Timed Exit properties which can automatically warp the player out of a location at or after a specified in-game time, with optional dialogue and sound.
+
+See the **[Map Properties Guide](docs/ModderGuide_MapProperties.md)** for details.
 
 T's Core also provides additional Content Patcher integration features, including extended Content Pack reloading for development and conditional GMCM field visibility based on installed mods.
 
