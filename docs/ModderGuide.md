@@ -67,10 +67,10 @@ T's Core currently provides the following systems.
 | Relationship Services | Unified partner information |
 | Location Services | Player location information |
 | Warp Services | Shared warp actions and reusable Warp Providers |
+| Map Properties | Custom map properties for additional location behavior, including timed exits |
 | Building Services | Building Providers, Building Lights, conditional Draw Layers, and building-related restrictions |
 | Migration System | Migration support for IDs stored in existing save data |
 | Notification System | Customizable HUD notifications and Notification Themes |
-| Map Properties | Custom map properties for additional location behavior, including timed exits |
 | Content Patcher Integration | Content Patcher development tools and ConfigSchema extensions, including conditional GMCM visibility |
 | Content Patcher Tokens | Custom CP tokens |
 | Shared Utilities | Common helper functions |
@@ -195,10 +195,10 @@ Detailed documentation for each system is available below.
 - [Relationship Services](ModderGuide_RelationshipServices.md)
 - [Location Services](ModderGuide_LocationServices.md)
 - [Warp Services](ModderGuide_WarpServices.md)
+- [Map Properties](ModderGuide_MapProperties.md)
 - [Building Services](ModderGuide_BuildingServices.md)
 - [Migration System](ModderGuide_MigrationSystem.md)
 - [Notification System](ModderGuide_NotificationSystem.md)
-- [Map Properties](ModderGuide_MapProperties.md)
 - [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
 
 ← [Back to README](../README.md)
