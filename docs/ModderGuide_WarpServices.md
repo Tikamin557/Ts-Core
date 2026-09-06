@@ -9,10 +9,10 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Relationship Services](ModderGuide_RelationshipServices.md)
 - 📄 [Location Services](ModderGuide_LocationServices.md)
 - ✅ **Warp Services** *(Current Page)*
+- 📄 [Map Properties](ModderGuide_MapProperties.md)
 - 📄 [Building Services](ModderGuide_BuildingServices.md)
 - 📄 [Migration System](ModderGuide_MigrationSystem.md)
 - 📄 [Notification System](ModderGuide_NotificationSystem.md)
-- 📄 [Map Properties](ModderGuide_MapProperties.md)
 - 📄 [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
 
 ← [Back to README](../README.md)
@@ -850,7 +850,7 @@ Additional providers and features may be added in future versions of T's Core.
 
 - ← [Location Services](ModderGuide_LocationServices.md)
 - ↑ [Guide Index](#top)
-- → [Building Services](ModderGuide_BuildingServices.md)
+- → [Map Properties](ModderGuide_MapProperties.md)
 
 ← [Back to README](../README.md)
 
