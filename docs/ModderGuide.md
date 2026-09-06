@@ -70,6 +70,7 @@ T's Core currently provides the following systems.
 | Building Services | Building Providers, Building Lights, conditional Draw Layers, and building-related restrictions |
 | Migration System | Migration support for IDs stored in existing save data |
 | Notification System | Customizable HUD notifications and Notification Themes |
+| Map Properties | Custom map properties for additional location behavior, including timed exits |
 | Content Patcher Integration | Content Patcher development tools and ConfigSchema extensions, including conditional GMCM visibility |
 | Content Patcher Tokens | Custom CP tokens |
 | Shared Utilities | Common helper functions |
@@ -97,6 +98,18 @@ For detailed instructions, see the corresponding guide:
 - **[Warp Services Guide](ModderGuide_WarpServices.md)**
 - **[Migration System Guide](ModderGuide_MigrationSystem.md)**
 - **[Notification System Guide](ModderGuide_NotificationSystem.md)**
+
+T's Core also provides custom map properties which can add additional behavior to locations without requiring C# code.
+
+The currently available Timed Exit properties can automatically warp the player out of a location at or after a specified in-game time, with optional dialogue and sound:
+
+- `TsCoreTimedExit`
+- `TsCoreTimedExitMessage`
+- `TsCoreTimedExitSound`
+
+Timed Exit can use T's Core Warp Actions and Warp Providers for its destination and warp behavior.
+
+For detailed usage and examples, see the **[Map Properties Guide](ModderGuide_MapProperties.md)**.
 
 T's Core also extends Content Patcher's `ConfigSchema` with optional features for controlling GMCM visibility based on installed mods.
 
