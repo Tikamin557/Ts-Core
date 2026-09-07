@@ -97,7 +97,7 @@ Because the result is a list, you can directly use Content Patcher's list-aware 
 
 ```json
 "When": {
-    "HasValue:{{Tikamin557.TsCore/Partners}}": "Abigail"
+    "HasValue:Tikamin557.TsCore/Partners": "Abigail"
 }
 ```
 
