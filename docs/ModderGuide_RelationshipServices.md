@@ -63,7 +63,7 @@ As support for additional relationship mods is added to T's Core, existing Conte
 | `{{Tikamin557.TsCore/Partners}}` | Current partners | General relationship checks |
 | `{{Tikamin557.TsCore/OrderedPartners}}` | Current partners in spouse room order | Room/order-dependent patches |
 
-Both tokens return a **list of partner names** and can be used with Content Patcher features such as `Count`, `HasValue`, and `valueAt`.
+Both tokens return a **list of partner names** and can be used with Content Patcher features such as `Count`, `contains`, and `valueAt`.
 
 For example:
 
@@ -89,19 +89,31 @@ Because the result is a list, you can directly use Content Patcher's list-aware 
 | Purpose | Example |
 |---------|---------|
 | Count partners | `{{Count:{{Tikamin557.TsCore/Partners}}}}` |
-| Check for a partner | `HasValue:{{Tikamin557.TsCore/Partners}}` |
-| Check whether any partner exists | `Count:{{Tikamin557.TsCore/Partners}} > 0` |
+| Check whether any partner exists | `HasValue:{{Tikamin557.TsCore/Partners}}` |
+| Check for a specific partner | `Tikamin557.TsCore/Partners |contains=Abigail` |
 | Check for multiple partners | `Count:{{Tikamin557.TsCore/Partners}} >= 2` |
+
+#### Check whether the player has any partner
+
+```json
+"When": {
+    "HasValue:{{Tikamin557.TsCore/Partners}}": "true"
+}
+```
+
+`HasValue` checks whether the token currently has any value.
+
+This condition is true when the player has at least one partner, regardless of who the partner is.
 
 #### Check for a specific partner
 
 ```json
 "When": {
-    "HasValue:Tikamin557.TsCore/Partners": "Abigail"
+    "Tikamin557.TsCore/Partners |contains=Abigail": "true"
 }
 ```
 
-`HasValue` checks whether the specified name exists anywhere in the list, so partner order does not matter.
+`contains` checks whether the specified name exists anywhere in the list, so partner order does not matter.
 
 ---
 
@@ -150,7 +162,7 @@ The same conditions work with vanilla relationships and supported relationship m
 
 ```json
 "When": {
-    "Query": "Count:{{Tikamin557.TsCore/Partners}} > 0"
+    "HasValue:{{Tikamin557.TsCore/Partners}}": "true"
 }
 ```
 
@@ -158,7 +170,7 @@ The same conditions work with vanilla relationships and supported relationship m
 
 ```json
 "When": {
-    "HasValue:{{Tikamin557.TsCore/Partners}}": "Abigail"
+    "Tikamin557.TsCore/Partners |contains=Abigail": "true"
 }
 ```
 
