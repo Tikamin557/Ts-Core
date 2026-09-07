@@ -90,7 +90,7 @@ Because the result is a list, you can directly use Content Patcher's list-aware 
 |---------|---------|
 | Count partners | `{{Count:{{Tikamin557.TsCore/Partners}}}}` |
 | Check whether any partner exists | `HasValue:{{Tikamin557.TsCore/Partners}}` |
-| Check for a specific partner | `Tikamin557.TsCore/Partners |contains=Abigail` |
+| Check for a specific partner | `Tikamin557.TsCore/Partners \|contains=Abigail` |
 | Check for multiple partners | `Count:{{Tikamin557.TsCore/Partners}} >= 2` |
 
 #### Check whether the player has any partner
