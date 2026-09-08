@@ -14,12 +14,12 @@ using Ts_Core.Services.FarmhouseFixes;
 using Ts_Core.Services.GenericModConfigMenuRelated;
 using Ts_Core.Services.Location;
 using Ts_Core.Services.LocationFixes;
+using Ts_Core.Services.MapRelated.TimedExit;
 using Ts_Core.Services.Migration;
 using Ts_Core.Services.Notification;
 using Ts_Core.Services.Relationship;
 using Ts_Core.Services.WarpRelated;
 using Ts_Core.Tokens;
-using Ts_Core.Services.MapRelated.TimedExit;
 
 namespace Ts_Core
 {
@@ -113,6 +113,10 @@ namespace Ts_Core
             // FarmHouse配偶者部屋の特殊表示物を
             // T's Core Option設定に応じて調整
             SpouseRoomVisualFixPatch.Apply(
+                harmony);
+
+            // FarmHouseの通常玄関からのWarpを追跡
+            FarmHouseEntranceTracker.Apply(
                 harmony);
 
             // FarmHouseへのWarp時に指定座標が入口へ

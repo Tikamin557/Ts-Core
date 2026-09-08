@@ -81,6 +81,16 @@ namespace Ts_Core.Services.FarmhouseFixes
             }
 
             //----------------------------------------
+            // 通常のFarmHouse玄関からのWarpは対象外
+            //----------------------------------------
+
+            if (FarmHouseEntranceTracker
+                .ConsumeEntranceWarp(__instance))
+            {
+                return;
+            }
+
+            //----------------------------------------
             // Warp先座標を保存
             //----------------------------------------
 

@@ -73,6 +73,7 @@ namespace Ts_Core.Debug
                         monitor,
                         args));
 
+
             // Content PatcherのContent Packを再読み込み
             helper.ConsoleCommands.Add(
                 "tscore_cp_reload",

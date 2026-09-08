@@ -2,8 +2,6 @@
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
-using System;
-using System.Linq;
 using Ts_Core.Actions;
 
 namespace Ts_Core.Services.MapRelated.TimedExit
