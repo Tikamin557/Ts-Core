@@ -1,4 +1,29 @@
 ﻿{
   "config.EnableSpouseRoomTileFix.name": "Spouse Room Tile Fix",
-  "config.EnableSpouseRoomTileFix.description": "Prevents custom tiles near the spouse room from being overwritten when using farmhouse mods. This setting may not be necessary depending on the farmhouse mod you use. Please change this setting from the title screen."
+  "config.EnableSpouseRoomTileFix.description": "Prevents custom tiles near the spouse room from being overwritten when using farmhouse mods. This setting may not be necessary depending on the farmhouse mod you use. Please change this setting from the title screen.",
+
+
+  "config.DebugSupport.name": "--- Debugging Utilities ---",
+  "config.DebugSupport.description": "The sections below contain settings for debugging utilities provided by T's Core.",
+
+  "config.TimeSkip.name": "Time Skip",
+  "config.TimeSkip.description": "A debugging feature that advances the in-game clock to the configured time while processing NPC schedules along the way. Unlike \"hurry_all\", which completes NPC movement currently in progress, Time Skip advances the clock itself and applies schedule changes that occur up to the target time. It won't run if the current time is already at or past the configured time.",
+
+  "config.TimeSkipKey.name": "Keybind",
+  "config.TimeSkipKey.description": "Sets the keybind used to perform a Time Skip.",
+
+  "config.TimeSkipTime.name": "Target Time",
+  "config.TimeSkipTime.description": "Sets the in-game time to skip to.",
+
+  "config.TimeSkipSpeed.name": "Skip Speed",
+  "config.TimeSkipSpeed.description": "Sets how quickly NPC schedules are processed during Time Skip. Higher settings make skipping faster but also increase CPU load. Use a lower setting if Time Skip causes performance issues.",
+  "config.TimeSkipSpeed.Slow": "Slow",
+  "config.TimeSkipSpeed.Normal": "Normal",
+  "config.TimeSkipSpeed.Fast": "Fast",
+  "config.TimeSkipSpeed.VeryFast": "Very Fast",
+
+  "config.TimeSkipNotification.name": "Completion Notification",
+  "config.TimeSkipNotification.description": "Shows a notification when Time Skip finishes.",
+
+  "notification.TimeSkipComplete": "Time Skip complete.\nTime advanced to {{Time}}."
 }

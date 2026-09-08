@@ -1,4 +1,30 @@
 ﻿{
   "config.EnableSpouseRoomTileFix.name": "配偶者部屋のタイル修正",
-  "config.EnableSpouseRoomTileFix.description": "Farmhouse Modを使用している場合に、配偶者部屋付近のカスタムタイルが上書きされる問題を修正します。使用しているFarmhouse Modによっては、この設定は必要ありません。この設定を変更する場合は、タイトル画面で変更してください。"
+  "config.EnableSpouseRoomTileFix.description": "Farmhouse Modを使用している場合に、配偶者部屋付近のカスタムタイルが上書きされる問題を修正します。使用しているFarmhouse Modによっては、この設定は必要ありません。この設定を変更する場合は、タイトル画面で変更してください。",
+
+
+  "config.DebugSupport.name": "--- デバッグ支援機能 ---",
+  "config.DebugSupport.description": "以下のセクションには、T's Coreが追加するデバッグ支援機能に関する設定項目が含まれています。",
+
+  "config.TimeSkip.name": "Time Skip",
+  "config.TimeSkip.description": "設定した時刻までゲーム内時間を進め、途中のNPCスケジュールも順番に処理するデバッグ用機能です。「hurry_all」が現在進行中のNPC移動を完了させるのに対し、Time Skipは時間そのものを進め、指定時刻までに発生するスケジュール変更も反映します。現在時刻が設定時刻以降の場合は実行されません。",
+
+  "config.TimeSkipKey.name": "実行キー",
+  "config.TimeSkipKey.description": "Time Skipを実行するキーを設定します。",
+
+  "config.TimeSkipTime.name": "移動時刻",
+  "config.TimeSkipTime.description": "Time Skipで移動するゲーム内時刻を設定します。",
+
+  "config.TimeSkipSpeed.name": "スキップ速度",
+  "config.TimeSkipSpeed.description": "Time Skip中にNPCのスケジュールを処理する速度を設定します。高い設定ほどスキップは速くなりますが、PCへの負荷も増加します。動作が重い場合は低い設定を使用してください。",
+  "config.TimeSkipSpeed.Slow": "低速",
+  "config.TimeSkipSpeed.Normal": "標準",
+  "config.TimeSkipSpeed.Fast": "高速",
+  "config.TimeSkipSpeed.VeryFast": "最速",
+
+
+  "config.TimeSkipNotification.name": "完了通知",
+  "config.TimeSkipNotification.description": "Time Skipが完了した時に通知を表示します。",
+
+  "notification.TimeSkipComplete": "Time Skip完了。\n時刻を{{Time}}まで進めました。"
 }

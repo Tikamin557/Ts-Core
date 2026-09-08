@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Locations;
+using StardewValley.Menus;
 
 namespace Ts_Core.Services.FarmhouseFixes
 {
@@ -76,6 +77,16 @@ namespace Ts_Core.Services.FarmhouseFixes
                 .StartsWith(
                     "Cellar",
                     StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            //----------------------------------------
+            // ShopMenu表示中は対象外
+            //----------------------------------------
+
+            if (Game1.activeClickableMenu
+                is ShopMenu)
             {
                 return;
             }

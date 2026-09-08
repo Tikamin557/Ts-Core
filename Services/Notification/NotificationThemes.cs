@@ -253,6 +253,66 @@ namespace Ts_Core.Services.Notification
             };
 
         /// <summary>
+        /// ラベンダー通知テーマです。
+        /// </summary>
+        public static NotificationTheme Lavender
+            => NotificationThemeManager.GetTheme(nameof(Lavender));
+
+        /// <summary>
+        /// ラベンダー通知の既定テーマです。
+        /// </summary>
+        internal static readonly NotificationTheme DefaultLavender =
+            new()
+            {
+                Base = "Info",
+
+                BackgroundColor =
+                    new Color(235, 210, 205),
+
+                BorderColor =
+                    Color.White,
+
+                TextColor =
+                    new Color(86, 22, 12),
+
+                ShadowColor =
+                    new Color(0, 0, 0, 80),
+
+                DrawShadow =
+                    true,
+
+                ShadowOffset =
+                    new Vector2(1, 1),
+
+                TextScale =
+                    1.0f,
+
+                MinHeight =
+                    80,
+
+                MinWidth =
+                    500,
+
+                PaddingX =
+                    20,
+
+                PaddingY =
+                    20,
+
+                TextAnchor =
+                    NotificationTextAnchor.Center,
+
+                Anchor =
+                    NotificationAnchor.TopLeft,
+
+                OffsetX =
+                    30,
+
+                OffsetY =
+                    30
+            };
+
+        /// <summary>
         /// レトロウィンドウ通知テーマです。
         /// </summary>
         public static NotificationTheme RetroWindow

@@ -10,6 +10,7 @@ using Ts_Core.Patches;
 using Ts_Core.Providers;
 using Ts_Core.Services.BuildingRelated;
 using Ts_Core.Services.ContentPatcherRelated;
+using Ts_Core.Services.DebugSupport;
 using Ts_Core.Services.FarmhouseFixes;
 using Ts_Core.Services.GenericModConfigMenuRelated;
 using Ts_Core.Services.Location;
@@ -206,6 +207,13 @@ namespace Ts_Core
                 Monitor,
                 service,
                 provider);
+
+            //----------------------------------------
+            // Time Skip初期化
+            //----------------------------------------
+
+            TimeSkipService.Initialize(
+                Helper);
 
             //----------------------------------------
             // アクション登録

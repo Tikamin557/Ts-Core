@@ -283,6 +283,8 @@ namespace Ts_Core.Services.Notification
                 NotificationThemes.DefaultAchievement),
             (nameof(NotificationThemes.Boss),
                 NotificationThemes.DefaultBoss),
+            (nameof(NotificationThemes.Lavender),
+                NotificationThemes.DefaultLavender),
             (nameof(NotificationThemes.RetroWindow),
                 NotificationThemes.DefaultRetroWindow),
         };
