@@ -503,10 +503,12 @@ Examples:
 | `"0.5, 0"` | Half a tile to the right. |
 | `"-1, 1"` | One tile left and one tile down. |
 
-Since one Stardew Valley tile is 64 pixels:
+Stardew Valley map tiles are 16 × 16 pixels in the source tilesheet, but are displayed at 4× scale in the game.
+
+Machine light positions use world coordinates, where one tile is 64 × 64 pixels.
 
 ```text
-0.5 tile = 32 pixels
+0.5 tile = 32 world pixels
 ```
 
 ---
