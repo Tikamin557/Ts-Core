@@ -69,6 +69,7 @@ T's Core currently provides the following systems.
 | Warp Services | Shared warp actions and reusable Warp Providers |
 | Map Properties | Custom map properties for additional location behavior, including timed exits |
 | Building Services | Building Providers, Building Lights, conditional Draw Layers, and building-related restrictions |
+| Machine Interaction | Adds configurable right-click behavior, effects, lights, wobble effects, and custom Idle/Action visuals to machines |
 | Migration System | Migration support for IDs stored in existing save data |
 | Notification System | Customizable HUD notifications and Notification Themes |
 | Content Patcher Integration | Content Patcher development tools and ConfigSchema extensions, including conditional GMCM visibility |
@@ -89,6 +90,7 @@ Currently, Content Packs can provide:
 - Custom Notification Themes
 - Custom Warp Providers
 - Migration definitions
+- Machine Interaction definitions
 
 Each feature has its own file format and setup requirements.
 
@@ -96,6 +98,7 @@ For detailed instructions, see the corresponding guide:
 
 - **[Building Services Guide](ModderGuide_BuildingServices.md)**
 - **[Warp Services Guide](ModderGuide_WarpServices.md)**
+- **[Machine Interaction Guide](ModderGuide_MachineInteraction.md)**
 - **[Migration System Guide](ModderGuide_MigrationSystem.md)**
 - **[Notification System Guide](ModderGuide_NotificationSystem.md)**
 
@@ -110,6 +113,38 @@ The currently available Timed Exit properties can automatically warp the player 
 Timed Exit can use T's Core Warp Actions and Warp Providers for its destination and warp behavior.
 
 For detailed usage and examples, see the **[Map Properties Guide](ModderGuide_MapProperties.md)**.
+
+T's Core also supports configurable Machine Interactions for machines defined through Stardew Valley's `Data/Machines`.
+
+A machine can be linked to an entry in the custom:
+
+```text
+TsCore/MachineInteraction
+```
+
+asset through the following Custom Field:
+
+```text
+TsCore/MachineInteraction
+```
+
+Machine Interactions can execute Tile Actions when the player right-clicks a machine and can optionally provide:
+
+- Game State Query conditions
+- Required held items
+- Required item consumption
+- Action Machine Effects
+- Temporary Action Lights
+- Action Wobble
+- Custom Action textures and animations
+- Idle Machine Effects
+- Idle Wobble
+- Custom Idle textures and animations
+- Normal machine lights
+
+These features are designed to coexist with Stardew Valley's normal machine processing and Working animation behavior.
+
+For detailed setup, properties, and examples, see the **[Machine Interaction Guide](ModderGuide_MachineInteraction.md)**.
 
 T's Core also extends Content Patcher's `ConfigSchema` with optional features for controlling GMCM visibility based on installed mods.
 
