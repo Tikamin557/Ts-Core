@@ -197,6 +197,7 @@ Detailed documentation for each system is available below.
 - [Warp Services](ModderGuide_WarpServices.md)
 - [Map Properties](ModderGuide_MapProperties.md)
 - [Building Services](ModderGuide_BuildingServices.md)
+- [Machine Interaction](ModderGuide_MachineInteraction.md)
 - [Migration System](ModderGuide_MigrationSystem.md)
 - [Notification System](ModderGuide_NotificationSystem.md)
 - [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
