@@ -213,6 +213,77 @@ namespace Ts_Core.Services.GenericModConfigMenuRelated
                     "TimeSkipTime");
 
             //----------------------------------------
+            // Time Skip (Duration)
+            //----------------------------------------
+
+            api.AddSectionTitle(
+                manifest,
+                text: () =>
+                    helper.Translation.Get(
+                        "config.TimeSkipDuration.name"),
+                tooltip: () =>
+                    helper.Translation.Get(
+                        "config.TimeSkipDuration.description"));
+
+            //----------------------------------------
+            // Time Skip (Duration) - 実行キー
+            //----------------------------------------
+
+            api.AddKeybindList(
+                manifest,
+                getValue: () =>
+                    getConfig()
+                        .TimeSkipDurationKey,
+                setValue: value =>
+                    getConfig()
+                        .TimeSkipDurationKey =
+                            value,
+                name: () =>
+                    helper.Translation.Get(
+                        "config.TimeSkipDurationKey.name"),
+                tooltip: () =>
+                    helper.Translation.Get(
+                        "config.TimeSkipDurationKey.description"),
+                fieldId:
+                    "TimeSkipDurationKey");
+
+            //----------------------------------------
+            // Time Skip (Duration) - 時間
+            //----------------------------------------
+
+            api.AddNumberOption(
+                manifest,
+                getValue: () =>
+                    getConfig()
+                        .TimeSkipDuration,
+                setValue: value =>
+                    getConfig()
+                        .TimeSkipDuration =
+                            value,
+                name: () =>
+                    helper.Translation.Get(
+                        "config.TimeSkipDurationValue.name"),
+                tooltip: () =>
+                    helper.Translation.Get(
+                        "config.TimeSkipDurationValue.description"),
+                min:
+                    10,
+                max:
+                    1200,
+                interval:
+                    10,
+                formatValue: value =>
+                    helper.Translation.Get(
+                        "config.TimeSkipDurationValue.format",
+                        new
+                        {
+                            Minutes =
+                                value
+                        }),
+                fieldId:
+                    "TimeSkipDuration");
+
+            //----------------------------------------
             // Time Skip - スキップ速度
             //----------------------------------------
 

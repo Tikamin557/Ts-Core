@@ -22,9 +22,20 @@
   "config.TimeSkipSpeed.Fast": "高速",
   "config.TimeSkipSpeed.VeryFast": "最速",
 
+  "config.TimeSkipDuration.name": "Time Skip (Duration)",
+  "config.TimeSkipDuration.description": "設定した時間分だけゲーム内時間を進め、途中のNPCスケジュールも順番に処理するデバッグ用機能です。移動後の時刻が26:00を超える場合は実行されません。",
+  "config.TimeSkipDurationValue.format": "{{Minutes}}分",
+
+  "config.TimeSkipDurationKey.name": "実行キー",
+  "config.TimeSkipDurationKey.description": "Time Skip (Duration)を実行するキーを設定します。",
+
+  "config.TimeSkipDurationValue.name": "時間",
+  "config.TimeSkipDurationValue.description": "Time Skip (Duration)を1回実行するごとに進めるゲーム内時間を分単位で設定します。",
 
   "config.TimeSkipNotification.name": "完了通知",
   "config.TimeSkipNotification.description": "Time Skipが完了した時に通知を表示します。",
 
-  "notification.TimeSkipComplete": "Time Skip完了。\n時刻を{{Time}}まで進めました。"
+
+  "notification.TimeSkipComplete": "Time Skip完了。\n時刻を{{Time}}まで進めました。",
+  "notification.TimeSkipDurationLimit": "Time Skip (Duration)では\n26:00を超えて時間を進めることは\n出来ません。"
 }

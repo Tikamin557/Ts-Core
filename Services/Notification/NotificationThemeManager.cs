@@ -285,6 +285,8 @@ namespace Ts_Core.Services.Notification
                 NotificationThemes.DefaultBoss),
             (nameof(NotificationThemes.Lavender),
                 NotificationThemes.DefaultLavender),
+            (nameof(NotificationThemes.Rose),
+                NotificationThemes.DefaultRose),
             (nameof(NotificationThemes.RetroWindow),
                 NotificationThemes.DefaultRetroWindow),
         };

@@ -82,31 +82,125 @@ namespace Ts_Core.Services.DebugSupport
                 return;
 
             //----------------------------------------
-            // Time Skipキー判定
+            // 設定取得
             //----------------------------------------
 
             ModConfig config =
                 ModEntry.Config;
 
-            if (!config.TimeSkipKey
+            //----------------------------------------
+            // Time Skip
+            //----------------------------------------
+
+            if (config.TimeSkipKey
                 .JustPressed())
             {
+                //----------------------------------------
+                // キー入力を抑制
+                //----------------------------------------
+
+                helper.Input.SuppressActiveKeybinds(
+                    config.TimeSkipKey);
+
+                //----------------------------------------
+                // Time Skip開始
+                //----------------------------------------
+
+                StartSkip(
+                    config.TimeSkipTime);
+
                 return;
             }
 
             //----------------------------------------
-            // キー入力を抑制
+            // Time Skip (Duration)
             //----------------------------------------
 
-            helper.Input.SuppressActiveKeybinds(
-                config.TimeSkipKey);
+            if (config.TimeSkipDurationKey
+                .JustPressed())
+            {
+                //----------------------------------------
+                // キー入力を抑制
+                //----------------------------------------
+
+                helper.Input.SuppressActiveKeybinds(
+                    config.TimeSkipDurationKey);
+
+                //----------------------------------------
+                // Time Skip (Duration)開始
+                //----------------------------------------
+
+                StartDurationSkip(
+                    config.TimeSkipDuration);
+            }
+        }
+
+        //----------------------------------------
+        // Time Skip (Duration)
+        //----------------------------------------
+
+        /// <summary>
+        /// 指定した時間分だけTime Skipを実行します。
+        /// </summary>
+        private static void StartDurationSkip(
+            int duration)
+        {
+            //----------------------------------------
+            // 現在時刻を分へ変換
+            //----------------------------------------
+
+            int currentHour =
+                Game1.timeOfDay / 100;
+
+            int currentMinute =
+                Game1.timeOfDay % 100;
+
+            int currentTotalMinutes =
+                currentHour * 60
+                + currentMinute;
+
+            //----------------------------------------
+            // 移動先を計算
+            //----------------------------------------
+
+            int targetTotalMinutes =
+                currentTotalMinutes
+                + duration;
+
+            //----------------------------------------
+            // 26:00を超える場合は実行しない
+            //----------------------------------------
+
+            const int maximumTotalMinutes =
+                26 * 60;
+
+            if (targetTotalMinutes
+                > maximumTotalMinutes)
+            {
+                ShowDurationLimitNotification();
+                return;
+            }
+
+            //----------------------------------------
+            // ゲーム内時刻へ変換
+            //----------------------------------------
+
+            int targetHour =
+                targetTotalMinutes / 60;
+
+            int targetMinute =
+                targetTotalMinutes % 60;
+
+            int newTargetTime =
+                targetHour * 100
+                + targetMinute;
 
             //----------------------------------------
             // Time Skip開始
             //----------------------------------------
 
             StartSkip(
-                config.TimeSkipTime);
+                newTargetTime);
         }
 
         //----------------------------------------
@@ -511,6 +605,24 @@ namespace Ts_Core.Services.DebugSupport
                 _ =>
                     64
             };
+        }
+
+        //----------------------------------------
+        // Time Skip (Duration)通知
+        //----------------------------------------
+
+        /// <summary>
+        /// Time Skip (Duration)が
+        /// 26:00を超える場合の通知を表示します。
+        /// </summary>
+        private static void ShowDurationLimitNotification()
+        {
+            NotificationRequest.Theme(
+                nameof(NotificationThemes.Rose),
+                helper.Translation.Get(
+                    "notification.TimeSkipDurationLimit"),
+                120)
+                .Show();
         }
 
         //----------------------------------------

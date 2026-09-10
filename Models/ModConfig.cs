@@ -48,6 +48,28 @@ namespace Ts_Core.Models
         } = 1000;
 
         /// <summary>
+        /// Time Skip (Duration)を実行するキーです。
+        /// </summary>
+        public KeybindList TimeSkipDurationKey
+        {
+            get;
+            set;
+        } = new(
+            new Keybind(
+                SButton.LeftShift,
+                SButton.W));
+
+        /// <summary>
+        /// Time Skip (Duration)で進める時間です。
+        /// 分単位で指定します。
+        /// </summary>
+        public int TimeSkipDuration
+        {
+            get;
+            set;
+        } = 60;
+
+        /// <summary>
         /// Time Skip中のNPC Schedule処理速度です。
         /// </summary>
         public TimeSkipSpeed TimeSkipSpeed

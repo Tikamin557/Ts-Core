@@ -15,6 +15,7 @@ using Ts_Core.Services.FarmhouseFixes;
 using Ts_Core.Services.GenericModConfigMenuRelated;
 using Ts_Core.Services.Location;
 using Ts_Core.Services.LocationFixes;
+using Ts_Core.Services.MachineRelated;
 using Ts_Core.Services.MapRelated.TimedExit;
 using Ts_Core.Services.Migration;
 using Ts_Core.Services.Notification;
@@ -137,6 +138,16 @@ namespace Ts_Core
             BuildingLocationRestrictionPatch.Apply(
                 harmony);
 
+            // Machine Interactionの
+            // Action / Idle Wobbleを有効化
+            MachineShouldWobblePatch.Apply(
+                harmony);
+
+            // Machine Interactionの
+            // Texture / Animationを有効化
+            MachineAnimationTexturePatch.Apply(
+                harmony);
+
             //----------------------------------------
             // 初期化
             //----------------------------------------
@@ -214,6 +225,13 @@ namespace Ts_Core
 
             TimeSkipService.Initialize(
                 Helper);
+
+            //----------------------------------------
+            // Machine Texture / Animation初期化
+            //----------------------------------------
+
+            MachineAnimationTextureService.Initialize(
+                Monitor);
 
             //----------------------------------------
             // アクション登録
@@ -309,6 +327,7 @@ namespace Ts_Core
             // GameLoop
             //----------------------------------------
 
+            // ゲーム起動完了処理
             helper.Events.GameLoop.GameLaunched
                 += OnGameLaunched;
 
@@ -316,12 +335,29 @@ namespace Ts_Core
             helper.Events.GameLoop.UpdateTicked
                 += OnUpdateTicked;
 
+            // Machine Interaction - Light
+            helper.Events.GameLoop.UpdateTicked
+                += MachineLightService.OnUpdateTicked;
+
+            // Machine Interaction - Idle Wobble
+            helper.Events.GameLoop.UpdateTicked
+                += MachineIdleWobbleService.OnUpdateTicked;
+
             // Building Light / Migration
             helper.Events.GameLoop.SaveLoaded
                 += OnSaveLoaded;
 
+            // 時刻変更処理
             helper.Events.GameLoop.TimeChanged
                 += OnTimeChanged;
+
+            // Machine Interaction - Idle Effects
+            helper.Events.GameLoop.TimeChanged
+                += MachineIdleEffectService.OnTimeChanged;
+
+            // Machine Interaction - 状態クリア
+            helper.Events.GameLoop.ReturnedToTitle
+                += OnReturnedToTitle;
 
             //----------------------------------------
             // Player
@@ -333,6 +369,9 @@ namespace Ts_Core
             //----------------------------------------
             // Content
             //----------------------------------------
+
+            helper.Events.Content.AssetRequested
+                += MachineInteractionDataService.OnAssetRequested;
 
             helper.Events.Content.AssetReady
                 += OnAssetReady;
@@ -441,6 +480,29 @@ namespace Ts_Core
 
             BuildingLightService
                 .UpdateLights();
+        }
+
+        //----------------------------------------
+        // ReturnedToTitle
+        //----------------------------------------
+
+        private void OnReturnedToTitle(
+            object? sender,
+            ReturnedToTitleEventArgs e)
+        {
+            //----------------------------------------
+            // Machine Interaction
+            //----------------------------------------
+
+            MachineActionEffectService.Clear();
+
+            MachineActionWobbleService.Clear();
+
+            MachineIdleWobbleService.Clear();
+
+            MachineAnimationTextureService.Clear();
+
+            MachineLightService.Clear();
         }
 
         //----------------------------------------

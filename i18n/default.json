@@ -15,6 +15,16 @@
   "config.TimeSkipTime.name": "Target Time",
   "config.TimeSkipTime.description": "Sets the in-game time to skip to.",
 
+  "config.TimeSkipDuration.name": "Time Skip (Duration)",
+  "config.TimeSkipDuration.description": "A debugging feature that advances the in-game clock by the configured duration while processing NPC schedules along the way. The skip won't run if the resulting time would go past 26:00.",
+  "config.TimeSkipDurationValue.format": "{{Minutes}} min",
+
+  "config.TimeSkipDurationKey.name": "Keybind",
+  "config.TimeSkipDurationKey.description": "Sets the keybind used to perform Time Skip (Duration).",
+
+  "config.TimeSkipDurationValue.name": "Duration",
+  "config.TimeSkipDurationValue.description": "Sets how many in-game minutes to advance each time Time Skip (Duration) is performed.",
+
   "config.TimeSkipSpeed.name": "Skip Speed",
   "config.TimeSkipSpeed.description": "Sets how quickly NPC schedules are processed during Time Skip. Higher settings make skipping faster but also increase CPU load. Use a lower setting if Time Skip causes performance issues.",
   "config.TimeSkipSpeed.Slow": "Slow",
@@ -25,5 +35,7 @@
   "config.TimeSkipNotification.name": "Completion Notification",
   "config.TimeSkipNotification.description": "Shows a notification when Time Skip finishes.",
 
-  "notification.TimeSkipComplete": "Time Skip complete.\nTime advanced to {{Time}}."
+
+  "notification.TimeSkipComplete": "Time Skip complete.\nTime advanced to {{Time}}.",
+  "notification.TimeSkipDurationLimit": "Time Skip (Duration) cannot advance time beyond 26:00."
 }

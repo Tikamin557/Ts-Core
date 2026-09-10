@@ -313,6 +313,66 @@ namespace Ts_Core.Services.Notification
             };
 
         /// <summary>
+        /// ローズ通知テーマです。
+        /// </summary>
+        public static NotificationTheme Rose
+            => NotificationThemeManager.GetTheme(nameof(Rose));
+
+        /// <summary>
+        /// ローズ通知の既定テーマです。
+        /// </summary>
+        internal static readonly NotificationTheme DefaultRose =
+            new()
+            {
+                Base = "Info",
+
+                BackgroundColor =
+                    new Color(225, 145, 155),
+
+                BorderColor =
+                    new Color(150, 65, 75),
+
+                TextColor =
+                    new Color(85, 15, 25),
+
+                ShadowColor =
+                    new Color(0, 0, 0, 80),
+
+                DrawShadow =
+                    true,
+
+                ShadowOffset =
+                    new Vector2(1, 1),
+
+                TextScale =
+                    1.0f,
+
+                MinHeight =
+                    80,
+
+                MinWidth =
+                    500,
+
+                PaddingX =
+                    20,
+
+                PaddingY =
+                    20,
+
+                TextAnchor =
+                    NotificationTextAnchor.Center,
+
+                Anchor =
+                    NotificationAnchor.TopLeft,
+
+                OffsetX =
+                    30,
+
+                OffsetY =
+                    30
+            };
+
+        /// <summary>
         /// レトロウィンドウ通知テーマです。
         /// </summary>
         public static NotificationTheme RetroWindow

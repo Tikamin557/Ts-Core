@@ -505,17 +505,19 @@ namespace Ts_Core.Services.Notification
                 }
 
                 //----------------------------------------
-                // 英単語
+                // 英単語・時刻など
                 //----------------------------------------
 
                 if (char.IsLetterOrDigit(text[i]) || text[i] == '_')
                 {
                     int start = i;
 
-                    // 英数字・アンダースコアを1単語として取得
+                    // 英数字・アンダースコア・コロンを
+                    // 1単語として取得
                     while (i < text.Length &&
                           (char.IsLetterOrDigit(text[i]) ||
-                           text[i] == '_'))
+                           text[i] == '_' ||
+                           text[i] == ':'))
                     {
                         i++;
                     }
