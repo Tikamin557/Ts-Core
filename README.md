@@ -5,9 +5,7 @@
 
 A shared library and framework for Stardew Valley SMAPI mods.
 
-It provides reusable APIs, Content Patcher tokens, custom actions, data-driven systems, migration support, and development tools that other mods can use to improve compatibility and reduce duplicated code.
-
-> **Players:** You only need to install this mod if another mod lists it as a requirement.
+It provides reusable APIs, Content Patcher integration, custom actions, data-driven systems, migration support, and development tools that other mods can use to improve compatibility and reduce duplicated code.
 
 ---
 
@@ -25,19 +23,19 @@ It provides reusable APIs, Content Patcher tokens, custom actions, data-driven s
 - Warp Actions and reusable Warp Providers
 - Custom Map Properties for additional location behavior
   - Timed exits with optional dialogue and sound
-- Building Providers with additional building-related features
+- Building Services
+  - Building Providers
   - Building Lights
   - Conditional Building Draw Layers
   - Feature enable/disable controls
   - Construction location restrictions
 - Machine Interaction for adding custom right-click behavior to machines
 - Migration System for updating IDs stored in existing save data
-- Customizable notification system and Notification Themes
-- Content Patcher tokens
-- Content Patcher integration
+- Customizable Notification System and Notification Themes
+- Content Patcher tokens and integration
   - Extended Content Pack reload tools for development
   - Conditional GMCM field visibility based on installed mods
-- Custom Data Assets for registering T's Core definitions through Content Patcher
+- Custom Data Assets for registering definitions through Content Patcher
 - Common utilities shared between T's Mods
 
 ---
@@ -49,52 +47,46 @@ It provides reusable APIs, Content Patcher tokens, custom actions, data-driven s
 3. Download the latest version of T's Core.
 4. Extract it into your `Mods` folder.
 
+> **Players:** You only need to install T's Core if another mod lists it as a requirement.
+
 ---
 
 ## 🛠 For Mod Authors
 
 If you want to integrate your mod with T's Core, please see the **[Modder Guide](docs/ModderGuide.md)**.
 
-T's Core can be used from C# mods and Content Patcher mods depending on the feature.
+T's Core can be used from C# mods and Content Patcher mods depending on the feature. Many features can be configured directly through Content Patcher without writing C# code.
 
-The guide includes documentation for:
+The Modder Guide covers:
 
 - Relationship Services
 - Location Services
-- Warp Services
+- Warp Services and custom Warp Providers
 - Map Properties
-- Building Services
+- Building Services and custom Building Providers
 - Machine Interaction
-- Migration System
-- Notification System
-- Content Patcher Integration
-- Content Patcher Tokens
+- Migration System and custom migration definitions
+- Notification System and custom Notification Themes
+- Content Patcher Integration and Tokens
 - Debug and reload commands
 
-T's Core also provides custom Map Properties for adding location-specific behavior without writing C# code. This includes Timed Exit properties which can automatically warp the player out of a location at or after a specified in-game time, with optional dialogue and sound.
+Custom Warp Providers, Building Providers, Notification Themes, and migration definitions can be registered through T's Core custom Data Assets using Content Patcher.
+
+Custom Map Properties can also add location-specific behavior without C# code, including Timed Exit properties which can automatically warp the player out of a location at or after a specified in-game time, with optional dialogue and sound.
 
 See the **[Map Properties Guide](docs/ModderGuide_MapProperties.md)** for details.
 
-T's Core also provides additional Content Patcher integration features, including extended Content Pack reloading for development and conditional GMCM field visibility based on installed mods.
+Additional Content Patcher integration features include extended Content Pack reloading for development and conditional GMCM field visibility based on installed mods.
 
 See the **[Content Patcher Integration Guide](docs/ModderGuide_ContentPatcherIntegration.md)** for details.
-
-Content Patcher Content Packs can register custom T's Core definitions through custom Data Assets, including:
-
-- Building Providers
-- Notification Themes
-- Warp Providers
-- Migration definitions
-
-These features can be configured using Content Patcher without writing any C# code.
 
 ---
 
 ## 💬 Feedback & Bug Reports
 
-If you have any suggestions, feedback, or feature requests, please post them on the **[Nexus Mods Posts page](https://www.nexusmods.com/stardewvalley/mods/50043?tab=posts)**.
+Suggestions, feedback, and feature requests can be posted on the **[Nexus Mods Posts page](https://www.nexusmods.com/stardewvalley/mods/50043?tab=posts)**.
 
-If you encounter a bug, please report it on the **[Nexus Mods Bugs page](https://www.nexusmods.com/stardewvalley/mods/50043?tab=bugs)**.
+Bug reports can be submitted on the **[Nexus Mods Bugs page](https://www.nexusmods.com/stardewvalley/mods/50043?tab=bugs)**.
 
 When reporting a bug, please include:
 
