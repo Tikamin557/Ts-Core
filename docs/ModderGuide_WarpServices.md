@@ -26,9 +26,15 @@ This guide explains how to use the public features provided by **T's Core** in C
 
 Warp Services provide reusable warp functionality for Content Patcher.
 
-T's Core provides custom Warp Actions and reusable Warp Providers, and also allows Content Packs to register their own destinations without requiring any C# code.
+T's Core provides custom Warp Actions and reusable Warp Providers, and allows Content Patcher packs to register their own Warp Providers through the custom data asset:
 
-This guide explains how to use Warp Actions, create custom Warp Providers, and integrate them into your Content Packs.
+```text
+TsCore/WarpProviders
+```
+
+No C# code is required.
+
+This guide explains how to use Warp Actions, register custom Warp Providers, and integrate them into Content Patcher packs.
 
 ---
 
@@ -37,8 +43,10 @@ This guide explains how to use Warp Actions, create custom Warp Providers, and i
 - [Warp Actions](#warp-actions)
 - [Warp Providers](#warp-providers)
 - [Content Pack Setup](#content-pack-setup)
+- [Registering Warp Providers](#registering-warp-providers)
 - [Warp Provider Types](#warp-provider-types)
-- [Built-in Warp Providers](#built-in-warp-providers)
+- [Default Warp Providers](#default-warp-providers)
+- [Special Built-in Warp Providers](#special-built-in-warp-providers)
 - [Example](#example)
 - [Debugging](#debugging)
 - [Notes](#notes)
@@ -301,7 +309,7 @@ TsCoreMagicWarp FarmHouseFront Auto wand 1 100 500
 
 ## Warp Providers
 
-Warp Providers allow Content Packs to reference destinations by **provider name** instead of hardcoding map names and coordinates.
+Warp Providers allow Content Patcher packs to reference destinations by **provider ID** instead of hardcoding map names and coordinates.
 
 For example:
 
@@ -315,15 +323,21 @@ can be used instead of a fixed destination such as:
 Warp Farm 64 15
 ```
 
-Providers make Content Packs easier to maintain and improve compatibility with custom maps and mods that move buildings or change warp destinations.
+Providers make Content Patcher packs easier to maintain and improve compatibility with custom maps and mods that move buildings or change warp destinations.
 
-For example, `FarmHouseFront` resolves the farmhouse entrance dynamically, so a Content Pack does not need to know its exact coordinates.
+For example, `FarmHouseFront` resolves the farmhouse entrance dynamically, so a Content Patcher pack does not need to know its exact coordinates.
+
+Custom Warp Providers are registered through the T's Core data asset:
+
+```text
+TsCore/WarpProviders
+```
 
 ---
 
 ### Provider Resolution
 
-When a destination is passed to a T's Core Warp Action, T's Core first attempts to resolve it as a registered Warp Provider.
+When a destination is passed to a T's Core Warp Action, T's Core first attempts to resolve it as a Warp Provider.
 
 If no matching provider exists, the value is treated as a location name.
 
@@ -334,7 +348,7 @@ TsCoreWarp FarmHouseFront
 TsCoreWarp BusStop
 ```
 
-`FarmHouseFront` resolves to a registered provider, while `BusStop` is treated as a location name if no provider with that name exists.
+`FarmHouseFront` resolves to a Warp Provider, while `BusStop` is treated as a location name if no provider with that ID exists.
 
 When a location name is used directly, T's Core uses Stardew Valley's default warp location for that map.
 
@@ -342,22 +356,28 @@ When a location name is used directly, T's Core uses Stardew Valley's default wa
 
 ## Content Pack Setup
 
-T's Core Content Packs can register custom Warp Providers.
+Custom Warp Providers are registered from a normal **Content Patcher Content Pack**.
 
-A single Content Pack can include multiple T's Core features, such as custom Warp Providers and Notification Themes.
+The Content Pack should depend on both Content Patcher and T's Core.
 
 ### manifest.json
 
 ```json
 {
-  "Name": "[TsC] My T's Core Content Pack",
+  "Name": "[CP] My Warp Pack",
   "Author": "YourName",
   "Version": "1.0.0",
-  "UniqueID": "YourName.MyTsCorePack",
+  "UniqueID": "YourName.MyWarpPack",
   "UpdateKeys": [ "Nexus:12345" ],
   "ContentPackFor": {
-    "UniqueID": "Tikamin557.TsCore"
-  }
+    "UniqueID": "Pathoschild.ContentPatcher"
+  },
+  "Dependencies": [
+    {
+      "UniqueID": "Tikamin557.TsCore",
+      "IsRequired": true
+    }
+  ]
 }
 ```
 
@@ -365,39 +385,100 @@ Replace the example values with your own information before publishing your Cont
 
 ### Folder Structure
 
+A simple Content Pack may look like this:
+
 ```text
-[TsC] My T's Core Content Pack
+[CP] My Warp Pack
 ├── manifest.json
-└── assets
-    ├── buildings
-    │   └── MyBuilding.json
-    ├── notification
-    │   └── MyNotification.json
-    └── warp
-        └── MyWarpProvider.json
+└── content.json
 ```
 
-Currently, T's Core supports the following feature folders:
+Warp Provider definitions do not need a special folder.
 
-| Folder | Purpose |
-|--------|---------|
-| `assets/buildings` | Building Providers |
-| `assets/notification` | Custom Notification Themes |
-| `assets/warp` | Custom Warp Providers |
+They are added through Content Patcher's `EditData` action in `content.json`.
 
-Only create the folders your Content Pack actually uses.
+---
 
-JSON filenames may be chosen freely.
+## Registering Warp Providers
 
-> **Note:** The folder names (`assets`, `buildings`, `notification`, `warp`, etc.) are fixed and must not be renamed. T's Core searches these specific folders when loading Content Packs.
+Use `EditData` with:
+
+```text
+Target: TsCore/WarpProviders
+```
+
+Each entry key becomes the Warp Provider ID.
+
+For example:
+
+```json
+{
+  "Action": "EditData",
+  "Target": "TsCore/WarpProviders",
+  "Entries": {
+    "MyWarpProvider": {
+      "Type": "Warp",
+      "Source": "Mine",
+      "Target": "Mountain"
+    }
+  }
+}
+```
+
+The provider ID in this example is:
+
+```text
+MyWarpProvider
+```
+
+Unlike older T's Core Warp Provider definitions, the provider data itself does **not** contain an `Id` property.
+
+The ID is taken from the `Entries` key:
+
+```json
+"Entries": {
+  "MyWarpProvider": {
+```
+
+A single `EditData` patch can register multiple providers.
+
+For example:
+
+```json
+{
+  "Action": "EditData",
+  "Target": "TsCore/WarpProviders",
+  "Entries": {
+    "MyWarpProvider": {
+      "Type": "Warp",
+      "Source": "Mine",
+      "Target": "Mountain"
+    },
+    "MyBuildingWarp": {
+      "Type": "Building",
+      "BuildingType": "YourName.MyMod_MyBuilding",
+      "OffsetX": 1,
+      "OffsetY": 3
+    }
+  }
+}
+```
+
+> **Note:** Provider IDs should be globally unique. Using an ID already present in `TsCore/WarpProviders` may modify or replace that entry depending on the Content Patcher patches affecting the asset.
+
+For custom providers, using an ID based on your mod's UniqueID is recommended when possible.
+
+For example:
+
+```text
+YourName.MyMod_MyWarp
+```
 
 ---
 
 ## Warp Provider Types
 
-Each JSON file inside `assets/warp` defines one Warp Provider.
-
-T's Core currently supports three provider types:
+T's Core currently supports three data asset Warp Provider types:
 
 | Type | Purpose |
 |------|---------|
@@ -413,17 +494,22 @@ A **Warp** provider resolves its destination by reading an existing warp from a 
 
 ```json
 {
-  "Id": "MyFarmHouseFront",
-  "Type": "Warp",
-  "Source": "FarmHouse",
-  "Target": "Farm",
-  "Fallback": "FarmHouseFront"
+  "Action": "EditData",
+  "Target": "TsCore/WarpProviders",
+  "Entries": {
+    "MyFarmHouseFront": {
+      "Type": "Warp",
+      "Source": "FarmHouse",
+      "Target": "Farm",
+      "Fallback": "FarmHouseFront"
+    }
+  }
 }
 ```
 
 | Property | Required | Description |
 |----------|----------|-------------|
-| `Id` | ✅ | Unique provider name used by T's Core Warp Actions. |
+| Entry key | ✅ | Unique provider ID used by T's Core Warp Actions. |
 | `Type` | ✅ | Must be `"Warp"`. |
 | `Source` | ✅ | Location containing the warp to inspect. |
 | `Target` | ✅ | Destination location of the warp to resolve. |
@@ -461,8 +547,6 @@ Because the destination is resolved at runtime, this provider can adapt when ano
 
 If the warp cannot be found and `Fallback` is specified, T's Core attempts to resolve the fallback provider instead.
 
-> **Note:** Provider IDs should be unique. If another provider with the same ID is already registered, the duplicate provider will not be registered.
-
 ---
 
 ### Warp Provider (Type: MapEntry)
@@ -473,19 +557,24 @@ Unlike a `Warp` provider, which returns where an existing warp leads, a `MapEntr
 
 ```json
 {
-  "Id": "MyFarmHouseEntry",
-  "Type": "MapEntry",
-  "Map": "FarmHouse",
-  "Target": "Farm",
-  "OffsetX": 0,
-  "OffsetY": -1,
-  "Fallback": "FarmHouseFront"
+  "Action": "EditData",
+  "Target": "TsCore/WarpProviders",
+  "Entries": {
+    "MyFarmHouseEntry": {
+      "Type": "MapEntry",
+      "Map": "FarmHouse",
+      "Target": "Farm",
+      "OffsetX": 0,
+      "OffsetY": -1,
+      "Fallback": "FarmHouseFront"
+    }
+  }
 }
 ```
 
 | Property | Required | Description |
 |----------|----------|-------------|
-| `Id` | ✅ | Unique provider name used by T's Core Warp Actions. |
+| Entry key | ✅ | Unique provider ID used by T's Core Warp Actions. |
 | `Type` | ✅ | Must be `"MapEntry"`. |
 | `Map` | ✅ | Location containing the warp to inspect. |
 | `Target` | ✅ | Destination location used to identify the warp. |
@@ -535,7 +624,6 @@ For example:
 
 ```json
 {
-  "Id": "MyFarmHouseEntry",
   "Type": "MapEntry",
   "Map": "FarmHouse",
   "Target": "Farm",
@@ -558,22 +646,27 @@ If the map or matching warp cannot be found and `Fallback` is specified, T's Cor
 
 A **Building** provider calculates its destination from the position of a building placed on the player's farm.
 
-The following example shows the Building Provider used by the **[(SF) Monster House](https://www.nexusmods.com/stardewvalley/mods/20586)** mod.
+The following example shows a Building Provider for a custom building.
 
 ```json
 {
-  "Id": "MonsterHouseFront",
-  "Type": "Building",
-  "BuildingType": "Tikamin557.SF.MonsterHouse.Buildings_MonsterHouse",
-  "OffsetX": 0,
-  "OffsetY": 1,
-  "Fallback": "FarmHouseFront"
+  "Action": "EditData",
+  "Target": "TsCore/WarpProviders",
+  "Entries": {
+    "MonsterHouseFront": {
+      "Type": "Building",
+      "BuildingType": "Tikamin557.SF.MonsterHouse.Buildings_MonsterHouse",
+      "OffsetX": 0,
+      "OffsetY": 1,
+      "Fallback": "FarmHouseFront"
+    }
+  }
 }
 ```
 
 | Property | Required | Description |
 |----------|----------|-------------|
-| `Id` | ✅ | Unique provider name used by T's Core Warp Actions. |
+| Entry key | ✅ | Unique provider ID used by T's Core Warp Actions. |
 | `Type` | ✅ | Must be `"Building"`. |
 | `BuildingType` | ✅ | Internal building type to search for on the player's farm. |
 | `OffsetX` | Optional | Horizontal offset from the building's top-left tile. Defaults to `0`. |
@@ -582,7 +675,7 @@ The following example shows the Building Provider used by the **[(SF) Monster Ho
 
 T's Core searches the farm for the specified `BuildingType` and calculates the destination from the building's top-left tile plus `OffsetX` and `OffsetY`.
 
-For example, the Monster House occupies a **2 × 1** area:
+For example, a building occupying a **2 × 1** area may use:
 
 ```text
 ■■
@@ -605,9 +698,9 @@ If the building cannot be found, the provider specified by `Fallback` is used in
 
 ---
 
-## Built-in Warp Providers
+## Default Warp Providers
 
-T's Core includes several built-in providers that resolve their destinations dynamically from existing map warps.
+`TsCore/WarpProviders` includes four default Warp Providers provided by T's Core.
 
 | Provider | Source | Target | Description |
 |----------|--------|--------|-------------|
@@ -616,13 +709,116 @@ T's Core includes several built-in providers that resolve their destinations dyn
 | `FarmCaveFront` | `FarmCave` | `Farm` | Resolves the tile outside the farm cave entrance. |
 | `IslandFarmHouseFront` | `IslandFarmHouse` | `IslandWest` | Resolves the tile outside the Island Farmhouse. |
 
-All built-in providers can be used with any T's Core Warp Action.
+These providers are standard entries in:
+
+```text
+TsCore/WarpProviders
+```
+
+and can be used with any T's Core Warp Action.
+
+For example:
+
+```text
+TsCoreWarp FarmHouseFront
+TsCoreMagicWarp GreenhouseFront Down
+```
 
 Because these destinations are resolved from the active map warps, they can adapt to compatible custom maps and mods that move or modify their corresponding entrances.
 
 > **Note:** A provider requires a valid warp between its configured source and target locations. If another mod removes that warp entirely, the provider may not be able to resolve its destination.
 
-Additional built-in providers may be added in future versions of T's Core.
+Additional default providers may be added in future versions of T's Core.
+
+---
+
+## Special Built-in Warp Providers
+
+T's Core also provides three special Warp Providers implemented directly by T's Core.
+
+Unlike the providers in `TsCore/WarpProviders`, these are not data asset entries.
+
+| Provider | Description |
+|----------|-------------|
+| `PlayerHome` | Resolves the entrance of the current player's own FarmHouse or Cabin. |
+| `PreviousHome` | Resolves the entrance of the FarmHouse or Cabin the player most recently exited. |
+| `CurrentHome` | Resolves the entrance of the FarmHouse or Cabin in which the action is currently being used. |
+
+These providers can be used directly with T's Core Warp Actions.
+
+For example:
+
+```text
+TsCoreWarp PlayerHome
+TsCoreMagicWarp PreviousHome
+TsCoreMagicWarp_Simple CurrentHome
+```
+
+---
+
+### PlayerHome
+
+`PlayerHome` resolves the current player's own home.
+
+This works with both the main FarmHouse and player cabins.
+
+For example:
+
+```text
+TsCoreWarp PlayerHome
+```
+
+warps the player to the entrance position of their own home.
+
+---
+
+### PreviousHome
+
+`PreviousHome` remembers the FarmHouse or Cabin the local player most recently exited.
+
+For example:
+
+```text
+TsCoreWarp PreviousHome
+```
+
+can be used to return the player to the entrance of that home.
+
+`PreviousHome` becomes available after T's Core has recorded a home the player exited.
+
+If no previous home has been recorded yet, the provider cannot resolve a destination.
+
+---
+
+### CurrentHome
+
+`CurrentHome` resolves the entrance position of the FarmHouse or Cabin where the Warp Action is currently being used.
+
+For example:
+
+```text
+TsCoreWarp CurrentHome
+```
+
+This provider is intended for actions used from inside a FarmHouse or Cabin.
+
+If it is used from another type of location, it cannot resolve a destination.
+
+---
+
+### Reserved Provider IDs
+
+The following IDs are reserved for T's Core's special built-in providers:
+
+```text
+PlayerHome
+PreviousHome
+CurrentHome
+```
+
+Custom entries using these IDs in `TsCore/WarpProviders` are not treated as custom providers.
+
+Use a different ID for your own Warp Providers.
 
 ---
 
@@ -684,50 +880,87 @@ This example:
 
 ## Debugging
 
-T's Core provides debug commands for inspecting Warp Providers and farm buildings, as well as reloading T's Core resources during development.
+T's Core provides debug commands for inspecting Warp Providers and farm buildings.
+
+Warp Providers registered through `TsCore/WarpProviders` are managed through Content Patcher, so changes to them should be reloaded using T's Core's Content Patcher reload command.
+
+---
+
+### Reloading Warp Provider Changes
+
+When developing a Content Patcher pack, changes to Warp Provider patches can be reloaded without restarting the game.
+
+Use:
+
+```text
+tscore_cp_reload <ContentPackId>
+```
+
+For example:
+
+```text
+tscore_cp_reload YourName.MyWarpPack
+```
+
+After the Content Patcher pack is reloaded, changes to its `TsCore/WarpProviders` entries are reflected immediately.
+
+This includes:
+
+- adding a Warp Provider;
+- removing a Warp Provider;
+- changing the provider type;
+- changing source or target locations;
+- changing offsets;
+- changing the fallback provider.
+
+For details about `tscore_cp_reload`, ConfigSchema reloading, Config Tokens, GMCM integration, and DynamicTokens, see the [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md) guide.
 
 ---
 
 ### Reloading T's Core Resources
 
-When developing a T's Core Content Pack, you can reload supported resources without restarting the game.
+`tscore_reload` is used for resources loaded directly by T's Core.
+
+Current commands are:
 
 | Command | Reloads |
 |---------|---------|
-| `tscore_reload`<br>`tscore_reload all` | All supported T's Core resources |
-| `tscore_reload warp` | Warp Providers |
-| `tscore_reload building` | Building Providers |
+| `tscore_reload`<br>`tscore_reload all` | All supported directly loaded T's Core resources |
 | `tscore_reload notification` | Notification Themes |
 
-Running `tscore_reload` without an argument is equivalent to `tscore_reload all`.
+Running `tscore_reload` without an argument is equivalent to:
 
-After running a reload command, T's Core rescans the corresponding folders.
+```text
+tscore_reload all
+```
 
-Any JSON files that have been added, modified, or removed are detected and applied without restarting the game.
+Warp Providers are **not** reloaded through `tscore_reload`.
 
-This makes it possible to test changes and add new Warp Providers or Notification Themes while the game is running.
-
-> **Note:** `tscore_reload` reloads resources handled by T's Core. It does not reload Content Patcher content packs.
-
----
-
-### Reloading Content Patcher Content Packs
-
-T's Core also provides development tools for reloading Content Patcher Content Packs while the game is running.
-
-This includes support for reloading patches, ConfigSchema, Config Tokens, GMCM settings, and DynamicTokens without restarting the game.
-
-For details about `tscore_cp_reload` and other Content Patcher integration features, see the [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md) guide.
+Use `tscore_cp_reload` for Warp Provider changes made by a Content Patcher pack.
 
 ---
 
 ### Inspecting Warp Providers
 
-Use the following command to display all currently registered Warp Providers:
+Use the following command to display all currently available Warp Providers:
 
 ```text
 tscore_debug_warp
 ```
+
+The output separates providers into three groups:
+
+```text
+Built-in Providers
+TsCore Data Asset Providers
+External Data Asset Providers
+```
+
+These represent:
+
+- **Built-in Providers** — special providers implemented directly by T's Core.
+- **TsCore Data Asset Providers** — default entries supplied by T's Core in `TsCore/WarpProviders`.
+- **External Data Asset Providers** — providers added through Content Patcher or other edits to the data asset.
 
 The output includes information such as:
 
@@ -739,39 +972,54 @@ The output includes information such as:
 - Coordinate offsets
 - Fallback provider
 
-The following example shows the built-in providers and a custom provider registered by the T's Core Content Pack included with the **[(SF) Monster House](https://www.nexusmods.com/stardewvalley/mods/20586)** mod.
-
 <details>
 <summary>Example output</summary>
 
 ```text
 tscore_debug_warp
 [T's Core] ===== Warp Providers =====
-[T's Core] Registered Providers: 5
 [T's Core]
-[T's Core] ----- T's Core -----
+[T's Core] ----- Built-in Providers -----
+[T's Core]
+[T's Core] PlayerHome
+[T's Core]     Type                : Built-in
+[T's Core]     Destination         : Player's own home
+[T's Core]
+[T's Core] PreviousHome
+[T's Core]     Type                : Built-in
+[T's Core]     Destination         : Previously exited home
+[T's Core]
+[T's Core] CurrentHome
+[T's Core]     Type                : Built-in
+[T's Core]     Destination         : Current FarmHouse/Cabin
+[T's Core]
+[T's Core] ----- TsCore Data Asset Providers -----
 [T's Core]
 [T's Core] FarmCaveFront
 [T's Core]     Type                : Warp
 [T's Core]     Source              : FarmCave
 [T's Core]     Target              : Farm
+[T's Core]     Fallback            : (none)
 [T's Core]
 [T's Core] FarmHouseFront
 [T's Core]     Type                : Warp
 [T's Core]     Source              : FarmHouse
 [T's Core]     Target              : Farm
+[T's Core]     Fallback            : (none)
 [T's Core]
 [T's Core] GreenhouseFront
 [T's Core]     Type                : Warp
 [T's Core]     Source              : Greenhouse
 [T's Core]     Target              : Farm
+[T's Core]     Fallback            : (none)
 [T's Core]
 [T's Core] IslandFarmHouseFront
 [T's Core]     Type                : Warp
 [T's Core]     Source              : IslandFarmHouse
 [T's Core]     Target              : IslandWest
+[T's Core]     Fallback            : (none)
 [T's Core]
-[T's Core] ----- Tikamin557.TsC.MonsterHouse -----
+[T's Core] ----- External Data Asset Providers -----
 [T's Core]
 [T's Core] MonsterHouseFront
 [T's Core]     Type                : Building
@@ -841,7 +1089,27 @@ Use:
 - `MapEntry` when you want the **position where an existing warp is located**.
 - `Building` when you want a position relative to a **building placed on the farm**.
 
-Warp destinations are resolved at runtime, allowing compatible Content Packs to adapt to map changes without hardcoding coordinates.
+Warp destinations are resolved at runtime, allowing compatible Content Patcher packs to adapt to map changes without hardcoding coordinates.
+
+Custom Warp Providers should be added through:
+
+```text
+TsCore/WarpProviders
+```
+
+using Content Patcher's `EditData` action.
+
+The provider ID is the dictionary entry key and is not stored inside the provider model.
+
+The special providers:
+
+```text
+PlayerHome
+PreviousHome
+CurrentHome
+```
+
+are implemented directly by T's Core and are not entries in `TsCore/WarpProviders`.
 
 Additional providers and features may be added in future versions of T's Core.
 
