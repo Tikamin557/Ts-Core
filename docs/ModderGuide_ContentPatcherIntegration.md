@@ -24,11 +24,11 @@ This guide explains how to use the public features provided by **T's Core** in C
 
 # Content Patcher Integration
 
-Content Patcher Integration provides development tools for reloading Content Patcher Content Packs while Stardew Valley is running.
+Content Patcher Integration provides additional features and development tools for Content Patcher Content Packs.
 
 T's Core can reload a Content Pack's `content.json` together with related ConfigSchema, Config Tokens, GMCM settings, Dynamic Tokens, and patches without restarting the game.
 
-This is primarily intended to make Content Patcher Content Pack development and testing faster.
+T's Core also extends Content Patcher's `ConfigSchema` with optional properties for controlling GMCM field visibility based on installed mods.
 
 ---
 
@@ -42,7 +42,7 @@ This is primarily intended to make Content Patcher Content Pack development and 
 - [Dynamic Tokens](#dynamic-tokens)
 - [Content Patcher Patches](#content-patcher-patches)
 - [Disabled Patch Records](#disabled-patch-records)
-- [T's Core Reload vs Content Patcher Reload](#ts-core-reload-vs-content-patcher-reload)
+- [T's Core Custom Data Assets](#ts-core-custom-data-assets)
 - [Development Workflow](#development-workflow)
 - [Limitations](#limitations)
 - [Notes](#notes)
@@ -115,6 +115,8 @@ Reload Content Patcher patches
 ```
 
 This makes it possible to test many common Content Pack changes without restarting Stardew Valley.
+
+Changes made by the Content Pack to T's Core custom Data Assets are also refreshed through the reloaded Content Patcher patches.
 
 ---
 
@@ -209,19 +211,17 @@ If the Content Pack uses ConfigSchema with Generic Mod Config Menu, T's Core re-
 
 This allows changes to ConfigSchema to be reflected in GMCM without restarting the game.
 
-For example, during development you can:
+For example:
 
-1. add a new ConfigSchema field;
-2. save `content.json`;
-3. run:
+1. Add or modify a ConfigSchema field.
+2. Save `content.json`.
+3. Run:
 
 ```text
 tscore_cp_reload YourName.MyContentPack
 ```
 
 The updated configuration can then be registered with GMCM using the new Config structure.
-
-The GMCM registration uses the Content Pack's current Config and Content Patcher's normal configuration handling.
 
 > **Note:** Generic Mod Config Menu must already be available for Content Patcher's GMCM integration to be used.
 
@@ -234,7 +234,7 @@ The following properties are supported:
 | Property | Behavior |
 |----------|----------|
 | `TsCore.ShowIfMod` | Shows the field if **at least one** of the specified mods is loaded. |
-| `TsCore.ShowIfAllMods` | Shows the field only if **all** of the specified mods are loaded. |
+| `TsCore.ShowIfAllMods` | Shows the field only if **all** specified mods are loaded. |
 
 These properties only control whether the Config field is shown in GMCM.
 
@@ -329,30 +329,15 @@ AND
 (Example.FrameworkA AND Example.FrameworkB)
 ```
 
-The field is therefore shown only when:
-
-- at least one of `Example.ModA` or `Example.ModB` is loaded; and
-- both `Example.FrameworkA` and `Example.FrameworkB` are loaded.
-
 #### Reloading Visibility Conditions
 
-T's Core applies these visibility conditions when the Content Pack's GMCM configuration is registered.
-
-The conditions are also re-evaluated when using:
+The visibility conditions are re-evaluated when using:
 
 ```text
 tscore_cp_reload <ContentPackId>
 ```
 
-This means the properties can be added, removed, or changed while developing a Content Pack and then tested without restarting the game.
-
-For example:
-
-```text
-tscore_cp_reload YourName.MyContentPack
-```
-
-will reload the latest ConfigSchema and re-register the GMCM configuration using the current `TsCore.ShowIfMod` and `TsCore.ShowIfAllMods` conditions.
+This allows the properties to be added, removed, or changed during development and tested without restarting the game.
 
 #### Notes
 
@@ -362,7 +347,7 @@ will reload the latest ConfigSchema and re-register the GMCM configuration using
 - `TsCore.ShowIfMod` uses OR logic when multiple mod IDs are specified.
 - `TsCore.ShowIfAllMods` uses AND logic when multiple mod IDs are specified.
 - When both properties are used on the same field, both conditions must pass.
-- These properties only affect GMCM visibility. They do not remove the Config field or its value.
+- These properties only affect GMCM visibility.
 - Hidden Config fields can still be used by Content Patcher Config Tokens, Dynamic Tokens, and patches.
 
 ---
@@ -392,51 +377,19 @@ T's Core removes the previous Dynamic Token state and rebuilds it using the curr
 
 ### Supported Changes
 
-The reload process supports common Dynamic Token changes such as:
+The reload process supports changes such as:
 
-- adding a Dynamic Token;
-- removing a Dynamic Token;
+- adding or removing a Dynamic Token;
 - changing its `Value`;
 - changing its `When` conditions;
 - changing dependencies between Dynamic Tokens;
 - changing references to Config Tokens.
 
-For example:
-
-```json
-"DynamicTokens": [
-  {
-    "Name": "TokenA",
-    "Value": "{{MyConfig}}"
-  },
-  {
-    "Name": "TokenB",
-    "Value": "{{TokenA}}"
-  }
-]
-```
-
-The dependency between `TokenA` and `TokenB` is rebuilt when the Content Pack is reloaded.
-
-### Dynamic Token State
-
 Before registering the current Dynamic Tokens, T's Core clears the previous Dynamic Token state associated with the Content Pack.
 
-This includes:
+The current Dynamic Tokens are then parsed and registered again, and the Token Context is updated.
 
-- registered Dynamic Tokens;
-- Dynamic Token values;
-- Dynamic Token dependencies;
-- Dynamic Token dependents;
-- interdependent Token information.
-
-The current Dynamic Tokens are then parsed and registered again.
-
-Their `When` conditions and `Value` fields are parsed using Content Patcher's normal parsing logic.
-
-Finally, the Token Context is updated.
-
-This means Dynamic Tokens can be removed entirely and later added again without requiring a game restart.
+This allows Dynamic Tokens and their dependencies to be changed during development without restarting the game.
 
 ---
 
@@ -444,15 +397,13 @@ This means Dynamic Tokens can be removed entirely and later added again without 
 
 After the Content Pack data has been rebuilt, T's Core tells Content Patcher to reload the target Content Pack's patches.
 
-This uses Content Patcher's own reload handling for the specified Content Pack.
-
 For example:
 
 ```text
 tscore_cp_reload YourName.MyContentPack
 ```
 
-ultimately reloads the patches belonging to:
+reloads the patches belonging to:
 
 ```text
 YourName.MyContentPack
@@ -468,19 +419,9 @@ This ordering allows the reloaded patches to use the newly rebuilt configuration
 
 Content Patcher may permanently disable a patch when it cannot be loaded correctly.
 
-During Content Pack development, this can happen when a patch temporarily contains invalid data.
+During development, this can happen when a patch temporarily contains invalid data.
 
-After the patch is fixed, old disabled-patch state from the previous version may still exist in Content Patcher's current runtime state.
-
-Before reloading the patches, T's Core removes old permanently disabled patch records belonging to the target Content Pack.
-
-Only records associated with the Content Pack specified in:
-
-```text
-tscore_cp_reload <ContentPackId>
-```
-
-are removed.
+Before reloading the target Content Pack, T's Core removes old permanently disabled patch records belonging to that Content Pack.
 
 Records belonging to other Content Packs are not affected.
 
@@ -488,80 +429,43 @@ This allows corrected patches to be evaluated again as part of the reload.
 
 ---
 
-## T's Core Reload vs Content Patcher Reload
+## T's Core Custom Data Assets
 
-T's Core provides two different reload commands for development.
+Several T's Core systems use custom Data Assets which can be edited through normal Content Patcher `EditData` patches.
 
-| Command | Purpose |
-|---------|-------------|
-| `tscore_reload` | Reloads resources managed directly by T's Core. |
-| `tscore_cp_reload <ContentPackId>` | Reloads a Content Patcher Content Pack and its supported related state. |
-
-### tscore_reload
-
-Use:
+These include:
 
 ```text
-tscore_reload
+TsCore/BuildingProviders
+TsCore/WarpProviders
+TsCore/NotificationThemes
+TsCore/Migrations
+TsCore/MachineInteraction
 ```
 
-or:
-
-```text
-tscore_reload all
-```
-
-to reload all supported T's Core resources.
-
-Individual T's Core resource types can also be reloaded.
-
-For example:
-
-```text
-tscore_reload warp
-```
-
-```text
-tscore_reload building
-```
-
-```text
-tscore_reload notification
-```
-
-These commands reload resources provided through T's Core Content Packs, such as:
-
-- Warp Providers;
-- Building Providers;
-- Notification Themes.
-
-They do not reload Content Patcher patches.
-
-### tscore_cp_reload
-
-Use:
+When developing a Content Patcher Content Pack which edits these assets, use:
 
 ```text
 tscore_cp_reload <ContentPackId>
 ```
 
-when developing a Content Patcher Content Pack.
+after changing the Content Pack.
 
-This command reloads the target Content Patcher Content Pack's supported data, including its patches, ConfigSchema, Config Tokens, GMCM configuration, and Dynamic Tokens.
+The target Content Pack's patches are reloaded, allowing changes to these Data Assets to be refreshed without using a separate T's Core resource reload command.
 
-The two commands serve different purposes and can be used independently.
+For detailed information about each Data Asset, see its corresponding system guide.
 
 ---
 
 ## Development Workflow
 
-A typical Content Patcher development workflow can use `tscore_cp_reload` to avoid restarting the game after many common changes.
+A typical development workflow can use `tscore_cp_reload` to avoid restarting the game after many common Content Pack changes.
 
 For example:
 
 1. Start Stardew Valley and load your save.
-2. Edit your Content Pack's `content.json`.
-3. Save the file.
+2. Edit your Content Pack files.
+3. Save the changes.
 4. In the SMAPI console, run:
 
 ```text
@@ -572,62 +476,14 @@ tscore_cp_reload YourName.MyContentPack
 
 You can repeat this process while developing the Content Pack.
 
-This is particularly useful when working on:
+This is useful when working on:
 
-- patches;
+- Content Patcher patches;
 - ConfigSchema;
 - Config Tokens;
 - GMCM options;
 - Dynamic Tokens;
-- Dynamic Token conditions;
-- interactions between Config and Dynamic Tokens.
-
-### Example
-
-Suppose a Content Pack initially contains:
-
-```json
-{
-  "Format": "2.9.0",
-
-  "ConfigSchema": {
-    "Variant": {
-      "AllowValues": "A, B",
-      "Default": "A"
-    }
-  },
-
-  "DynamicTokens": [
-    {
-      "Name": "SelectedVariant",
-      "Value": "{{Variant}}"
-    }
-  ],
-
-  "Changes": [
-    {
-      "Action": "EditData",
-      "Target": "Data/Objects",
-      "When": {
-        "SelectedVariant": "A"
-      },
-      "Entries": {
-        "MyExampleEntry": {
-          "Name": "Example"
-        }
-      }
-    }
-  ]
-}
-```
-
-During development, you could change the ConfigSchema, Dynamic Token, or patch and then run:
-
-```text
-tscore_cp_reload YourName.MyContentPack
-```
-
-T's Core will rebuild the supported Content Patcher state before the patches are reloaded.
+- T's Core custom Data Assets.
 
 ---
 
@@ -678,7 +534,7 @@ Check the SMAPI console when a reload does not behave as expected.
 
 Content Patcher Integration is designed primarily to improve the Content Pack development workflow.
 
-For most development changes, use:
+For supported development changes, use:
 
 ```text
 tscore_cp_reload <ContentPackId>
@@ -688,7 +544,7 @@ after saving the Content Pack files.
 
 The command can reload the target Content Pack's `content.json`, rebuild its ConfigSchema-related state, rebuild Config Tokens, re-register GMCM settings, rebuild Dynamic Tokens and their dependencies, clear old disabled patch records, and reload its Content Patcher patches.
 
-For T's Core Content Pack resources such as Warp Providers, Building Providers, and Notification Themes, use `tscore_reload` instead.
+Content Packs which edit T's Core custom Data Assets can use the same `tscore_cp_reload` command. A separate `tscore_reload` command is no longer required.
 
 Although `tscore_cp_reload` can significantly reduce the number of game restarts needed during development, a full restart is still recommended when performing final compatibility and release testing.
 
