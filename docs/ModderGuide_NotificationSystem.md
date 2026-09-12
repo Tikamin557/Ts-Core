@@ -24,11 +24,19 @@ This guide explains how to use the public features provided by **T's Core** in C
 
 # Notification System
 
-The Notification System allows Content Packs to display customizable on-screen notifications using T's Core.
+The Notification System allows Content Patcher Content Packs to display customizable on-screen notifications using T's Core.
 
 Notifications can be displayed from Tile Actions, Touch Actions, and Trigger Actions using the `TsCoreNotification` action.
 
-T's Core also supports custom Notification Themes through Content Packs. Themes can control colors, borders, text appearance, layout, screen position, and when a notification should be dismissed.
+T's Core also provides the custom Data Asset:
+
+```text
+TsCore/NotificationThemes
+```
+
+Content Patcher Content Packs can use `EditData` to add custom Notification Themes or edit existing themes.
+
+Themes can control colors, borders, text appearance, layout, screen position, and when a notification should be dismissed.
 
 ---
 
@@ -47,7 +55,6 @@ T's Core also supports custom Notification Themes through Content Packs. Themes 
 - [Dismissal on Location Change](#dismissal-on-location-change)
 - [Examples](#examples)
 - [Debugging](#debugging)
-- [Reloading Notification Themes](#reloading-notification-themes)
 - [Reloading Content Patcher Content Packs](#reloading-content-patcher-content-packs)
 - [Notes](#notes)
 
@@ -89,7 +96,7 @@ The arguments are:
 
 | Argument | Required | Description |
 |----------|----------|-------------|
-| `TypeOrTheme` | ✅ | Built-in notification type or custom Notification Theme name. |
+| `TypeOrTheme` | ✅ | Built-in notification type or custom Notification Theme ID. |
 | `Priority` | ✅ | Notification display priority. |
 | `Duration` | ✅ | Display duration in update ticks. |
 | `Message` | ✅ | Text displayed by the notification. The remaining arguments are joined together as the message. |
@@ -108,13 +115,13 @@ Custom themes use exactly the same syntax:
 TsCoreNotification MyTheme Normal 240 Custom notification text
 ```
 
-If `MyTheme` is registered by a T's Core Content Pack, that theme will be used to display the notification.
+If `MyTheme` is registered in `TsCore/NotificationThemes`, that theme will be used to display the notification.
 
 ---
 
 ## Built-in Notification Types
 
-T's Core includes the following built-in notification types:
+T's Core includes the following built-in Notification Themes:
 
 | Type | Purpose |
 |------|---------|
@@ -125,9 +132,11 @@ T's Core includes the following built-in notification types:
 | `Quest` | Quest-related notification. |
 | `Achievement` | Achievement-style notification. |
 | `Boss` | High-importance boss-style notification. |
+| `Lavender` | Lavender-colored notification theme. |
+| `Rose` | Rose-colored notification theme. |
 | `RetroWindow` | Retro-style message window. |
 
-Built-in types can be used directly with `TsCoreNotification`.
+Built-in themes can be used directly with `TsCoreNotification`.
 
 Example:
 
@@ -135,15 +144,15 @@ Example:
 TsCoreNotification Achievement Normal 240 Achievement unlocked!
 ```
 
-The built-in themes are stored in T's Core's:
+These themes are provided as the default entries of:
 
 ```text
-assets/notification
+TsCore/NotificationThemes
 ```
 
-folder.
+Since this is a Data Asset, Content Patcher can also edit the built-in themes.
 
-These JSON files can also be useful as examples when creating custom Notification Themes.
+For example, a Content Pack can modify the `Info` entry to change the appearance of notifications that use the `Info` theme.
 
 ---
 
@@ -237,7 +246,7 @@ The first-visit state resets on a new day.
       "Trigger": "LocationChanged",
       "Condition": "LOCATION_NAME Here Custom_MyLocation",
       "Actions": [
-        "TsCoreNotification FirstVisitToday Custom_MyLocation MyInfoTheme High 300 {{i18n:LocationInfoText}}"
+        "TsCoreNotification FirstVisitToday Custom_MyLocation Info High 300 {{i18n:LocationInfoText}}"
       ],
       "MarkActionApplied": false
     }
@@ -255,22 +264,32 @@ This means the Trigger Action itself can remain repeatable while the notificatio
 
 ## Content Pack Setup
 
-T's Core Content Packs can register custom Notification Themes.
+Custom Notification Themes are registered through Content Patcher using the following Data Asset:
 
-A single Content Pack can include multiple T's Core features, such as Notification Themes, Warp Providers, and Building Providers.
+```text
+TsCore/NotificationThemes
+```
+
+This uses a normal Content Patcher Content Pack.
 
 ### manifest.json
 
 ```json
 {
-  "Name": "[TsC] My T's Core Content Pack",
+  "Name": "[CP] My Notification Pack",
   "Author": "YourName",
   "Version": "1.0.0",
-  "UniqueID": "YourName.MyTsCorePack",
+  "UniqueID": "YourName.MyNotificationPack",
   "UpdateKeys": [ "Nexus:12345" ],
   "ContentPackFor": {
-    "UniqueID": "Tikamin557.TsCore"
-  }
+    "UniqueID": "Pathoschild.ContentPatcher"
+  },
+  "Dependencies": [
+    {
+      "UniqueID": "Tikamin557.TsCore",
+      "IsRequired": true
+    }
+  ]
 }
 ```
 
@@ -278,33 +297,40 @@ Replace the example values with your own information before publishing your Cont
 
 ---
 
-### Folder Structure
+### content.json
 
-Notification Theme JSON files are placed inside:
+Use `EditData` to add Notification Themes:
 
-```text
-assets/notification
+```json
+{
+  "Format": "2.9.0",
+  "Changes": [
+    {
+      "Action": "EditData",
+      "Target": "TsCore/NotificationThemes",
+      "Entries": {
+        "MyInfoTheme": {
+          "Base": "Info",
+          "BackgroundColor": {
+            "R": 30,
+            "G": 60,
+            "B": 120,
+            "A": 220
+          },
+          "TextScale": 1.0
+        }
+      }
+    }
+  ]
+}
 ```
 
-Example:
+The key in `Entries` becomes the Notification Theme ID.
+
+In this example:
 
 ```text
-[TsC] My T's Core Content Pack
-├── manifest.json
-└── assets
-    └── notification
-        ├── MyInfoTheme.json
-        └── MyWarningTheme.json
-```
-
-JSON filenames may be chosen freely.
-
-The filename without `.json` becomes the short theme name.
-
-For example:
-
-```text
-assets/notification/MyInfoTheme.json
+MyInfoTheme
 ```
 
 can be used as:
@@ -313,7 +339,28 @@ can be used as:
 TsCoreNotification MyInfoTheme Normal 180 Hello!
 ```
 
-> **Note:** The folder names `assets` and `notification` are fixed and must not be renamed.
+A single `EditData` patch can register multiple themes:
+
+```json
+{
+  "Action": "EditData",
+  "Target": "TsCore/NotificationThemes",
+  "Entries": {
+    "MyInfoTheme": {
+      "Base": "Info",
+      "TextScale": 1.1
+    },
+    "MyWarningTheme": {
+      "Base": "Warning",
+      "TextScale": 1.2
+    }
+  }
+}
+```
+
+The Notification Theme ID is determined by the `Entries` key.
+
+No special folder structure or separate Notification Theme JSON files are required by T's Core.
 
 ---
 
@@ -321,32 +368,44 @@ TsCoreNotification MyInfoTheme Normal 180 Hello!
 
 A Notification Theme controls the visual appearance and some behavior of a notification.
 
-Example:
+For example:
 
 ```json
 {
-  "Base": "Info",
-  "BackgroundColor": {
-    "R": 30,
-    "G": 60,
-    "B": 120,
-    "A": 220
-  },
-  "TextColor": {
-    "R": 255,
-    "G": 255,
-    "B": 255,
-    "A": 255
-  },
-  "TextScale": 1.0,
-  "Anchor": "Bottom",
-  "OffsetY": -60
+  "Action": "EditData",
+  "Target": "TsCore/NotificationThemes",
+  "Entries": {
+    "MyInfoTheme": {
+      "Base": "Info",
+      "BackgroundColor": {
+        "R": 30,
+        "G": 60,
+        "B": 120,
+        "A": 220
+      },
+      "TextColor": {
+        "R": 255,
+        "G": 255,
+        "B": 255,
+        "A": 255
+      },
+      "TextScale": 1.0,
+      "Anchor": "Bottom",
+      "OffsetY": -60
+    }
+  }
 }
 ```
 
-This theme inherits unspecified properties from the built-in `Info` theme and overrides only the properties defined in the JSON file.
+This theme inherits unspecified properties from the built-in `Info` theme and overrides only the properties defined in the entry.
 
 Using inheritance is recommended when only a few properties need to be changed.
+
+A theme can also define all of its own properties without using inheritance:
+
+```json
+"Base": null
+```
 
 ---
 
@@ -358,7 +417,7 @@ Notification Themes support the following properties.
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `Base` | string | Name of the theme to inherit from. |
+| `Base` | string | ID of the Notification Theme to inherit from. |
 
 ---
 
@@ -370,6 +429,17 @@ Notification Themes support the following properties.
 | `BorderColor` | Color | Border color. |
 | `BorderStyle` | enum | Border rendering style. |
 | `BorderThickness` | int | Border thickness. |
+
+Colors can be specified using RGBA values:
+
+```json
+"BackgroundColor": {
+  "R": 30,
+  "G": 60,
+  "B": 120,
+  "A": 220
+}
+```
 
 ---
 
@@ -383,6 +453,12 @@ Notification Themes support the following properties.
 | `ShadowOffset` | Vector2 | Offset of the text shadow. |
 | `TextScale` | float | Text size multiplier. |
 | `TextAnchor` | enum | Alignment of the text inside the notification window. |
+
+Example `ShadowOffset`:
+
+```json
+"ShadowOffset": "2, 2"
+```
 
 ---
 
@@ -416,23 +492,25 @@ If a property is omitted and the theme has a `Base`, the value is inherited from
 
 ## Theme Inheritance
 
-Custom themes can inherit from another Notification Theme using:
-
-```json
-"Base": "ThemeName"
-```
+Notification Themes can inherit from another Notification Theme using the `Base` property.
 
 For example:
 
 ```json
 {
-  "Base": "Info",
-  "TextScale": 1.2,
-  "OffsetY": -100
+  "Action": "EditData",
+  "Target": "TsCore/NotificationThemes",
+  "Entries": {
+    "MyTheme": {
+      "Base": "Info",
+      "TextScale": 1.2,
+      "OffsetY": -100
+    }
+  }
 }
 ```
 
-This creates a theme based on `Info` while changing only the text scale and vertical position.
+This creates `MyTheme` based on `Info` while changing only the text scale and vertical position.
 
 Inheritance can also be used between custom themes.
 
@@ -440,12 +518,22 @@ For example:
 
 ```json
 {
-  "Base": "MyBaseTheme",
-  "TextColor": {
-    "R": 255,
-    "G": 220,
-    "B": 100,
-    "A": 255
+  "Action": "EditData",
+  "Target": "TsCore/NotificationThemes",
+  "Entries": {
+    "MyBaseTheme": {
+      "Base": "Info",
+      "TextScale": 1.1
+    },
+    "MyChildTheme": {
+      "Base": "MyBaseTheme",
+      "TextColor": {
+        "R": 255,
+        "G": 220,
+        "B": 100,
+        "A": 255
+      }
+    }
   }
 }
 ```
@@ -459,6 +547,12 @@ This includes:
 - layout settings;
 - screen positioning;
 - location-based dismissal settings.
+
+Properties explicitly defined by the child theme take priority over values inherited from its base theme.
+
+Since built-in themes are also entries in `TsCore/NotificationThemes`, Content Patcher can edit a built-in theme.
+
+Themes which inherit from that built-in theme will inherit its edited values for properties they don't override themselves.
 
 > **Note:** Circular theme inheritance is not supported. T's Core detects circular inheritance and logs a warning.
 
@@ -580,6 +674,8 @@ TsCoreNotification Warning High 300 Watch out!
 
 ### Custom Theme
 
+If `MyInfoTheme` has been registered in `TsCore/NotificationThemes`:
+
 ```text
 TsCoreNotification MyInfoTheme Normal 240 This uses my custom theme.
 ```
@@ -683,7 +779,14 @@ tscore_debug_notification_themes
 
 to display the currently registered Notification Themes.
 
-This can be used to verify that themes from a Content Pack were loaded successfully.
+The output separates themes into:
+
+```text
+TsCore Data Asset Themes
+External Data Asset Themes
+```
+
+This can be used to verify that built-in themes and themes added through Content Patcher were registered successfully.
 
 ---
 
@@ -709,7 +812,7 @@ tscore_debug_notification MyInfoTheme
 
 If the name matches a built-in notification type, that type is displayed.
 
-Otherwise, T's Core attempts to use the value as a custom Notification Theme name.
+Otherwise, T's Core attempts to use the value as a Notification Theme ID.
 
 ---
 
@@ -737,58 +840,49 @@ This is useful for checking the arguments that will later be used with `TsCoreNo
 
 ---
 
-## Reloading Notification Themes
+## Reloading Content Patcher Content Packs
 
-During Content Pack development, Notification Themes can be reloaded without restarting the game.
+Notification Themes registered through `TsCore/NotificationThemes` can be updated while the game is running by reloading the Content Patcher Content Pack that edits the Data Asset.
 
 Use:
 
 ```text
-tscore_reload notification
+tscore_cp_reload <ContentPackId>
 ```
 
-T's Core rescans its Notification Theme folders and reloads the registered themes.
+For example:
 
-This makes it possible to:
+```text
+tscore_cp_reload YourName.MyNotificationPack
+```
 
-- edit an existing theme;
-- add a new theme;
-- remove a theme;
-- test theme inheritance;
+This can be used during development to:
+
+- add a Notification Theme;
+- remove a Notification Theme;
+- change theme properties;
+- change theme inheritance;
+- edit a built-in theme through Content Patcher;
 
 without restarting Stardew Valley.
 
-You can also use:
+Changes to a base theme are also reflected in themes which inherit from it when the Content Pack is reloaded.
 
-```text
-tscore_reload
-```
+T's Core's Content Patcher reload system also supports reloading ConfigSchema, Config Tokens, GMCM settings, and DynamicTokens.
 
-or:
-
-```text
-tscore_reload all
-```
-
-to reload all supported T's Core resources.
-
-> **Note:** `tscore_reload` only reloads resources managed directly by T's Core. To reload a Content Patcher Content Pack, use `tscore_cp_reload` instead.
-
----
-
-## Reloading Content Patcher Content Packs
-
-T's Core also provides development tools for reloading Content Patcher Content Packs while the game is running.
-
-This includes support for reloading patches, ConfigSchema, Config Tokens, GMCM settings, and DynamicTokens without restarting the game.
-
-For details about `tscore_cp_reload` and other Content Patcher integration features, see the [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md) guide.
+For more details about `tscore_cp_reload`, see the [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md) guide.
 
 ---
 
 ## Notes
 
-Notification Themes are designed so that Content Packs can create reusable notification styles without requiring C# code.
+Notification Themes are stored in the custom Data Asset:
+
+```text
+TsCore/NotificationThemes
+```
+
+The dictionary key used in `Entries` is the Notification Theme ID.
 
 For most custom themes, inheriting from an existing built-in theme and overriding only the required properties is recommended.
 
@@ -804,9 +898,20 @@ For example:
 
 is generally easier to maintain than redefining every visual property.
 
+Built-in themes are also part of the Data Asset, so they can be edited through Content Patcher. Custom themes which inherit from an edited built-in theme will use the edited values for properties they don't override themselves.
+
 Use `FirstVisitToday` when a notification should appear only once per location per day, and use the theme dismissal settings when a notification should only remain relevant while the player is in a particular area.
 
-During development, `tscore_debug_notification_themes`, `tscore_debug_notification`, `tscore_debug_notification_trigger`, and `tscore_reload notification` can be used to verify themes and notification behavior without repeatedly restarting the game.
+During development, use:
+
+```text
+tscore_debug_notification_themes
+tscore_debug_notification <TypeOrTheme>
+tscore_debug_notification_trigger <TypeOrTheme> <Priority> <Duration> <Message...>
+tscore_cp_reload <ContentPackId>
+```
+
+to inspect, test, and reload Notification Themes without repeatedly restarting the game.
 
 ---
 
