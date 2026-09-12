@@ -23,12 +23,7 @@ It provides reusable APIs, Content Patcher integration, custom actions, data-dri
 - Warp Actions and reusable Warp Providers
 - Custom Map Properties for additional location behavior
   - Timed exits with optional dialogue and sound
-- Building Services
-  - Building Providers
-  - Building Lights
-  - Conditional Building Draw Layers
-  - Feature enable/disable controls
-  - Construction location restrictions
+- Building Services for adding custom settings and visual features to buildings
 - Machine Interaction for adding custom right-click behavior to machines
 - Migration System for updating IDs stored in existing save data
 - Customizable Notification System and Notification Themes
