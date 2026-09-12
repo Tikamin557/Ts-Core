@@ -119,7 +119,7 @@ T's Core provides several commands for inspecting and testing its systems during
 | `tscore_debug_buildings <ID>` | Prints detailed information for the specified Building Provider. |
 | `tscore_debug_farmbuildings` | Prints buildings currently placed on the main farm. |
 | `tscore_debug_notification_themes` | Prints all available Notification Themes. |
-| `tscore_debug_notification` | Displays a test notification. |
+| `tscore_debug_notification <ID>` | Displays a test notification. |
 | `tscore_debug_notification_trigger` | Tests notification Trigger Actions. |
 
 ## Content Patcher Reload
