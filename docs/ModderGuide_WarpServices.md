@@ -26,7 +26,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 
 Warp Services provide reusable warp functionality for Content Patcher.
 
-T's Core provides custom Warp Actions and reusable Warp Providers, and allows Content Patcher packs to register their own Warp Providers through the custom data asset:
+T's Core provides custom Warp Actions, built-in Warp Providers, and a custom data asset that allows Content Patcher packs to register their own Warp Providers:
 
 ```text
 TsCore/WarpProviders
@@ -45,7 +45,7 @@ This guide explains how to use Warp Actions, register custom Warp Providers, and
 - [Content Pack Setup](#content-pack-setup)
 - [Registering Warp Providers](#registering-warp-providers)
 - [Warp Provider Types](#warp-provider-types)
-- [Default Warp Providers](#default-warp-providers)
+- [Standard Warp Providers](#standard-warp-providers)
 - [Special Built-in Warp Providers](#special-built-in-warp-providers)
 - [Example](#example)
 - [Debugging](#debugging)
@@ -327,11 +327,15 @@ Providers make Content Patcher packs easier to maintain and improve compatibilit
 
 For example, `FarmHouseFront` resolves the farmhouse entrance dynamically, so a Content Patcher pack does not need to know its exact coordinates.
 
-Custom Warp Providers are registered through the T's Core data asset:
+T's Core includes several standard and built-in Warp Providers.
+
+Content Patcher packs can also register additional providers through:
 
 ```text
 TsCore/WarpProviders
 ```
+
+This data asset is intended for **custom external Warp Providers**.
 
 ---
 
@@ -431,7 +435,7 @@ The provider ID in this example is:
 MyWarpProvider
 ```
 
-Unlike older T's Core Warp Provider definitions, the provider data itself does **not** contain an `Id` property.
+The provider data itself does **not** contain an `Id` property.
 
 The ID is taken from the `Entries` key:
 
@@ -464,7 +468,7 @@ For example:
 }
 ```
 
-> **Note:** Provider IDs should be globally unique. Using an ID already present in `TsCore/WarpProviders` may modify or replace that entry depending on the Content Patcher patches affecting the asset.
+> **Important:** Provider IDs should be globally unique. Do not use an ID reserved by T's Core.
 
 For custom providers, using an ID based on your mod's UniqueID is recommended when possible.
 
@@ -474,11 +478,30 @@ For example:
 YourName.MyMod_MyWarp
 ```
 
+The following standard provider IDs are reserved by T's Core:
+
+```text
+FarmHouseFront
+GreenhouseFront
+FarmCaveFront
+IslandFarmHouseFront
+```
+
+These providers are implemented internally by T's Core and cannot be replaced through `TsCore/WarpProviders`.
+
+If a Content Patcher pack attempts to register one of these IDs, the external definition is ignored and T's Core uses its own standard provider instead.
+
+T's Core also logs a warning such as:
+
+```text
+Warp Provider ID 'FarmHouseFront' is reserved by T's Core and cannot be overridden.
+```
+
 ---
 
 ## Warp Provider Types
 
-T's Core currently supports three data asset Warp Provider types:
+T's Core currently supports three custom Warp Provider types:
 
 | Type | Purpose |
 |------|---------|
@@ -546,6 +569,8 @@ Farm (64, 15)
 Because the destination is resolved at runtime, this provider can adapt when another mod changes the corresponding map warp.
 
 If the warp cannot be found and `Fallback` is specified, T's Core attempts to resolve the fallback provider instead.
+
+Standard T's Core providers such as `FarmHouseFront` can also be used as fallback providers.
 
 ---
 
@@ -698,9 +723,9 @@ If the building cannot be found, the provider specified by `Fallback` is used in
 
 ---
 
-## Default Warp Providers
+## Standard Warp Providers
 
-`TsCore/WarpProviders` includes four default Warp Providers provided by T's Core.
+T's Core provides four standard Warp Providers.
 
 | Provider | Source | Target | Description |
 |----------|--------|--------|-------------|
@@ -709,13 +734,11 @@ If the building cannot be found, the provider specified by `Fallback` is used in
 | `FarmCaveFront` | `FarmCave` | `Farm` | Resolves the tile outside the farm cave entrance. |
 | `IslandFarmHouseFront` | `IslandFarmHouse` | `IslandWest` | Resolves the tile outside the Island Farmhouse. |
 
-These providers are standard entries in:
+These providers are implemented internally by T's Core.
 
-```text
-TsCore/WarpProviders
-```
+They are **not entries in `TsCore/WarpProviders`** and cannot be replaced or modified through Content Patcher.
 
-and can be used with any T's Core Warp Action.
+They can be used directly with any T's Core Warp Action.
 
 For example:
 
@@ -724,11 +747,42 @@ TsCoreWarp FarmHouseFront
 TsCoreMagicWarp GreenhouseFront Down
 ```
 
+They can also be used as fallback providers for custom providers.
+
+For example:
+
+```json
+{
+  "Action": "EditData",
+  "Target": "TsCore/WarpProviders",
+  "Entries": {
+    "MyCustomProvider": {
+      "Type": "Building",
+      "BuildingType": "YourName.MyMod_MyBuilding",
+      "OffsetX": 0,
+      "OffsetY": 1,
+      "Fallback": "FarmHouseFront"
+    }
+  }
+}
+```
+
 Because these destinations are resolved from the active map warps, they can adapt to compatible custom maps and mods that move or modify their corresponding entrances.
 
 > **Note:** A provider requires a valid warp between its configured source and target locations. If another mod removes that warp entirely, the provider may not be able to resolve its destination.
 
-Additional default providers may be added in future versions of T's Core.
+The following IDs are reserved by T's Core:
+
+```text
+FarmHouseFront
+GreenhouseFront
+FarmCaveFront
+IslandFarmHouseFront
+```
+
+External entries using these IDs are ignored.
+
+Additional standard providers may be added in future versions of T's Core.
 
 ---
 
@@ -736,7 +790,7 @@ Additional default providers may be added in future versions of T's Core.
 
 T's Core also provides three special Warp Providers implemented directly by T's Core.
 
-Unlike the providers in `TsCore/WarpProviders`, these are not data asset entries.
+These providers use special runtime logic and are not entries in `TsCore/WarpProviders`.
 
 | Provider | Description |
 |----------|-------------|
@@ -806,7 +860,7 @@ If it is used from another type of location, it cannot resolve a destination.
 
 ---
 
-### Reserved Provider IDs
+### Reserved Built-in Provider IDs
 
 The following IDs are reserved for T's Core's special built-in providers:
 
@@ -816,9 +870,9 @@ PreviousHome
 CurrentHome
 ```
 
-Custom entries using these IDs in `TsCore/WarpProviders` are not treated as custom providers.
+Do not use these IDs for custom Warp Providers.
 
-Use a different ID for your own Warp Providers.
+Custom entries using these IDs are not treated as replacements for T's Core's built-in providers.
 
 ---
 
@@ -882,7 +936,7 @@ This example:
 
 T's Core provides debug commands for inspecting Warp Providers and farm buildings.
 
-Warp Providers registered through `TsCore/WarpProviders` are managed through Content Patcher, so changes to them should be reloaded using T's Core's Content Patcher reload command.
+Custom Warp Providers registered through `TsCore/WarpProviders` are managed through Content Patcher, so changes to them can be reloaded using T's Core's Content Patcher reload command.
 
 ---
 
@@ -917,29 +971,6 @@ For details about `tscore_cp_reload`, ConfigSchema reloading, Config Tokens, GMC
 
 ---
 
-### Reloading T's Core Resources
-
-`tscore_reload` is used for resources loaded directly by T's Core.
-
-Current commands are:
-
-| Command | Reloads |
-|---------|---------|
-| `tscore_reload`<br>`tscore_reload all` | All supported directly loaded T's Core resources |
-| `tscore_reload notification` | Notification Themes |
-
-Running `tscore_reload` without an argument is equivalent to:
-
-```text
-tscore_reload all
-```
-
-Warp Providers are **not** reloaded through `tscore_reload`.
-
-Use `tscore_cp_reload` for Warp Provider changes made by a Content Patcher pack.
-
----
-
 ### Inspecting Warp Providers
 
 Use the following command to display all currently available Warp Providers:
@@ -952,15 +983,15 @@ The output separates providers into three groups:
 
 ```text
 Built-in Providers
-TsCore Data Asset Providers
+TsCore Standard Providers
 External Data Asset Providers
 ```
 
 These represent:
 
-- **Built-in Providers** — special providers implemented directly by T's Core.
-- **TsCore Data Asset Providers** — default entries supplied by T's Core in `TsCore/WarpProviders`.
-- **External Data Asset Providers** — providers added through Content Patcher or other edits to the data asset.
+- **Built-in Providers** — special providers implemented directly by T's Core using custom runtime logic.
+- **TsCore Standard Providers** — standard fixed providers supplied internally by T's Core.
+- **External Data Asset Providers** — custom providers registered through `TsCore/WarpProviders`.
 
 The output includes information such as:
 
@@ -993,7 +1024,7 @@ tscore_debug_warp
 [T's Core]     Type                : Built-in
 [T's Core]     Destination         : Current FarmHouse/Cabin
 [T's Core]
-[T's Core] ----- TsCore Data Asset Providers -----
+[T's Core] ----- TsCore Standard Providers -----
 [T's Core]
 [T's Core] FarmCaveFront
 [T's Core]     Type                : Warp
@@ -1029,6 +1060,14 @@ tscore_debug_warp
 ```
 
 </details>
+
+If an external Content Patcher pack attempts to use one of T's Core's reserved standard provider IDs, T's Core ignores the external definition and logs a warning.
+
+For example:
+
+```text
+[T's Core] Warp Provider ID 'FarmHouseFront' is reserved by T's Core and cannot be overridden.
+```
 
 ---
 
@@ -1099,9 +1138,22 @@ TsCore/WarpProviders
 
 using Content Patcher's `EditData` action.
 
+`TsCore/WarpProviders` is intended for external custom providers. T's Core's standard providers are implemented internally and are not stored as entries in this data asset.
+
 The provider ID is the dictionary entry key and is not stored inside the provider model.
 
-The special providers:
+The standard provider IDs:
+
+```text
+FarmHouseFront
+GreenhouseFront
+FarmCaveFront
+IslandFarmHouseFront
+```
+
+are reserved by T's Core and cannot be overridden through `TsCore/WarpProviders`.
+
+The special built-in providers:
 
 ```text
 PlayerHome
@@ -1109,7 +1161,7 @@ PreviousHome
 CurrentHome
 ```
 
-are implemented directly by T's Core and are not entries in `TsCore/WarpProviders`.
+are also implemented directly by T's Core and are not entries in `TsCore/WarpProviders`.
 
 Additional providers and features may be added in future versions of T's Core.
 
