@@ -2,7 +2,7 @@
 
 Welcome to the T's Core developer documentation.
 
-T's Core is a shared library for Stardew Valley SMAPI mods. It provides reusable APIs, Content Patcher tokens, Content Pack features, migration support, development tools, and shared systems to simplify mod development and improve compatibility between mods.
+T's Core is a shared library and framework for Stardew Valley SMAPI mods. It provides reusable APIs, Content Patcher integration, custom actions, data-driven systems, migration support, and development tools to simplify mod development and improve compatibility between mods.
 
 ---
 
@@ -11,7 +11,7 @@ T's Core is a shared library for Stardew Valley SMAPI mods. It provides reusable
 - [Getting Started](#-getting-started)
 - [Using T's Core from C#](#-using-ts-core-from-c)
 - [Available Systems](#-available-systems)
-- [Content Packs](#-content-packs)
+- [Using T's Core with Content Patcher](#-using-ts-core-with-content-patcher)
 - [Debug Commands](#-debug-commands)
 - [API Stability](#-api-stability)
 - [Detailed Documentation](#-detailed-documentation)
@@ -47,9 +47,7 @@ instead.
 
 # 💻 Using T's Core from C#
 
-T's Core is intended for SMAPI C# mods.
-
-Only use documented **public APIs**.
+T's Core can be used by SMAPI C# mods through its documented public APIs.
 
 > **Important**
 >
@@ -64,143 +62,77 @@ T's Core currently provides the following systems.
 
 | System | Description |
 |---------|-------------|
-| Relationship Services | Unified partner information |
-| Location Services | Player location information |
-| Warp Services | Shared warp actions and reusable Warp Providers |
-| Map Properties | Custom map properties for additional location behavior, including timed exits |
-| Building Services | Building Providers, Building Lights, conditional Draw Layers, and building-related restrictions |
-| Machine Interaction | Adds configurable right-click behavior, effects, lights, wobble effects, and custom Idle/Action visuals to machines |
-| Migration System | Migration support for IDs stored in existing save data |
-| Notification System | Customizable HUD notifications and Notification Themes |
-| Content Patcher Integration | Content Patcher development tools and ConfigSchema extensions, including conditional GMCM visibility |
-| Content Patcher Tokens | Custom CP tokens |
-| Shared Utilities | Common helper functions |
+| Relationship Services | Provides relationship and partner information, including support for compatible marriage mods. |
+| Location Services | Provides player location information and related features. |
+| Warp Services | Provides Warp Actions and reusable Warp Providers. |
+| Map Properties | Adds custom map properties for additional location behavior. |
+| Building Services | Adds custom settings and visual features to buildings. |
+| Machine Interaction | Adds configurable interactions and visual behavior to machines. |
+| Migration System | Provides migration support for IDs stored in existing save data. |
+| Notification System | Provides customizable on-screen notifications and Notification Themes. |
+| Content Patcher Integration | Provides additional Content Patcher development and configuration features. |
+| Content Patcher Tokens | Provides custom tokens for use with Content Patcher. |
+| Shared Utilities | Provides common functionality shared between T's Mods. |
 
-Detailed documentation for each system is available where noted below.
+See the [Detailed Documentation](#-detailed-documentation) section for individual guides.
 
 ---
 
-# 📦 Content Packs
+# 📦 Using T's Core with Content Patcher
 
-T's Core supports Content Packs, allowing mods to add custom features without writing any C# code.
+Many T's Core features can be used directly from Content Patcher without writing C# code.
 
-Currently, Content Packs can provide:
+Content Patcher Content Packs can use T's Core custom actions, map properties, integrations, and custom Data Assets.
 
-- Custom Building Providers
-- Custom Notification Themes
-- Custom Warp Providers
+Custom definitions can be registered for:
+
+- Building Providers
+- Warp Providers
+- Notification Themes
 - Migration definitions
-- Machine Interaction definitions
+- Machine Interactions
 
-Each feature has its own file format and setup requirements.
+T's Core also provides additional Content Patcher features such as custom tokens, Content Pack reload tools, and conditional GMCM field visibility.
 
-For detailed instructions, see the corresponding guide:
-
-- **[Building Services Guide](ModderGuide_BuildingServices.md)**
-- **[Warp Services Guide](ModderGuide_WarpServices.md)**
-- **[Machine Interaction Guide](ModderGuide_MachineInteraction.md)**
-- **[Migration System Guide](ModderGuide_MigrationSystem.md)**
-- **[Notification System Guide](ModderGuide_NotificationSystem.md)**
-
-T's Core also provides custom map properties which can add additional behavior to locations without requiring C# code.
-
-The currently available Timed Exit properties can automatically warp the player out of a location at or after a specified in-game time, with optional dialogue and sound:
-
-- `TsCoreTimedExit`
-- `TsCoreTimedExitMessage`
-- `TsCoreTimedExitSound`
-
-Timed Exit can use T's Core Warp Actions and Warp Providers for its destination and warp behavior.
-
-For detailed usage and examples, see the **[Map Properties Guide](ModderGuide_MapProperties.md)**.
-
-T's Core also supports configurable Machine Interactions for machines defined through Stardew Valley's `Data/Machines`.
-
-A machine can be linked to an entry in the custom:
-
-```text
-TsCore/MachineInteraction
-```
-
-asset through the following Custom Field:
-
-```text
-TsCore/MachineInteraction
-```
-
-Machine Interactions can execute Tile Actions when the player right-clicks a machine and can optionally provide:
-
-- Game State Query conditions
-- Required held items
-- Required item consumption
-- Action Machine Effects
-- Temporary Action Lights
-- Action Wobble
-- Custom Action textures and animations
-- Idle Machine Effects
-- Idle Wobble
-- Custom Idle textures and animations
-- Normal machine lights
-
-These features are designed to coexist with Stardew Valley's normal machine processing and Working animation behavior.
-
-For detailed setup, properties, and examples, see the **[Machine Interaction Guide](ModderGuide_MachineInteraction.md)**.
-
-T's Core also extends Content Patcher's `ConfigSchema` with optional features for controlling GMCM visibility based on installed mods.
-
-The following properties are available:
-
-- `TsCore.ShowIfMod` — shows a Config field when at least one of the specified mods is loaded.
-- `TsCore.ShowIfAllMods` — shows a Config field only when all specified mods are loaded.
-
-These properties can be used by Content Patcher Content Packs without writing C# code.
-
-For detailed usage and examples, see the **[Content Patcher Integration Guide](ModderGuide_ContentPatcherIntegration.md)**.
+Each system has its own setup and available options. See the corresponding guide in the [Detailed Documentation](#-detailed-documentation) section for details and examples.
 
 ---
 
 # 🛠 Debug Commands
 
-The following commands are available during development.
+T's Core provides several commands for inspecting and testing its systems during development.
 
 ## Token Commands
 
 | Command | Description |
 |---------|-------------|
-| `tscore_tokens` | Prints all available token values |
-| `tscore_tokens_relationship` | Prints relationship-related tokens |
-| `tscore_tokens_location` | Prints location-related tokens |
+| `tscore_tokens` | Prints all available token values. |
+| `tscore_tokens_relationship` | Prints relationship-related tokens. |
+| `tscore_tokens_location` | Prints location-related tokens. |
 
-## Other Commands
-
-| Command | Description |
-|---------|-------------|
-| `tscore_debug_warp` | Prints all registered Warp Providers |
-| `tscore_debug_buildings` | Prints all registered Building Providers |
-| `tscore_debug_buildings <ID>` | Prints detailed information for the specified Building Provider |
-| `tscore_debug_farmbuildings` | Prints buildings currently placed on the main farm |
-| `tscore_debug_notification_themes` | Prints all registered Notification Themes |
-| `tscore_debug_notification` | Displays a test notification |
-| `tscore_debug_notification_trigger` | Tests notification Trigger Actions |
-
-## Reload Commands
+## Debug Commands
 
 | Command | Description |
 |---------|-------------|
-| `tscore_reload` | Reloads all supported T's Core resources |
-| `tscore_reload all` | Reloads all supported T's Core resources |
-| `tscore_reload warp` | Reloads all registered Warp Providers |
-| `tscore_reload building` | Reloads all registered Building Providers |
-| `tscore_reload notification` | Reloads all registered Notification Themes |
-| `tscore_cp_reload <ContentPackId>` | Reloads the specified Content Patcher Content Pack |
+| `tscore_debug_warp` | Prints all registered Warp Providers. |
+| `tscore_debug_buildings` | Prints all registered Building Providers. |
+| `tscore_debug_buildings <ID>` | Prints detailed information for the specified Building Provider. |
+| `tscore_debug_farmbuildings` | Prints buildings currently placed on the main farm. |
+| `tscore_debug_notification_themes` | Prints all available Notification Themes. |
+| `tscore_debug_notification` | Displays a test notification. |
+| `tscore_debug_notification_trigger` | Tests notification Trigger Actions. |
 
-`tscore_reload` commands reload resources managed directly by T's Core.
+## Content Patcher Reload
 
-`tscore_cp_reload` is a separate development command for Content Patcher Content Packs. It reloads the specified Content Pack's patches and refreshes related Content Patcher data, including ConfigSchema, Config Tokens, GMCM settings, DynamicTokens, and T's Core conditional GMCM visibility settings.
+```text
+tscore_cp_reload <ContentPackId>
+```
 
-For details, see the [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md) guide.
+This development command reloads the specified Content Patcher Content Pack and refreshes supported Content Patcher data without restarting the game.
 
-> **Note:** Migration definitions are loaded when T's Core initializes and Building Migrations are applied when a save is loaded. There is currently no command for reloading or manually applying Migration definitions while the game is running.
+This includes support for changes to T's Core custom Data Assets, ConfigSchema, Config Tokens, GMCM settings, and DynamicTokens.
+
+For details, see the **[Content Patcher Integration Guide](ModderGuide_ContentPatcherIntegration.md)**.
 
 ---
 
@@ -208,24 +140,20 @@ For details, see the [Content Patcher Integration](ModderGuide_ContentPatcherInt
 
 T's Core is under active development.
 
-Public APIs are intended to remain compatible whenever possible, but new functionality may be added over time.
+Public APIs and documented features are intended to remain compatible whenever possible, but new functionality and optional properties may be added over time.
 
 When developing against T's Core:
 
 - Use documented public APIs.
-- Avoid internal implementations.
-- Keep your required version up to date.
+- Avoid relying on internal implementations.
+- Keep your required T's Core version up to date.
 - Test your mod after updating T's Core.
-
-Content Pack file formats and Content Patcher extensions may also gain new optional properties as T's Core is expanded.
-
-Existing properties are intended to remain compatible whenever possible.
 
 ---
 
 # 📖 Detailed Documentation
 
-Detailed documentation for each system is available below.
+For detailed setup, properties, examples, and usage instructions, see the individual guides:
 
 - [Relationship Services](ModderGuide_RelationshipServices.md)
 - [Location Services](ModderGuide_LocationServices.md)
