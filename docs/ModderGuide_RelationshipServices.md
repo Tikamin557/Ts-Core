@@ -64,8 +64,11 @@ As support for additional relationship mods is added to T's Core, existing Conte
 |-------|---------|-----------------|
 | `{{Tikamin557.TsCore/Partners}}` | Current partners | General relationship checks |
 | `{{Tikamin557.TsCore/OrderedPartners}}` | Current partners in spouse room order | Room/order-dependent patches |
+| `{{Tikamin557.TsCore/CanBeRomanced:<NPC>}}` | Whether the specified NPC can be romanced | NPC romanceability checks |
 
-Both tokens return a **list of partner names** and can be used with Content Patcher features such as `Count`, `contains`, and `valueAt`.
+`Partners` and `OrderedPartners` return a **list of partner names** and can be used with Content Patcher features such as `Count`, `contains`, and `valueAt`.
+
+`CanBeRomanced` accepts an NPC name as input and returns `true` or `false`.
 
 For example:
 
@@ -73,6 +76,7 @@ For example:
 |-------|---------------|
 | `Partners` | `Abigail, Emily, Sebastian` |
 | `OrderedPartners` | `Sebastian, Abigail, Emily` |
+| `CanBeRomanced:Abigail` | `true` |
 
 ---
 
@@ -156,6 +160,79 @@ For example, to check whether **Abigail** is the second partner:
 
 ---
 
+### CanBeRomanced
+
+Use `CanBeRomanced` to check whether a specific NPC is currently configured as romanceable.
+
+```text
+{{Tikamin557.TsCore/CanBeRomanced:<NPC>}}
+```
+
+The NPC name is specified as token input.
+
+For example:
+
+```text
+{{Tikamin557.TsCore/CanBeRomanced:Abigail}}
+```
+
+The token returns:
+
+| Value | Description |
+|-------|-------------|
+| `true` | The specified NPC is configured as romanceable. |
+| `false` | The specified NPC is not configured as romanceable, or the NPC was not found. |
+
+The value is based on the NPC's `CanBeRomanced` setting in Stardew Valley's:
+
+```text
+Data/Characters
+```
+
+This means the token reflects the current character data, including changes made to `Data/Characters` by Content Patcher.
+
+#### Content Patcher condition
+
+For example:
+
+```json
+"When": {
+    "Tikamin557.TsCore/CanBeRomanced:Willy": "true"
+}
+```
+
+This patch is applied when Willy is currently configured as romanceable.
+
+The same Content Pack can therefore respond to changes made by other mods without needing to know which mod changed the NPC's romanceability.
+
+#### Dynamic Token condition
+
+`CanBeRomanced` can also be used in conditions for Content Patcher Dynamic Tokens.
+
+For example:
+
+```json
+"DynamicTokens": [
+    {
+        "Name": "WillyFriendshipRequirement",
+        "Value": "2500"
+    },
+    {
+        "Name": "WillyFriendshipRequirement",
+        "Value": "2000",
+        "When": {
+            "Tikamin557.TsCore/CanBeRomanced:Willy": "true"
+        }
+    }
+]
+```
+
+In this example, the Dynamic Token can use a different value when Willy is configured as romanceable.
+
+> **Note:** `CanBeRomanced` checks the NPC's current character data. It does not check whether the player is currently dating or married to that NPC.
+
+---
+
 ## Common Examples
 
 The same conditions work with vanilla relationships and supported relationship mods.
@@ -199,6 +276,9 @@ No separate compatibility conditions are required for Vanilla, FreeLove, or Poly
 | Determine spouse room order | `OrderedPartners` |
 | Apply patches based on room position | `OrderedPartners` |
 | Access a partner by room index | `OrderedPartners` |
+| Check whether an NPC is configured as romanceable | `CanBeRomanced:<NPC>` |
+
+> > **Recommendation:** Use `Partners` for general partner checks and `OrderedPartners` only when your Content Pack specifically depends on spouse room order. Use `CanBeRomanced` when you need to check the romanceability setting of a specific NPC.
 
 > **Recommendation:** Use `Partners` unless your Content Pack specifically depends on spouse room order.
 
@@ -210,6 +290,7 @@ Relationship Services are useful for Content Packs involving:
 
 - Multi-spouse compatibility
 - Custom spouse rooms
+- NPC romanceability compatibility
 - Marriage events
 - Dialogue conditions
 - Furniture visibility
@@ -269,7 +350,13 @@ For details about `tscore_cp_reload` and other Content Patcher integration featu
 
 Relationship Services are **read-only**.
 
-They do not modify marriages, friendships, dating relationships, or roommate status. They only expose existing relationship information through Content Patcher tokens.
+They do not modify marriages, friendships, dating relationships, roommate status, or NPC romanceability.
+
+`Partners` and `OrderedPartners` expose the player's existing relationship information.
+
+`CanBeRomanced` reads the specified NPC's current `CanBeRomanced` setting from `Data/Characters`.
+
+Because `Data/Characters` can be modified by Content Patcher, `CanBeRomanced` can be used for compatibility with mods which change whether an NPC is romanceable.
 
 ---
 
