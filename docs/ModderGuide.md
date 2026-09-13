@@ -161,6 +161,7 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Map Properties](ModderGuide_MapProperties.md)
 - [Building Services](ModderGuide_BuildingServices.md)
 - [Machine Interaction](ModderGuide_MachineInteraction.md)
+- [Dialogue System](ModderGuide_DialogueSystem.md)
 - [Migration System](ModderGuide_MigrationSystem.md)
 - [Notification System](ModderGuide_NotificationSystem.md)
 - [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
