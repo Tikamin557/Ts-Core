@@ -12,6 +12,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Map Properties](ModderGuide_MapProperties.md)
 - 📄 [Building Services](ModderGuide_BuildingServices.md)
 - 📄 [Machine Interaction](ModderGuide_MachineInteraction.md)
+- 📄 [Dialogue System](ModderGuide_DialogueSystem.md)
 - ✅ **Migration System** *(Current Page)*
 - 📄 [Notification System](ModderGuide_NotificationSystem.md)
 - 📄 [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
@@ -617,7 +618,7 @@ Additional Migration types may be added in future versions of T's Core.
 
 ## Modder Guide
 
-- ← [Machine Interaction](ModderGuide_MachineInteraction.md)
+- ← [Dialogue System](ModderGuide_DialogueSystem.md)
 - ↑ [Guide Index](#top)
 - → [Notification System](ModderGuide_NotificationSystem.md)
 
