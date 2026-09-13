@@ -25,6 +25,7 @@ It provides reusable APIs, Content Patcher integration, custom actions, data-dri
   - Timed exits with optional dialogue and sound
 - Building Services for adding custom settings and visual features to buildings
 - Machine Interaction for adding custom right-click behavior to machines
+- Dialogue System for creating data-driven dialogues with conditions, responses, actions, and dialogue chaining
 - Migration System for updating IDs stored in existing save data
 - Customizable Notification System and Notification Themes
 - Content Patcher tokens and integration
@@ -60,12 +61,17 @@ The Modder Guide covers:
 - Map Properties
 - Building Services and custom Building Providers
 - Machine Interaction
+- Dialogue System
 - Migration System and custom migration definitions
 - Notification System and custom Notification Themes
 - Content Patcher Integration and Tokens
 - Debug and reload commands
 
-Custom Warp Providers, Building Providers, Notification Themes, and migration definitions can be registered through T's Core custom Data Assets using Content Patcher.
+T's Core provides custom Data Assets which allow Content Patcher packs to register Warp Providers, Building Providers, Machine Interactions, Dialogues, Notification Themes, and migration definitions without writing C# code.
+
+The Dialogue System can create custom map dialogues with conditions, player responses, Trigger Actions, dialogue chaining, automatic closing, and Audio Cues.
+
+See the **[Dialogue System Guide](docs/ModderGuide_DialogueSystem.md)** for details.
 
 Custom Map Properties can also add location-specific behavior without C# code, including Timed Exit properties which can automatically warp the player out of a location at or after a specified in-game time, with optional dialogue and sound.
 
