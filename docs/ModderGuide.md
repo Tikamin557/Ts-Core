@@ -68,6 +68,7 @@ T's Core currently provides the following systems.
 | Map Properties | Adds custom map properties for additional location behavior. |
 | Building Services | Adds custom settings and visual features to buildings. |
 | Machine Interaction | Adds configurable interactions and visual behavior to machines. |
+| Dialogue System | Adds data-driven custom dialogues with conditions, responses, actions, dialogue chaining, and other optional behavior. |
 | Migration System | Provides migration support for IDs stored in existing save data. |
 | Notification System | Provides customizable on-screen notifications and Notification Themes. |
 | Content Patcher Integration | Provides additional Content Patcher development and configuration features. |
@@ -91,6 +92,9 @@ Custom definitions can be registered for:
 - Notification Themes
 - Migration definitions
 - Machine Interactions
+- Dialogues
+
+Dialogues registered through `TsCore/Dialogues` can be displayed from map Tile Actions and Touch Actions using `TsCoreDialogue`.
 
 T's Core also provides additional Content Patcher features such as custom tokens, Content Pack reload tools, and conditional GMCM field visibility.
 
@@ -118,6 +122,8 @@ T's Core provides several commands for inspecting and testing its systems during
 | `tscore_debug_buildings` | Prints all registered Building Providers. |
 | `tscore_debug_buildings <ID>` | Prints detailed information for the specified Building Provider. |
 | `tscore_debug_farmbuildings` | Prints buildings currently placed on the main farm. |
+| `tscore_debug_dialogue` | Prints all registered Dialogues. |
+| `tscore_debug_dialogue <ID>` | Displays the specified Dialogue for testing. |
 | `tscore_debug_notification_themes` | Prints all available Notification Themes. |
 | `tscore_debug_notification <ID>` | Displays a test notification. |
 | `tscore_debug_notification_trigger` | Tests notification Trigger Actions. |
