@@ -284,7 +284,7 @@ Additional Tile Actions, Game State Queries, and other smaller public features m
 
 - ← [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
 - ↑ [Guide Index](#top)
-→ *(End of Guide)*
+- → *(End of Guide)*
 
 ← [Back to README](../README.md)
 
