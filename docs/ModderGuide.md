@@ -173,5 +173,6 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Migration System](ModderGuide_MigrationSystem.md)
 - [Notification System](ModderGuide_NotificationSystem.md)
 - [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
+- [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [Back to README](../README.md)
