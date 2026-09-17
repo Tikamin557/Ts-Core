@@ -67,11 +67,12 @@ T's Core currently provides the following systems.
 | Warp Services | Provides Warp Actions and reusable Warp Providers. |
 | Map Properties | Adds custom map properties for additional location behavior. |
 | Building Services | Adds custom settings and visual features to buildings. |
-| BigCraftable Extension | Extends BigCraftables with configurable interactions, collision sizes, textures, animations, effects, lights, and other optional behavior. |
+| BigCraftable Extension | BigCraftable Extensions registered through `TsCore/BigCraftableExtension` can add configurable interactions, collision sizes, placement conditions, textures, animations, effects, lights, and other optional behavior to BigCraftables. |
 | Dialogue System | Adds data-driven custom dialogues with conditions, responses, actions, dialogue chaining, and other optional behavior. |
 | Migration System | Provides migration support for IDs stored in existing save data. |
 | Notification System | Provides customizable on-screen notifications and Notification Themes. |
 | Content Patcher Integration | Provides additional Content Patcher development and configuration features. |
+| Other Features | Provides additional Tile Actions and Game State Queries, including custom sleeping actions and location category checks. |
 | Content Patcher Tokens | Provides custom tokens for use with Content Patcher. |
 | Shared Utilities | Provides common functionality shared between T's Mods. |
 
@@ -83,7 +84,7 @@ See the [Detailed Documentation](#-detailed-documentation) section for individua
 
 Many T's Core features can be used directly from Content Patcher without writing C# code.
 
-Content Patcher Content Packs can use T's Core custom actions, map properties, integrations, and custom Data Assets.
+Content Patcher Content Packs can use T's Core custom actions, Game State Queries, map properties, integrations, and custom Data Assets.
 
 Custom definitions can be registered for:
 
@@ -98,7 +99,9 @@ BigCraftable Extensions registered through `TsCore/BigCraftableExtension` can ad
 
 Dialogues registered through `TsCore/Dialogues` can be displayed from map Tile Actions and Touch Actions using `TsCoreDialogue`.
 
-T's Core also provides additional Content Patcher features such as custom tokens, Content Pack reload tools, and conditional GMCM field visibility.
+T's Core also provides custom Tile Actions and Game State Queries for additional gameplay behavior and conditions. These smaller features are documented in the **[Other Features Guide](ModderGuide_OtherFeatures.md)**.
+
+T's Core also provides additional Content Patcher features such as custom tokens...
 
 Each system has its own setup and available options. See the corresponding guide in the [Detailed Documentation](#-detailed-documentation) section for details and examples.
 
