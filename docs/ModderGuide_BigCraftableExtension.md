@@ -16,6 +16,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Migration System](ModderGuide_MigrationSystem.md)
 - 📄 [Notification System](ModderGuide_NotificationSystem.md)
 - 📄 [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
+- 📄 [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [Back to README](../README.md)
 
@@ -36,10 +37,11 @@ TsCore/BigCraftableExtension
 A BigCraftable Extension can provide:
 
 - custom collision sizes;
+- placement conditions using Game State Queries;
 - custom texture sizes;
 - custom normal textures and animations;
 - Tile Actions;
-- Game State Query conditions;
+- interaction conditions using Game State Queries;
 - required held items;
 - Machine Effects;
 - temporary Action lights;
@@ -61,6 +63,7 @@ No C# code is required.
 - [Basic Setup](#basic-setup)
 - [BigCraftable Extension Data](#bigcraftable-extension-data)
 - [Collision Size](#collision-size)
+- [Placement Condition](#placement-condition)
 - [Texture Size](#texture-size)
 - [Normal Texture and Animation](#normal-texture-and-animation)
 - [Tile Action](#tile-action)
@@ -237,6 +240,7 @@ The following properties are supported.
 | Property | Default | Description |
 |----------|---------|-------------|
 | `CollisionSize` | `"1, 1"` | Collision width and height in tiles. |
+| `PlacementCondition` | — | Game State Query which must be satisfied for the Big Craftable to be placed. |
 | `Texture` | — | Optional normal texture override. |
 | `TexturePosition` | — | Optional base pixel position for the normal texture. |
 | `TextureSize` | `"16, 32"` | Width and height of one texture frame in pixels. |
@@ -353,6 +357,46 @@ The additional footprint tiles are handled virtually by T's Core.
 This allows a Big Craftable to occupy a larger area without creating duplicate Objects on the additional tiles.
 
 The extended footprint is used by T's Core for features including placement, collision, interaction, and object removal handling.
+
+---
+
+## Placement Condition
+
+`PlacementCondition` can restrict where the Big Craftable can be placed.
+
+It uses Stardew Valley's Game State Query system.
+
+For example, T's Core provides the `TsCore_LOCATION_CATEGORY` Game State Query, which can be used to prevent placement in dungeon locations:
+
+```json
+{
+    "PlacementCondition": "!TsCore_LOCATION_CATEGORY Target Dungeon"
+}
+```
+
+In this example, the Big Craftable can be placed normally outside dungeon locations, but can't be placed in locations categorized as `Dungeon`.
+
+The condition is checked when the player attempts to place the Big Craftable.
+
+If the condition isn't satisfied, the Big Craftable can't be placed at that location.
+
+The Game State Query context includes the target location and the current player.
+
+> **Note:** `PlacementCondition` only controls whether the Big Craftable can be newly placed. It doesn't remove or disable an already placed Big Craftable if the condition later becomes false.
+
+`PlacementCondition` is separate from `Condition`.
+
+```text
+PlacementCondition
+    ↓
+Checked when placing the Big Craftable
+
+Condition
+    ↓
+Checked when interacting with the placed Big Craftable
+```
+
+If `PlacementCondition` is omitted, T's Core doesn't add any additional placement condition.
 
 ---
 
