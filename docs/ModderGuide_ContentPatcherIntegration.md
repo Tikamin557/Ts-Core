@@ -16,6 +16,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Migration System](ModderGuide_MigrationSystem.md)
 - 📄 [Notification System](ModderGuide_NotificationSystem.md)
 - ✅ **Content Patcher Integration** *(Current Page)*
+- 📄 [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [Back to README](../README.md)
 
@@ -555,7 +556,7 @@ Although `tscore_cp_reload` can significantly reduce the number of game restarts
 
 - ← [Notification System](ModderGuide_NotificationSystem.md)
 - ↑ [Guide Index](#top)
-- → *(End of Guide)*
+- → [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [Back to README](../README.md)
 
