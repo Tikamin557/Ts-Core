@@ -67,7 +67,7 @@ T's Core currently provides the following systems.
 | Warp Services | Provides Warp Actions and reusable Warp Providers. |
 | Map Properties | Adds custom map properties for additional location behavior. |
 | Building Services | Adds custom settings and visual features to buildings. |
-| Machine Interaction | Adds configurable interactions and visual behavior to machines. |
+| BigCraftable Extension | Extends BigCraftables with configurable interactions, collision sizes, textures, animations, effects, lights, and other optional behavior. |
 | Dialogue System | Adds data-driven custom dialogues with conditions, responses, actions, dialogue chaining, and other optional behavior. |
 | Migration System | Provides migration support for IDs stored in existing save data. |
 | Notification System | Provides customizable on-screen notifications and Notification Themes. |
@@ -91,8 +91,10 @@ Custom definitions can be registered for:
 - Warp Providers
 - Notification Themes
 - Migration definitions
-- Machine Interactions
+- BigCraftable Extensions
 - Dialogues
+
+BigCraftable Extensions registered through `TsCore/BigCraftableExtension` can add configurable interactions, collision sizes, textures, animations, effects, lights, and other optional behavior to BigCraftables.
 
 Dialogues registered through `TsCore/Dialogues` can be displayed from map Tile Actions and Touch Actions using `TsCoreDialogue`.
 
@@ -166,7 +168,7 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Warp Services](ModderGuide_WarpServices.md)
 - [Map Properties](ModderGuide_MapProperties.md)
 - [Building Services](ModderGuide_BuildingServices.md)
-- [Machine Interaction](ModderGuide_MachineInteraction.md)
+- [BigCraftable Extension](ModderGuide_BigCraftableExtension.md)
 - [Dialogue System](ModderGuide_DialogueSystem.md)
 - [Migration System](ModderGuide_MigrationSystem.md)
 - [Notification System](ModderGuide_NotificationSystem.md)
