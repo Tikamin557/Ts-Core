@@ -24,7 +24,7 @@ It provides reusable APIs, Content Patcher integration, custom actions, data-dri
 - Custom Map Properties for additional location behavior
   - Timed exits with optional dialogue and sound
 - Building Services for adding custom settings and visual features to buildings
-- Machine Interaction for adding custom right-click behavior to machines
+- BigCraftable Extension for adding custom interactions, collision sizes, textures, animations, effects, lights, and other optional behavior to BigCraftables
 - Dialogue System for creating data-driven dialogues with conditions, responses, actions, and dialogue chaining
 - Migration System for updating IDs stored in existing save data
 - Customizable Notification System and Notification Themes
@@ -60,14 +60,18 @@ The Modder Guide covers:
 - Warp Services and custom Warp Providers
 - Map Properties
 - Building Services and custom Building Providers
-- Machine Interaction
+- BigCraftable Extension
 - Dialogue System
 - Migration System and custom migration definitions
 - Notification System and custom Notification Themes
 - Content Patcher Integration and Tokens
 - Debug and reload commands
 
-T's Core provides custom Data Assets which allow Content Patcher packs to register Warp Providers, Building Providers, Machine Interactions, Dialogues, Notification Themes, and migration definitions without writing C# code.
+T's Core provides custom Data Assets which allow Content Patcher packs to register Warp Providers, Building Providers, BigCraftable Extensions, Dialogues, Notification Themes, and migration definitions without writing C# code.
+
+The BigCraftable Extension system can add configurable interactions, collision sizes, custom textures and animations, effects, lights, wobble effects, conditions, required items, and other optional behavior to BigCraftables.
+
+See the **[BigCraftable Extension Guide](docs/ModderGuide_BigCraftableExtension.md)** for details.
 
 The Dialogue System can create custom map dialogues with conditions, player responses, Trigger Actions, dialogue chaining, automatic closing, and Audio Cues.
 
