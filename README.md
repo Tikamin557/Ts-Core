@@ -24,7 +24,8 @@ It provides reusable APIs, Content Patcher integration, custom actions, data-dri
 - Custom Map Properties for additional location behavior
   - Timed exits with optional dialogue and sound
 - Building Services for adding custom settings and visual features to buildings
-- BigCraftable Extension for adding custom interactions, collision sizes, textures, animations, effects, lights, and other optional behavior to BigCraftables
+- BigCraftable Extension for adding custom interactions, collision sizes, placement conditions, textures, animations, effects, lights, and other optional behavior to BigCraftables
+- Additional Tile Actions and Game State Queries for custom gameplay behavior and conditions
 - Dialogue System for creating data-driven dialogues with conditions, responses, actions, and dialogue chaining
 - Migration System for updating IDs stored in existing save data
 - Customizable Notification System and Notification Themes
@@ -65,11 +66,12 @@ The Modder Guide covers:
 - Migration System and custom migration definitions
 - Notification System and custom Notification Themes
 - Content Patcher Integration and Tokens
+- Other Features, including custom Tile Actions and Game State Queries
 - Debug and reload commands
 
 T's Core provides custom Data Assets which allow Content Patcher packs to register Warp Providers, Building Providers, BigCraftable Extensions, Dialogues, Notification Themes, and migration definitions without writing C# code.
 
-The BigCraftable Extension system can add configurable interactions, collision sizes, custom textures and animations, effects, lights, wobble effects, conditions, required items, and other optional behavior to BigCraftables.
+The BigCraftable Extension system can add configurable interactions, collision sizes, placement conditions, custom textures and animations, effects, lights, wobble effects, interaction conditions, required items, and other optional behavior to BigCraftables.
 
 See the **[BigCraftable Extension Guide](docs/ModderGuide_BigCraftableExtension.md)** for details.
 
@@ -84,6 +86,10 @@ See the **[Map Properties Guide](docs/ModderGuide_MapProperties.md)** for detail
 Additional Content Patcher integration features include extended Content Pack reloading for development and conditional GMCM field visibility based on installed mods.
 
 See the **[Content Patcher Integration Guide](docs/ModderGuide_ContentPatcherIntegration.md)** for details.
+
+T's Core also provides additional Tile Actions and Game State Queries, including custom sleeping actions and location category checks.
+
+See the **[Other Features Guide](docs/ModderGuide_OtherFeatures.md)** for details.
 
 ---
 
