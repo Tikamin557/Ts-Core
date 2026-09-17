@@ -11,7 +11,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Warp Services](ModderGuide_WarpServices.md)
 - 📄 [Map Properties](ModderGuide_MapProperties.md)
 - ✅ **Building Services** *(Current Page)*
-- 📄 [Machine Interaction](ModderGuide_MachineInteraction.md)
+- 📄 [BigCraftable Extension](ModderGuide_BigCraftableExtension.md)
 - 📄 [Dialogue System](ModderGuide_DialogueSystem.md)
 - 📄 [Migration System](ModderGuide_MigrationSystem.md)
 - 📄 [Notification System](ModderGuide_NotificationSystem.md)
@@ -956,7 +956,7 @@ Additional Building Services features may be added in future versions of T's Cor
 
 - ← [Map Properties](ModderGuide_MapProperties.md)
 - ↑ [Guide Index](#top)
-- → [Machine Interaction](ModderGuide_MachineInteraction.md)
+- → [BigCraftable Extension](ModderGuide_BigCraftableExtension.md)
 
 ← [Back to README](../README.md)
 
