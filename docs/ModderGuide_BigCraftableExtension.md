@@ -37,9 +37,12 @@ TsCore/BigCraftableExtension
 A BigCraftable Extension can provide:
 
 - custom collision sizes;
+- player-passable collision tiles;
+- custom Tile Properties;
 - placement conditions using Game State Queries;
 - custom texture sizes;
 - custom normal textures and animations;
+- additional Draw Layers;
 - Tile Actions;
 - interaction conditions using Game State Queries;
 - required held items;
@@ -63,9 +66,12 @@ No C# code is required.
 - [Basic Setup](#basic-setup)
 - [BigCraftable Extension Data](#bigcraftable-extension-data)
 - [Collision Size](#collision-size)
+- [Player-Passable Tiles](#player-passable-tiles)
+- [Tile Properties](#tile-properties)
 - [Placement Condition](#placement-condition)
 - [Texture Size](#texture-size)
 - [Normal Texture and Animation](#normal-texture-and-animation)
+- [Draw Layers](#draw-layers)
 - [Tile Action](#tile-action)
 - [Conditions](#conditions)
 - [Required Items](#required-items)
@@ -138,8 +144,11 @@ BigCraftable Extension also provides features which don't require interaction, s
 
 ```text
 Collision Size
+Player-Passable Tiles
+Tile Properties
 Texture Size
 Normal Texture / Animation
+Draw Layers
 Idle Effects
 Idle Wobble
 Normal Light
@@ -240,12 +249,15 @@ The following properties are supported.
 | Property | Default | Description |
 |----------|---------|-------------|
 | `CollisionSize` | `"1, 1"` | Collision width and height in tiles. |
+| `PlayerPassableTiles` | — | Relative collision tiles which the player can walk through. |
+| `TileProperties` | — | Custom Tile Properties applied to relative tiles around the Big Craftable. |
 | `PlacementCondition` | — | Game State Query which must be satisfied for the Big Craftable to be placed. |
 | `Texture` | — | Optional normal texture override. |
 | `TexturePosition` | — | Optional base pixel position for the normal texture. |
 | `TextureSize` | `"16, 32"` | Width and height of one texture frame in pixels. |
 | `Frames` | — | Frame numbers used by the normal animation. |
 | `FrameDurationMs` | — | Normal animation frame duration or durations. |
+| `DrawLayers` | — | Additional visual layers drawn with the Big Craftable. |
 | `TileAction` | — | Tile Action executed when the interaction succeeds. |
 | `Condition` | — | Game State Query which must be satisfied before interaction can continue. |
 | `InvalidConditionMessage` | — | Message displayed when `Condition` is not satisfied. |
@@ -357,6 +369,100 @@ The additional footprint tiles are handled virtually by T's Core.
 This allows a Big Craftable to occupy a larger area without creating duplicate Objects on the additional tiles.
 
 The extended footprint is used by T's Core for features including placement, collision, interaction, and object removal handling.
+
+---
+
+## Player-Passable Tiles
+
+`PlayerPassableTiles` allows the player to walk through specified tiles inside the Big Craftable's extended collision footprint.
+
+The positions are relative tile offsets from the Big Craftable's anchor tile.
+
+For example:
+
+```json
+{
+    "CollisionSize": "1, 2",
+    "PlayerPassableTiles": [
+        "0, -1",
+        "0, 0"
+    ]
+}
+```
+
+The anchor tile is:
+
+```text
+"0, 0"
+```
+
+For a collision footprint which extends upward, the tile directly above the anchor is:
+
+```text
+"0, -1"
+```
+
+With the example above, the player can walk through both tiles of the 1 × 2 collision footprint.
+
+`PlayerPassableTiles` only changes collision for the player. Other characters still use the normal BigCraftable Extension collision.
+
+This can be useful for Big Craftables which visually occupy an area the player should be able to enter or stand inside.
+
+---
+
+## Tile Properties
+
+`TileProperties` can add custom Tile Properties to tiles relative to the Big Craftable's anchor.
+
+Each entry can specify:
+
+| Property | Description |
+|----------|-------------|
+| `Id` | Identifier for the Tile Property entry. |
+| `Name` | Tile Property name. |
+| `Value` | Tile Property value. |
+| `Layer` | Map layer used for the property, such as `Back`. |
+| `Tiles` | Relative tile offsets where the property is applied. |
+
+Example:
+
+```json
+{
+    "TileProperties": [
+        {
+            "Id": "SleepAction",
+            "Name": "TouchAction",
+            "Value": "TsCore_Sleep",
+            "Layer": "Back",
+            "Tiles": [
+                "0, -1",
+                "0, 0"
+            ]
+        }
+    ]
+}
+```
+
+The tile offsets use the Big Craftable's anchor as:
+
+```text
+"0, 0"
+```
+
+Negative Y values extend upward from the anchor.
+
+For example:
+
+```text
+"0, -1"
+```
+
+is the tile directly above the anchor.
+
+`TileProperties` can be used for properties such as `TouchAction` and other Tile Properties recognized by Stardew Valley or compatible mods.
+
+If the map already provides the requested Tile Property at that tile and layer, the existing map property takes priority.
+
 
 ---
 
@@ -579,6 +685,104 @@ Values are specified in milliseconds.
 When an array is used, the number of duration values must exactly match the number of entries in `Frames`.
 
 If the values are invalid or the counts do not match, the animation is disabled and T's Core logs a warning.
+
+---
+
+## Draw Layers
+
+`DrawLayers` adds additional visual layers to a Big Craftable.
+
+Draw Layers can be drawn behind or in front of the player and can use either the Big Craftable's current texture or a separate texture asset.
+
+Example:
+
+```json
+{
+    "DrawLayers": [
+        {
+            "Id": "FrontLayer",
+            "Texture": null,
+            "SourceRect": {
+                "X": 0,
+                "Y": 32,
+                "Width": 17,
+                "Height": 32
+            },
+            "DrawPosition": "0, 0",
+            "DrawLayer": "Front",
+            "FrameCount": 1,
+            "FramesPerRow": -1,
+            "FrameDuration": 100
+        }
+    ]
+}
+```
+
+Each Draw Layer supports:
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `Id` | — | Identifier for the Draw Layer. |
+| `Texture` | — | Optional texture asset. If omitted or `null`, the Big Craftable's current texture is used. |
+| `SourceRect` | — | Source rectangle used by the Draw Layer, in texture pixels. |
+| `DrawPosition` | `"0, 0"` | Pixel offset relative to the Big Craftable's normal draw position. |
+| `DrawLayer` | `"Back"` | `"Back"` draws behind the player; `"Front"` draws in front of the player. |
+| `FrameCount` | `1` | Number of animation frames. |
+| `FramesPerRow` | `-1` | Number of frames per texture row. A negative value uses a horizontal strip. |
+| `FrameDuration` | `90` | Animation frame duration or durations in milliseconds. |
+
+### Draw Position
+
+`DrawPosition` uses source-pixel offsets.
+
+For example:
+
+```json
+"DrawPosition": "4, -2"
+```
+
+moves the Draw Layer 4 source pixels to the right and 2 source pixels upward relative to the normal draw position.
+
+### Front and Back Layers
+
+Use:
+
+```json
+"DrawLayer": "Back"
+```
+
+to draw the layer behind the player.
+
+Use:
+
+```json
+"DrawLayer": "Front"
+```
+
+to draw the layer in front of the player.
+
+This can be combined with `PlayerPassableTiles` to create Big Craftables the player can visually enter or stand behind.
+
+### Draw Layer Animation
+
+Set `FrameCount` above `1` to animate a Draw Layer.
+
+For a horizontal strip:
+
+```json
+{
+    "FrameCount": 4,
+    "FramesPerRow": -1,
+    "FrameDuration": 100
+}
+```
+
+For a texture arranged in rows, set `FramesPerRow` to the number of frames in each row.
+
+`FrameDuration` can use one duration for all frames or separate durations for individual frames.
+
+Draw Layer animation is used for placed Big Craftables in the game world. Menu, held-item, crafting, and recipe displays use the first frame as a static preview.
+
 
 ---
 
@@ -1360,10 +1564,44 @@ Load the texture:
     "Entries": {
         "MyMod/MyExtension": {
             "CollisionSize": "1, 2",
+            "PlayerPassableTiles": [
+                "0, -1",
+                "0, 0"
+            ],
+            "TileProperties": [
+                {
+                    "Id": "ExampleTouchAction",
+                    "Name": "TouchAction",
+                    "Value": "Message \"You stepped onto the Big Craftable.\"",
+                    "Layer": "Back",
+                    "Tiles": [
+                        "0, -1",
+                        "0, 0"
+                    ]
+                }
+            ],
 
             "TextureSize": "17, 32",
             "Frames": [ 0, 1, 2, 3 ],
             "FrameDurationMs": 300,
+
+            "DrawLayers": [
+                {
+                    "Id": "FrontLayer",
+                    "Texture": null,
+                    "SourceRect": {
+                        "X": 0,
+                        "Y": 32,
+                        "Width": 17,
+                        "Height": 32
+                    },
+                    "DrawPosition": "0, 0",
+                    "DrawLayer": "Front",
+                    "FrameCount": 1,
+                    "FramesPerRow": -1,
+                    "FrameDuration": 100
+                }
+            ],
 
             "TileAction": "Message \"BigCraftable Extension Test\"",
 
@@ -1429,8 +1667,11 @@ Load the texture:
 This example:
 
 - creates a 1 × 2 collision footprint;
+- allows the player to walk through both collision tiles;
+- adds a custom `TouchAction` Tile Property to both collision tiles;
 - uses 17 × 32 pixel texture frames;
 - loops a normal four-frame animation;
+- draws an additional Front Draw Layer;
 - requires the `PLAYER_HAS_MAIL TestMail` condition;
 - requires the player to hold at least 5 Wood;
 - consumes 5 Wood after a successful interaction;
@@ -1519,6 +1760,16 @@ Collision Width extends to the right from the anchor tile.
 
 Collision Height extends upward from the anchor tile.
 
+Player-passable collision tiles use relative tile offsets from the anchor:
+
+```json
+"PlayerPassableTiles": [ "0, -1", "0, 0" ]
+```
+
+`TileProperties` also use relative tile offsets from the anchor.
+
+Draw Layer positions use **source-pixel offsets**, while Draw Layer `SourceRect` values use **source texture pixel coordinates**.
+
 Light offsets use **tile coordinates** and support decimal values:
 
 ```text
@@ -1538,7 +1789,11 @@ These values intentionally use different units:
 | Property | Unit | Example |
 |----------|------|---------|
 | `CollisionSize` | Tiles | `"1, 2"` |
+| `PlayerPassableTiles` | Relative tiles | `"0, -1"` |
+| `TileProperties.Tiles` | Relative tiles | `"0, -1"` |
 | `TextureSize` | Source pixels | `"17, 32"` |
+| `DrawLayers.DrawPosition` | Source-pixel offset | `"4, -2"` |
+| `DrawLayers.SourceRect` | Source pixels | `{ "X": 0, "Y": 32, "Width": 17, "Height": 32 }` |
 | `TexturePosition` | Source pixels | `"0, 32"` |
 | `ActionTexturePosition` | Source pixels | `"0, 64"` |
 | `ActionLightOffset` | Tiles | `"0, -0.5"` |
