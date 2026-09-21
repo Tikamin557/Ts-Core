@@ -1,41 +1,60 @@
 ﻿namespace Ts_Core.Models
 {
     /// <summary>
-    /// 建物に追加するライト1件分の定義です。
+    /// Buildingに追加するLightの定義です。
     /// </summary>
     public sealed class BuildingLightModel
     {
+        //----------------------------------------
+        // Basic
+        //----------------------------------------
+
         /// <summary>
         /// Light IDです。
         /// </summary>
         public string Id { get; set; } = "";
 
         /// <summary>
-        /// このLightの有効・無効を制御するCustomFieldsのキーです。
-        /// 未指定の場合は常に有効です。
+        /// このLightが有効かどうかです。
+        /// </summary>
+        public bool Enabled { get; set; } = true;
+
+        /// <summary>
+        /// このLightの有効・無効を制御する
+        /// CustomFieldsのキーです。
+        ///
+        /// 未指定の場合は
+        /// Enabledのみで判定します。
         /// </summary>
         public string? EnabledField { get; set; }
 
+        //----------------------------------------
+        // Position
+        //----------------------------------------
+
         /// <summary>
-        /// 建物左上からのX方向オフセットです。
-        /// 負の値も使用できます。
+        /// 建物左上を基準とした
+        /// X方向のオフセットです。
         /// </summary>
         public int OffsetX { get; set; }
 
         /// <summary>
-        /// 建物左上からのY方向オフセットです。
-        /// 負の値も使用できます。
+        /// 建物左上を基準とした
+        /// Y方向のオフセットです。
         /// </summary>
         public int OffsetY { get; set; }
 
+        //----------------------------------------
+        // Light
+        //----------------------------------------
+
         /// <summary>
-        /// ライトの半径です。
+        /// Lightの半径です。
         /// </summary>
         public float Radius { get; set; } = 4f;
 
         /// <summary>
-        /// ライトカラーです。
-        /// 例: "255,220,160"
+        /// Lightの色です。
         /// </summary>
         public string Color { get; set; } = "0,0,0";
     }

@@ -29,7 +29,7 @@ namespace Ts_Core.Debug
                 monitor);
 
             //----------------------------------------
-            // TsCore組み込みProvider
+            // Built-in Providers
             //----------------------------------------
 
             LogBuiltInProviders(
@@ -38,88 +38,44 @@ namespace Ts_Core.Debug
             DebugLogHelper.LogBlankLine(
                 monitor);
 
-            monitor.Log(
-                $"Registered JSON Providers: {providers.Count}",
-                LogLevel.Info);
-
-            if (providers.Count == 0)
-            {
-                DebugLogHelper.LogBlankLine(
-                    monitor);
-
-                monitor.Log(
-                    "No JSON warp providers are registered.",
-                    LogLevel.Info);
-
-                return;
-            }
-
             //----------------------------------------
-            // 登録元ごとにグループ化
+            // Standard / External Providers
             //----------------------------------------
 
-            List<IGrouping<string, RegisteredWarpProviderInfo>> groupList =
+            List<RegisteredWarpProviderInfo> standardProviders =
                 providers
-                    .GroupBy(provider => provider.Owner)
-                    .OrderBy(group =>
-                        string.Equals(
-                            group.Key,
-                            "T's Core",
-                            StringComparison.OrdinalIgnoreCase)
-                            ? 0
-                            : 1)
-                    .ThenBy(group => group.Key)
+                    .Where(provider =>
+                        WarpProviderDataService.IsDefaultProvider(
+                            provider.Id))
+                    .OrderBy(provider =>
+                        provider.Id)
                     .ToList();
+
+            List<RegisteredWarpProviderInfo> externalProviders =
+                providers
+                    .Where(provider =>
+                        !WarpProviderDataService.IsDefaultProvider(
+                            provider.Id))
+                    .OrderBy(provider =>
+                        provider.Id)
+                    .ToList();
+
+            LogProviderGroup(
+                monitor,
+                "TsCore Standard Providers",
+                standardProviders);
 
             DebugLogHelper.LogBlankLine(
                 monitor);
 
-            for (int groupIndex = 0;
-                 groupIndex < groupList.Count;
-                 groupIndex++)
-            {
-                IGrouping<string, RegisteredWarpProviderInfo> group =
-                    groupList[groupIndex];
-
-                monitor.Log(
-                    $"----- {group.Key} -----",
-                    LogLevel.Info);
-
-                DebugLogHelper.LogBlankLine(
-                    monitor);
-
-                List<RegisteredWarpProviderInfo> providerList =
-                    group
-                        .OrderBy(provider => provider.Id)
-                        .ToList();
-
-                for (int providerIndex = 0;
-                     providerIndex < providerList.Count;
-                     providerIndex++)
-                {
-                    LogWarpProvider(
-                        monitor,
-                        providerList[providerIndex]);
-
-                    // 同じグループ内のProvider間だけ空行を入れる
-                    if (providerIndex < providerList.Count - 1)
-                    {
-                        DebugLogHelper.LogBlankLine(
-                            monitor);
-                    }
-                }
-
-                // グループ間だけ空行を入れる
-                if (groupIndex < groupList.Count - 1)
-                {
-                    DebugLogHelper.LogBlankLine(
-                        monitor);
-                }
-            }
+            LogProviderGroup(
+                monitor,
+                "External Data Asset Providers",
+                externalProviders);
         }
 
         //----------------------------------------
-        // TsCore組み込みProvider
+        // Built-in Providers
         //----------------------------------------
 
         /// <summary>
@@ -194,6 +150,51 @@ namespace Ts_Core.Debug
                 monitor,
                 "Destination",
                 "Current FarmHouse/Cabin");
+        }
+
+        //----------------------------------------
+        // Provider Group
+        //----------------------------------------
+
+        /// <summary>
+        /// Warp Providerのグループを表示します。
+        /// </summary>
+        private static void LogProviderGroup(
+            IMonitor monitor,
+            string groupName,
+            IReadOnlyList<RegisteredWarpProviderInfo> providers)
+        {
+            monitor.Log(
+                $"----- {groupName} -----",
+                LogLevel.Info);
+
+            DebugLogHelper.LogBlankLine(
+                monitor);
+
+            if (providers.Count == 0)
+            {
+                monitor.Log(
+                    "(none)",
+                    LogLevel.Info);
+
+                return;
+            }
+
+            for (int providerIndex = 0;
+                 providerIndex < providers.Count;
+                 providerIndex++)
+            {
+                LogWarpProvider(
+                    monitor,
+                    providers[providerIndex]);
+
+                if (providerIndex
+                    < providers.Count - 1)
+                {
+                    DebugLogHelper.LogBlankLine(
+                        monitor);
+                }
+            }
         }
 
         //----------------------------------------

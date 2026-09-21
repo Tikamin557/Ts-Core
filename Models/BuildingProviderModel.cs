@@ -5,10 +5,9 @@
     /// </summary>
     public sealed class BuildingProviderModel
     {
-        /// <summary>
-        /// Provider IDです。
-        /// </summary>
-        public string Id { get; set; } = "";
+        //----------------------------------------
+        // Building
+        //----------------------------------------
 
         /// <summary>
         /// 対象となる建物タイプです。
@@ -16,35 +15,69 @@
         public string BuildingType { get; set; } = "";
 
         /// <summary>
-        /// この建物をバレーのメイン農場でのみ建築可能にするかどうかです。
+        /// このBuilding Provider全体が
+        /// 有効かどうかです。
         /// </summary>
-        public bool ValleyFarmOnly { get; set; }
+        public bool BuildingsEnabled { get; set; } = true;
 
         /// <summary>
-        /// Building Provider全体の有効・無効を制御するCustomFieldsのキーです。
-        /// 未指定の場合は常に有効です。
+        /// Building Provider全体の有効・無効を制御する
+        /// CustomFieldsのキーです。
+        ///
+        /// 未指定の場合は
+        /// BuildingsEnabledのみで判定します。
         /// </summary>
         public string? BuildingsEnabledField { get; set; }
 
         /// <summary>
-        /// Lightの有効・無効を制御するCustomFieldsのキーです。
-        /// 未指定の場合は常に有効です。
+        /// この建物をバレーのメイン農場でのみ
+        /// 建築可能にするかどうかです。
+        /// </summary>
+        public bool ValleyFarmOnly { get; set; }
+
+        //----------------------------------------
+        // Lights
+        //----------------------------------------
+
+        /// <summary>
+        /// Lights全体が有効かどうかです。
+        /// </summary>
+        public bool LightsEnabled { get; set; } = true;
+
+        /// <summary>
+        /// Light全体の有効・無効を制御する
+        /// CustomFieldsのキーです。
+        ///
+        /// 未指定の場合は
+        /// LightsEnabledのみで判定します。
         /// </summary>
         public string? LightsEnabledField { get; set; }
 
         /// <summary>
-        /// DrawLayerの有効・無効を制御するCustomFieldsのキーです。
-        /// 未指定の場合は常に有効です。
+        /// 建物に追加するLight一覧です。
+        /// </summary>
+        public List<BuildingLightModel> Lights { get; set; } = new();
+
+        //----------------------------------------
+        // DrawLayers
+        //----------------------------------------
+
+        /// <summary>
+        /// DrawLayers全体が有効かどうかです。
+        /// </summary>
+        public bool DrawLayersEnabled { get; set; } = true;
+
+        /// <summary>
+        /// DrawLayer全体の有効・無効を制御する
+        /// CustomFieldsのキーです。
+        ///
+        /// 未指定の場合は
+        /// DrawLayersEnabledのみで判定します。
         /// </summary>
         public string? DrawLayersEnabledField { get; set; }
 
         /// <summary>
-        /// 建物に追加するライト一覧です。
-        /// </summary>
-        public List<BuildingLightModel> Lights { get; set; } = new();
-
-        /// <summary>
-        /// 建物に追加する条件付きDrawLayer一覧です。
+        /// 建物に追加するDrawLayer一覧です。
         /// </summary>
         public List<BuildingDrawLayerModel> DrawLayers { get; set; } = new();
     }

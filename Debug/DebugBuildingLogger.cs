@@ -12,6 +12,50 @@ namespace Ts_Core.Debug
     internal static class DebugBuildingLogger
     {
         //----------------------------------------
+        // Frame Duration
+        //----------------------------------------
+
+        /// <summary>
+        /// FrameDurationを
+        /// デバッグ表示用の文字列へ変換します。
+        /// </summary>
+        private static string FormatFrameDuration(
+            object frameDuration)
+        {
+            //----------------------------------------
+            // 配列
+            //----------------------------------------
+
+            if (frameDuration
+                is System.Collections.IEnumerable values
+                && frameDuration is not string)
+            {
+                List<string> durations =
+                    new();
+
+                foreach (object? value in values)
+                {
+                    if (value != null)
+                    {
+                        durations.Add(
+                            value.ToString() ?? "");
+                    }
+                }
+
+                return
+                    $"[{string.Join(", ", durations)}]";
+            }
+
+            //----------------------------------------
+            // 単一値
+            //----------------------------------------
+
+            return
+                frameDuration.ToString()
+                ?? "";
+        }
+
+        //----------------------------------------
         // Farm Buildings
         //----------------------------------------
 
@@ -73,7 +117,7 @@ namespace Ts_Core.Debug
         //----------------------------------------
 
         /// <summary>
-        /// 現在登録されているBuilding Providerを表示します。
+        /// 現在のBuilding Providerを表示します。
         /// Provider IDが指定された場合は詳細を表示します。
         /// </summary>
         internal static void LogBuildingProviders(
@@ -126,6 +170,10 @@ namespace Ts_Core.Debug
                 LogLevel.Info);
 
             monitor.Log(
+                $"Data Asset: {BuildingProviderDataService.AssetName}",
+                LogLevel.Info);
+
+            monitor.Log(
                 $"Registered Providers: {providers.Count}",
                 LogLevel.Info);
 
@@ -156,56 +204,17 @@ namespace Ts_Core.Debug
                 monitor);
 
             //----------------------------------------
-            // 登録元ごとにグループ化
+            // Provider一覧
             //----------------------------------------
 
-            List<IGrouping<string, RegisteredBuildingProviderInfo>> groupList =
-                providers
-                    .GroupBy(provider => provider.Owner)
-                    .OrderBy(group =>
-                        string.Equals(
-                            group.Key,
-                            "T's Core",
-                            StringComparison.OrdinalIgnoreCase)
-                            ? 0
-                            : 1)
-                    .ThenBy(group => group.Key)
-                    .ToList();
-
-            DebugLogHelper.LogBlankLine(
-                monitor);
-
-            for (int groupIndex = 0;
-                 groupIndex < groupList.Count;
-                 groupIndex++)
+            foreach (RegisteredBuildingProviderInfo provider
+                in providers.OrderBy(
+                    provider => provider.Id,
+                    StringComparer.OrdinalIgnoreCase))
             {
-                IGrouping<string, RegisteredBuildingProviderInfo> group =
-                    groupList[groupIndex];
-
-                List<RegisteredBuildingProviderInfo> providerList =
-                    group
-                        .OrderBy(provider => provider.Id)
-                        .ToList();
-
                 monitor.Log(
-                    $"----- {group.Key} ({providerList.Count}) -----",
+                    $"    {provider.Id}",
                     LogLevel.Info);
-
-                DebugLogHelper.LogBlankLine(
-                    monitor);
-
-                foreach (RegisteredBuildingProviderInfo provider in providerList)
-                {
-                    monitor.Log(
-                        $"    {provider.Id}",
-                        LogLevel.Info);
-                }
-
-                if (groupIndex < groupList.Count - 1)
-                {
-                    DebugLogHelper.LogBlankLine(
-                        monitor);
-                }
             }
         }
 
@@ -233,13 +242,8 @@ namespace Ts_Core.Debug
 
             DebugLogHelper.LogField(
                 monitor,
-                "Owner",
-                provider.Owner);
-
-            DebugLogHelper.LogField(
-                monitor,
-                "Source File",
-                provider.SourceFile);
+                "Data Asset",
+                BuildingProviderDataService.AssetName);
 
             DebugLogHelper.LogField(
                 monitor,
@@ -251,6 +255,15 @@ namespace Ts_Core.Debug
                 "Valley Farm Only",
                 provider.ValleyFarmOnly);
 
+            //----------------------------------------
+            // Buildings
+            //----------------------------------------
+
+            DebugLogHelper.LogField(
+                monitor,
+                "Buildings Enabled",
+                provider.BuildingsEnabled);
+
             DebugLogHelper.LogField(
                 monitor,
                 "Buildings Enable Field",
@@ -259,13 +272,31 @@ namespace Ts_Core.Debug
                     ? "(none)"
                     : provider.BuildingsEnabledField);
 
+            //----------------------------------------
+            // Lights
+            //----------------------------------------
+
             DebugLogHelper.LogField(
                 monitor,
-                "Light Enable Field",
+                "Lights Enabled",
+                provider.LightsEnabled);
+
+            DebugLogHelper.LogField(
+                monitor,
+                "Lights Enable Field",
                 string.IsNullOrWhiteSpace(
                     provider.LightsEnabledField)
                     ? "(none)"
                     : provider.LightsEnabledField);
+
+            //----------------------------------------
+            // DrawLayers
+            //----------------------------------------
+
+            DebugLogHelper.LogField(
+                monitor,
+                "DrawLayers Enabled",
+                provider.DrawLayersEnabled);
 
             DebugLogHelper.LogField(
                 monitor,
@@ -311,6 +342,21 @@ namespace Ts_Core.Debug
                     monitor.Log(
                         $"    {light.Id}",
                         LogLevel.Info);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Enabled",
+                        light.Enabled,
+                        indent: 8);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Enabled Field",
+                        string.IsNullOrWhiteSpace(
+                            light.EnabledField)
+                            ? "(none)"
+                            : light.EnabledField,
+                        indent: 8);
 
                     DebugLogHelper.LogField(
                         monitor,
@@ -367,6 +413,21 @@ namespace Ts_Core.Debug
 
                     DebugLogHelper.LogField(
                         monitor,
+                        "Enabled",
+                        layer.Enabled,
+                        indent: 8);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Enabled Field",
+                        string.IsNullOrWhiteSpace(
+                            layer.EnabledField)
+                            ? "(none)"
+                            : layer.EnabledField,
+                        indent: 8);
+
+                    DebugLogHelper.LogField(
+                        monitor,
                         "Texture",
                         string.IsNullOrWhiteSpace(layer.Texture)
                             ? "(Building Texture)"
@@ -410,7 +471,8 @@ namespace Ts_Core.Debug
                     DebugLogHelper.LogField(
                         monitor,
                         "Frame Duration",
-                        layer.FrameDuration,
+                        FormatFrameDuration(
+                            layer.FrameDuration),
                         indent: 8);
 
                     DebugLogHelper.LogField(
@@ -458,7 +520,7 @@ namespace Ts_Core.Debug
         // ・後々削除予定
 
         /// <summary>
-        /// 現在登録されているBuilding Light情報を表示します。
+        /// 現在のBuilding Light情報を表示します。
         /// </summary>
         internal static void LogBuildingLights(
             IMonitor monitor)
@@ -472,6 +534,10 @@ namespace Ts_Core.Debug
 
             monitor.Log(
                 "===== Building Lights =====",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"Data Asset: {BuildingProviderDataService.AssetName}",
                 LogLevel.Info);
 
             monitor.Log(
@@ -490,135 +556,139 @@ namespace Ts_Core.Debug
                 return;
             }
 
-            List<IGrouping<string, RegisteredBuildingProviderInfo>> groupList =
+            List<RegisteredBuildingProviderInfo> providerList =
                 providers
-                    .Where(provider =>
-                        provider.Lights.Count > 0)
-                    .GroupBy(provider => provider.Owner)
-                    .OrderBy(group =>
-                        string.Equals(
-                            group.Key,
-                            "T's Core",
-                            StringComparison.OrdinalIgnoreCase)
-                            ? 0
-                            : 1)
-                    .ThenBy(group => group.Key)
+                    .Where(
+                        provider =>
+                            provider.Lights.Count > 0)
+                    .OrderBy(
+                        provider => provider.Id,
+                        StringComparer.OrdinalIgnoreCase)
                     .ToList();
 
             DebugLogHelper.LogBlankLine(
                 monitor);
 
-            for (int groupIndex = 0;
-                 groupIndex < groupList.Count;
-                 groupIndex++)
+            for (int providerIndex = 0;
+                 providerIndex < providerList.Count;
+                 providerIndex++)
             {
-                IGrouping<string, RegisteredBuildingProviderInfo> group =
-                    groupList[groupIndex];
+                RegisteredBuildingProviderInfo provider =
+                    providerList[providerIndex];
 
                 monitor.Log(
-                    $"----- {group.Key} -----",
+                    provider.Id,
                     LogLevel.Info);
 
-                DebugLogHelper.LogBlankLine(
-                    monitor);
+                DebugLogHelper.LogField(
+                    monitor,
+                    "Building",
+                    provider.BuildingType);
 
-                List<RegisteredBuildingProviderInfo> providerList =
-                    group
-                        .OrderBy(provider => provider.Id)
-                        .ToList();
+                DebugLogHelper.LogField(
+                    monitor,
+                    "Valley Farm Only",
+                    provider.ValleyFarmOnly);
 
-                for (int providerIndex = 0;
-                     providerIndex < providerList.Count;
-                     providerIndex++)
+                DebugLogHelper.LogField(
+                    monitor,
+                    "Lights",
+                    provider.Lights.Count);
+
+                //----------------------------------------
+                // Provider Enabled
+                //----------------------------------------
+
+                DebugLogHelper.LogField(
+                    monitor,
+                    "Buildings Enabled",
+                    provider.BuildingsEnabled);
+
+                DebugLogHelper.LogField(
+                    monitor,
+                    "Buildings Enable Field",
+                    string.IsNullOrWhiteSpace(
+                        provider.BuildingsEnabledField)
+                        ? "(none)"
+                        : provider.BuildingsEnabledField);
+
+                DebugLogHelper.LogField(
+                    monitor,
+                    "Lights Enabled",
+                    provider.LightsEnabled);
+
+                DebugLogHelper.LogField(
+                    monitor,
+                    "Lights Enable Field",
+                    string.IsNullOrWhiteSpace(
+                        provider.LightsEnabledField)
+                        ? "(none)"
+                        : provider.LightsEnabledField);
+
+                //----------------------------------------
+                // Light一覧
+                //----------------------------------------
+
+                if (provider.Lights.Count > 0)
                 {
-                    RegisteredBuildingProviderInfo provider =
-                        providerList[providerIndex];
+                    DebugLogHelper.LogBlankLine(
+                        monitor);
 
-                    monitor.Log(
-                        provider.Id,
-                        LogLevel.Info);
-
-                    DebugLogHelper.LogField(
-                        monitor,
-                        "Building",
-                        provider.BuildingType);
-
-                    DebugLogHelper.LogField(
-                        monitor,
-                        "Valley Farm Only",
-                        provider.ValleyFarmOnly);
-
-                    DebugLogHelper.LogField(
-                        monitor,
-                        "Lights",
-                        provider.Lights.Count);
-
-                    DebugLogHelper.LogField(
-                        monitor,
-                        "Buildings Enable Field",
-                        string.IsNullOrWhiteSpace(
-                            provider.BuildingsEnabledField)
-                            ? "(none)"
-                            : provider.BuildingsEnabledField);
-
-                    DebugLogHelper.LogField(
-                        monitor,
-                        "Lights Enable Field",
-                        string.IsNullOrWhiteSpace(
-                            provider.LightsEnabledField)
-                            ? "(none)"
-                            : provider.LightsEnabledField);
-
-                    if (provider.Lights.Count > 0)
+                    for (int lightIndex = 0;
+                         lightIndex < provider.Lights.Count;
+                         lightIndex++)
                     {
-                        DebugLogHelper.LogBlankLine(
-                            monitor);
+                        BuildingLightModel light =
+                            provider.Lights[lightIndex];
 
-                        for (int lightIndex = 0;
-                             lightIndex < provider.Lights.Count;
-                             lightIndex++)
+                        monitor.Log(
+                            $"    {light.Id}",
+                            LogLevel.Info);
+
+                        DebugLogHelper.LogField(
+                            monitor,
+                            "Enabled",
+                            light.Enabled,
+                            indent: 8);
+
+                        DebugLogHelper.LogField(
+                            monitor,
+                            "Enabled Field",
+                            string.IsNullOrWhiteSpace(
+                                light.EnabledField)
+                                ? "(none)"
+                                : light.EnabledField,
+                            indent: 8);
+
+                        DebugLogHelper.LogField(
+                            monitor,
+                            "Offset",
+                            $"({light.OffsetX}, {light.OffsetY})",
+                            indent: 8);
+
+                        DebugLogHelper.LogField(
+                            monitor,
+                            "Radius",
+                            light.Radius,
+                            indent: 8);
+
+                        DebugLogHelper.LogField(
+                            monitor,
+                            "Color",
+                            light.Color,
+                            indent: 8);
+
+                        if (lightIndex <
+                            provider.Lights.Count - 1)
                         {
-                            BuildingLightModel light =
-                                provider.Lights[lightIndex];
-
-                            monitor.Log(
-                                $"    {light.Id}",
-                                LogLevel.Info);
-
-                            DebugLogHelper.LogField(
-                                monitor,
-                                "Offset",
-                                $"({light.OffsetX}, {light.OffsetY})",
-                                indent: 8);
-
-                            DebugLogHelper.LogField(
-                                monitor,
-                                "Radius",
-                                light.Radius,
-                                indent: 8);
-
-                            DebugLogHelper.LogField(
-                                monitor,
-                                "Color",
-                                light.Color,
-                                indent: 8);
-
-                            if (lightIndex < provider.Lights.Count - 1)
-                            {
-                                DebugLogHelper.LogBlankLine(
-                                    monitor);
-                            }
+                            DebugLogHelper.LogBlankLine(
+                                monitor);
                         }
-                    }
-
-                    if (providerIndex < providerList.Count - 1)
-                    {
-                        DebugLogHelper.LogBlankLine(
-                            monitor);
                     }
                 }
 
-                if (groupIndex < groupList.Count - 1)
+                if (providerIndex <
+                    providerList.Count - 1)
                 {
                     DebugLogHelper.LogBlankLine(
                         monitor);
@@ -636,7 +706,7 @@ namespace Ts_Core.Debug
         // ・後々削除予定
 
         /// <summary>
-        /// 現在登録されている条件付きBuilding DrawLayerを表示します。
+        /// 現在の条件付きBuilding DrawLayerを表示します。
         /// </summary>
         internal static void LogBuildingDrawLayers(
             IMonitor monitor)
@@ -650,6 +720,10 @@ namespace Ts_Core.Debug
 
             monitor.Log(
                 "===== Building DrawLayers =====",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"Data Asset: {BuildingProviderDataService.AssetName}",
                 LogLevel.Info);
 
             monitor.Log(
@@ -668,188 +742,194 @@ namespace Ts_Core.Debug
                 return;
             }
 
-            List<IGrouping<string, RegisteredBuildingProviderInfo>> groupList =
+            List<RegisteredBuildingProviderInfo> providerList =
                 providers
-                    .Where(provider =>
-                        provider.DrawLayers.Count > 0)
-                    .GroupBy(provider => provider.Owner)
-                    .OrderBy(group =>
-                        string.Equals(
-                            group.Key,
-                            "T's Core",
-                            StringComparison.OrdinalIgnoreCase)
-                            ? 0
-                            : 1)
-                    .ThenBy(group => group.Key)
+                    .Where(
+                        provider =>
+                            provider.DrawLayers.Count > 0)
+                    .OrderBy(
+                        provider => provider.Id,
+                        StringComparer.OrdinalIgnoreCase)
                     .ToList();
 
             DebugLogHelper.LogBlankLine(
                 monitor);
 
-            for (int groupIndex = 0;
-                 groupIndex < groupList.Count;
-                 groupIndex++)
+            for (int providerIndex = 0;
+                 providerIndex < providerList.Count;
+                 providerIndex++)
             {
-                IGrouping<string, RegisteredBuildingProviderInfo> group =
-                    groupList[groupIndex];
+                RegisteredBuildingProviderInfo provider =
+                    providerList[providerIndex];
 
                 monitor.Log(
-                    $"----- {group.Key} -----",
+                    provider.Id,
                     LogLevel.Info);
+
+                DebugLogHelper.LogField(
+                    monitor,
+                    "Building",
+                    provider.BuildingType);
+
+                DebugLogHelper.LogField(
+                    monitor,
+                    "Valley Farm Only",
+                    provider.ValleyFarmOnly);
+
+                DebugLogHelper.LogField(
+                    monitor,
+                    "DrawLayers",
+                    provider.DrawLayers.Count);
+
+                //----------------------------------------
+                // Provider Enabled
+                //----------------------------------------
+
+                DebugLogHelper.LogField(
+                    monitor,
+                    "Buildings Enabled",
+                    provider.BuildingsEnabled);
+
+                DebugLogHelper.LogField(
+                    monitor,
+                    "Buildings Enable Field",
+                    string.IsNullOrWhiteSpace(
+                        provider.BuildingsEnabledField)
+                        ? "(none)"
+                        : provider.BuildingsEnabledField);
+
+                DebugLogHelper.LogField(
+                    monitor,
+                    "DrawLayers Enabled",
+                    provider.DrawLayersEnabled);
+
+                DebugLogHelper.LogField(
+                    monitor,
+                    "DrawLayers Enable Field",
+                    string.IsNullOrWhiteSpace(
+                        provider.DrawLayersEnabledField)
+                        ? "(none)"
+                        : provider.DrawLayersEnabledField);
 
                 DebugLogHelper.LogBlankLine(
                     monitor);
 
-                List<RegisteredBuildingProviderInfo> providerList =
-                    group
-                        .OrderBy(provider => provider.Id)
-                        .ToList();
+                //----------------------------------------
+                // DrawLayer一覧
+                //----------------------------------------
 
-                for (int providerIndex = 0;
-                     providerIndex < providerList.Count;
-                     providerIndex++)
+                for (int layerIndex = 0;
+                     layerIndex < provider.DrawLayers.Count;
+                     layerIndex++)
                 {
-                    RegisteredBuildingProviderInfo provider =
-                        providerList[providerIndex];
+                    BuildingDrawLayerModel layer =
+                        provider.DrawLayers[layerIndex];
 
                     monitor.Log(
-                        provider.Id,
+                        $"    {layer.Id}",
                         LogLevel.Info);
 
                     DebugLogHelper.LogField(
                         monitor,
-                        "Building",
-                        provider.BuildingType);
+                        "Enabled",
+                        layer.Enabled,
+                        indent: 8);
 
                     DebugLogHelper.LogField(
                         monitor,
-                        "Valley Farm Only",
-                        provider.ValleyFarmOnly);
-
-                    DebugLogHelper.LogField(
-                        monitor,
-                        "DrawLayers",
-                        provider.DrawLayers.Count);
-
-                    DebugLogHelper.LogField(
-                        monitor,
-                        "Buildings Enable Field",
+                        "Enabled Field",
                         string.IsNullOrWhiteSpace(
-                            provider.BuildingsEnabledField)
+                            layer.EnabledField)
                             ? "(none)"
-                            : provider.BuildingsEnabledField);
+                            : layer.EnabledField,
+                        indent: 8);
 
                     DebugLogHelper.LogField(
                         monitor,
-                        "DrawLayers Enable Field",
+                        "Texture",
+                        string.IsNullOrWhiteSpace(layer.Texture)
+                            ? "(Building Texture)"
+                            : layer.Texture,
+                        indent: 8);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "SourceRect",
+                        $"({layer.SourceRect.X}, {layer.SourceRect.Y}, " +
+                        $"{layer.SourceRect.Width}, {layer.SourceRect.Height})",
+                        indent: 8);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "DrawPosition",
+                        $"({layer.DrawPosition.X}, {layer.DrawPosition.Y})",
+                        indent: 8);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Background",
+                        layer.DrawInBackground,
+                        indent: 8);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Sort Offset",
+                        layer.SortTileOffset,
+                        indent: 8);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Frames",
+                        layer.FrameCount,
+                        indent: 8);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Frame Duration",
+                        FormatFrameDuration(
+                            layer.FrameDuration),
+                        indent: 8);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Frames Per Row",
+                        layer.FramesPerRow,
+                        indent: 8);
+
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Chest",
                         string.IsNullOrWhiteSpace(
-                            provider.DrawLayersEnabledField)
+                            layer.OnlyDrawIfChestHasContents)
                             ? "(none)"
-                            : provider.DrawLayersEnabledField);
+                            : layer.OnlyDrawIfChestHasContents,
+                        indent: 8);
 
-                    DebugLogHelper.LogBlankLine(
-                        monitor);
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Animal Door Offset",
+                        $"({layer.AnimalDoorOffset.X}, {layer.AnimalDoorOffset.Y})",
+                        indent: 8);
 
-                    for (int layerIndex = 0;
-                         layerIndex < provider.DrawLayers.Count;
-                         layerIndex++)
-                    {
-                        BuildingDrawLayerModel layer =
-                            provider.DrawLayers[layerIndex];
+                    DebugLogHelper.LogField(
+                        monitor,
+                        "Condition",
+                        string.IsNullOrWhiteSpace(
+                            layer.Condition)
+                            ? "(none)"
+                            : layer.Condition,
+                        indent: 8);
 
-                        monitor.Log(
-                            $"    {layer.Id}",
-                            LogLevel.Info);
-
-                        DebugLogHelper.LogField(
-                            monitor,
-                            "Texture",
-                            string.IsNullOrWhiteSpace(layer.Texture)
-                                ? "(Building Texture)"
-                                : layer.Texture,
-                            indent: 8);
-
-                        DebugLogHelper.LogField(
-                            monitor,
-                            "SourceRect",
-                            $"({layer.SourceRect.X}, {layer.SourceRect.Y}, " +
-                            $"{layer.SourceRect.Width}, {layer.SourceRect.Height})",
-                            indent: 8);
-
-                        DebugLogHelper.LogField(
-                            monitor,
-                            "DrawPosition",
-                            $"({layer.DrawPosition.X}, {layer.DrawPosition.Y})",
-                            indent: 8);
-
-                        DebugLogHelper.LogField(
-                            monitor,
-                            "Background",
-                            layer.DrawInBackground,
-                            indent: 8);
-
-                        DebugLogHelper.LogField(
-                            monitor,
-                            "Sort Offset",
-                            layer.SortTileOffset,
-                            indent: 8);
-
-                        DebugLogHelper.LogField(
-                            monitor,
-                            "Frames",
-                            layer.FrameCount,
-                            indent: 8);
-
-                        DebugLogHelper.LogField(
-                            monitor,
-                            "Frame Duration",
-                            layer.FrameDuration,
-                            indent: 8);
-
-                        DebugLogHelper.LogField(
-                            monitor,
-                            "Frames Per Row",
-                            layer.FramesPerRow,
-                            indent: 8);
-
-                        DebugLogHelper.LogField(
-                            monitor,
-                            "Chest",
-                            string.IsNullOrWhiteSpace(
-                                layer.OnlyDrawIfChestHasContents)
-                                ? "(none)"
-                                : layer.OnlyDrawIfChestHasContents,
-                            indent: 8);
-
-                        DebugLogHelper.LogField(
-                            monitor,
-                            "Animal Door Offset",
-                            $"({layer.AnimalDoorOffset.X}, {layer.AnimalDoorOffset.Y})",
-                            indent: 8);
-
-                        DebugLogHelper.LogField(
-                            monitor,
-                            "Condition",
-                            string.IsNullOrWhiteSpace(layer.Condition)
-                                ? "(none)"
-                                : layer.Condition,
-                            indent: 8);
-
-                        if (layerIndex < provider.DrawLayers.Count - 1)
-                        {
-                            DebugLogHelper.LogBlankLine(
-                                monitor);
-                        }
-                    }
-
-                    if (providerIndex < providerList.Count - 1)
+                    if (layerIndex <
+                        provider.DrawLayers.Count - 1)
                     {
                         DebugLogHelper.LogBlankLine(
                             monitor);
                     }
                 }
 
-                if (groupIndex < groupList.Count - 1)
+                if (providerIndex <
+                    providerList.Count - 1)
                 {
                     DebugLogHelper.LogBlankLine(
                         monitor);

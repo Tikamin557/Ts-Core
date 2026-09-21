@@ -63,17 +63,6 @@ namespace Ts_Core.Debug
             // Debug
             //----------------------------------------
 
-            // T's Coreの機能を再読み込み
-            helper.ConsoleCommands.Add(
-                "tscore_reload",
-                "Reload T's Core data. Usage: tscore_reload [all|warp|building|notification]",
-                (command, args) =>
-                    DebugReloadService.Reload(
-                        helper,
-                        monitor,
-                        args));
-
-
             // Content PatcherのContent Packを再読み込み
             helper.ConsoleCommands.Add(
                 "tscore_cp_reload",
@@ -103,6 +92,15 @@ namespace Ts_Core.Debug
                 (command, args) =>
                     DebugWarpLogger.LogWarpProviders(
                         monitor));
+
+            // Dialogue一覧の表示・表示テスト
+            helper.ConsoleCommands.Add(
+                "tscore_debug_dialogue",
+                "Print registered Dialogues or show a Dialogue. Usage: tscore_debug_dialogue [DialogueId]",
+                (command, args) =>
+                    DebugDialogueLogger.Handle(
+                        monitor,
+                        args));
 
             //----------------------------------------
             // Building
@@ -158,7 +156,7 @@ namespace Ts_Core.Debug
                 "tscore_debug_notification_themes",
                 "Print notification themes.",
                 (command, args) =>
-                    DebugNotificationLogger.LogThemes(
+                    DebugNotificationLogger.LogNotificationThemes(
                         monitor));
 
             // 通知表示をテスト

@@ -2,18 +2,12 @@
 {
     /// <summary>
     /// Warp Provider定義です。
-    /// JSONから読み込まれるワープ情報を保持します。
     /// </summary>
     public class WarpProviderModel
     {
         //----------------------------------------
         // 共通
         //----------------------------------------
-
-        /// <summary>
-        /// Warp Providerの一意なIDです。
-        /// </summary>
-        public string Id { get; set; } = "";
 
         /// <summary>
         /// Warp Providerの種類です。

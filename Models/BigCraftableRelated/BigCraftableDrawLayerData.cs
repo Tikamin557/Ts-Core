@@ -1,11 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace Ts_Core.Models
+namespace Ts_Core.Models.BigCraftableRelated
 {
     /// <summary>
-    /// Buildingに追加するDrawLayerの定義です。
+    /// BigCraftable Extensionに追加する
+    /// DrawLayerの定義です。
     /// </summary>
-    public sealed class BuildingDrawLayerModel
+    public sealed class BigCraftableDrawLayerData
     {
         //----------------------------------------
         // Basic
@@ -14,21 +15,7 @@ namespace Ts_Core.Models
         /// <summary>
         /// DrawLayer IDです。
         /// </summary>
-        public string Id { get; set; } = "";
-
-        /// <summary>
-        /// このDrawLayerが有効かどうかです。
-        /// </summary>
-        public bool Enabled { get; set; } = true;
-
-        /// <summary>
-        /// このDrawLayerの有効・無効を制御する
-        /// CustomFieldsのキーです。
-        ///
-        /// 未指定の場合は
-        /// Enabledのみで判定します。
-        /// </summary>
-        public string? EnabledField { get; set; }
+        public string Id { get; set; } = string.Empty;
 
         //----------------------------------------
         // Texture
@@ -38,48 +25,39 @@ namespace Ts_Core.Models
         /// 使用するTextureです。
         ///
         /// 未指定の場合は
-        /// Building本体のTextureを使用します。
+        /// BigCraftable本体のTextureを使用します。
         /// </summary>
         public string? Texture { get; set; }
 
         /// <summary>
-        /// Textureから使用する範囲です。
+        /// DrawLayerのTextureから使用する
+        /// 基準Source Rectangleです。
+        /// Animation時はこの位置を
+        /// 第1Frameとして使用します。
         /// </summary>
         public Rectangle SourceRect { get; set; }
             = Rectangle.Empty;
 
+        //----------------------------------------
+        // Draw
+        //----------------------------------------
+
         /// <summary>
-        /// Building左上を基準とした
+        /// BigCraftable本体の描画位置を基準とした
         /// 描画位置です。
         /// </summary>
         public Vector2 DrawPosition { get; set; }
             = Vector2.Zero;
 
-        //----------------------------------------
-        // Draw Order
-        //----------------------------------------
-
         /// <summary>
-        /// Background側へ描画するかどうかです。
+        /// 描画に使用するLayerです。
+        /// "Back" または "Front" を指定します。
         /// </summary>
-        public bool DrawInBackground { get; set; }
-
-        /// <summary>
-        /// 描画順計算用のタイルオフセットです。
-        /// </summary>
-        public float SortTileOffset { get; set; }
+        public string DrawLayer { get; set; } = "Back";
 
         //----------------------------------------
         // Animation
         //----------------------------------------
-
-        /// <summary>
-        /// フレームごとの表示時間です。
-        ///
-        /// 数値1つ、
-        /// またはFrameCountと同数の配列を指定できます。
-        /// </summary>
-        public object FrameDuration { get; set; } = 90;
 
         /// <summary>
         /// アニメーションのフレーム数です。
@@ -93,27 +71,13 @@ namespace Ts_Core.Models
         /// </summary>
         public int FramesPerRow { get; set; } = -1;
 
-        //----------------------------------------
-        // Conditions
-        //----------------------------------------
-
         /// <summary>
-        /// 指定したChestに中身がある場合のみ
-        /// 描画します。
+        /// フレームごとの表示時間です。
+        ///
+        /// 数値1つ、
+        /// またはFrameCountと同数の配列を指定できます。
         /// </summary>
-        public string? OnlyDrawIfChestHasContents { get; set; }
-
-        /// <summary>
-        /// Animal Doorを基準にする場合の
-        /// オフセットです。
-        /// </summary>
-        public Vector2 AnimalDoorOffset { get; set; }
-            = Vector2.Zero;
-
-        /// <summary>
-        /// 描画条件です。
-        /// </summary>
-        public string? Condition { get; set; }
+        public object FrameDuration { get; set; } = 90;
 
         //----------------------------------------
         // Frame Duration

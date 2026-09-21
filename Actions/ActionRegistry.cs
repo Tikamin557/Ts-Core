@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using StardewValley;
+using StardewValley.Delegates;
 using StardewValley.Triggers;
+using Ts_Core.Services.DialogueRelated;
 using Ts_Core.Services.Notification;
 using Ts_Core.Services.WarpRelated;
 
@@ -50,8 +52,29 @@ namespace Ts_Core.Actions
                 NotificationAction.HandleTileAction);
 
             //----------------------------------------
+            // Dialogue Action
+            //----------------------------------------
+
+            RegisterAction(
+                "TsCoreDialogue",
+                DialogueAction.HandleTouchAction,
+                DialogueAction.HandleTileAction);
+
+            //----------------------------------------
             // Trigger Action
             //----------------------------------------
+
+            TriggerActionManager.RegisterAction(
+                "TsCoreWarp",
+                RunWarpTriggerAction);
+
+            TriggerActionManager.RegisterAction(
+                "TsCoreMagicWarp",
+                RunWarpTriggerAction);
+
+            TriggerActionManager.RegisterAction(
+                "TsCoreMagicWarp_Simple",
+                RunWarpTriggerAction);
 
             TriggerActionManager.RegisterAction(
                 "TsCoreNotification",
@@ -684,6 +707,44 @@ namespace Ts_Core.Actions
             return ExecuteWarp(
                 location,
                 action);
+        }
+
+        //----------------------------------------
+        // Trigger Action
+        //----------------------------------------
+
+        /// <summary>
+        /// Trigger ActionからWarpを実行します。
+        /// </summary>
+        internal static bool RunWarpTriggerAction(
+            string[] args,
+            TriggerActionContext context,
+            out string error)
+        {
+            //----------------------------------------
+            // Warp実行
+            //----------------------------------------
+
+            bool success =
+                ExecuteWarp(
+                    Game1.currentLocation,
+                    args);
+
+            if (success)
+            {
+                error = null!;
+
+                return true;
+            }
+
+            //----------------------------------------
+            // 実行失敗
+            //----------------------------------------
+
+            error =
+                "Failed to execute the T's Core Warp action.";
+
+            return false;
         }
     }
 }

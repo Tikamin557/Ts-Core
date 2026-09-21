@@ -4,113 +4,225 @@ using Ts_Core.Services.Notification;
 namespace Ts_Core.Debug
 {
     /// <summary>
-    /// Notification関連のデバッグ情報をログへ出力します。
+    /// Notification ThemeのDebug表示を行います。
     /// </summary>
     internal static class DebugNotificationLogger
     {
-        //----------------------------------------
-        // Notification Theme
-        //----------------------------------------
-
         /// <summary>
-        /// 登録済みNotification Theme一覧を表示します。
+        /// 登録されているNotification Themeを表示します。
         /// </summary>
-        internal static void LogThemes(
+        public static void LogNotificationThemes(
             IMonitor monitor)
         {
-            List<string> builtinThemes =
-                NotificationThemeManager
-                    .GetBuiltinThemeNames()
-                    .ToList();
-
-            List<string> contentPackThemes =
-                NotificationThemeManager
-                    .GetContentPackThemeNames()
-                    .ToList();
-
             monitor.Log(
                 "===== Notification Themes =====",
                 LogLevel.Info);
 
+            //----------------------------------------
+            // TsCore Built-in Themes
+            //----------------------------------------
+
+            LogThemeGroup(
+                monitor,
+                "TsCore Built-in Themes",
+                NotificationThemeManager
+                    .GetDefaultThemeNames()
+                    .ToList());
+
+            //----------------------------------------
+            // External Data Asset Themes
+            //----------------------------------------
+
+            LogThemeGroup(
+                monitor,
+                "External Data Asset Themes",
+                NotificationThemeManager
+                    .GetExternalThemeNames()
+                    .ToList());
+        }
+
+        /// <summary>
+        /// Themeグループを表示します。
+        /// </summary>
+        private static void LogThemeGroup(
+            IMonitor monitor,
+            string groupName,
+            IReadOnlyList<string> themeNames)
+        {
             monitor.Log(
-                $"Registered Themes: {builtinThemes.Count + contentPackThemes.Count}",
+                "",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"----- {groupName} -----",
+                LogLevel.Info);
+
+            monitor.Log(
+                "",
                 LogLevel.Info);
 
             //----------------------------------------
-            // T's Core
+            // Themeなし
             //----------------------------------------
 
-            DebugLogHelper.LogBlankLine(
-                monitor);
-
-            monitor.Log(
-                $"----- T's Core ({builtinThemes.Count}) -----",
-                LogLevel.Info);
-
-            DebugLogHelper.LogBlankLine(
-                monitor);
-
-            foreach (string name in builtinThemes)
+            if (themeNames.Count == 0)
             {
                 monitor.Log(
-                    $"    {name}",
-                    LogLevel.Info);
-            }
-
-            //----------------------------------------
-            // Content Packs
-            //----------------------------------------
-
-            DebugLogHelper.LogBlankLine(
-                monitor);
-
-            monitor.Log(
-                $"----- Content Packs ({contentPackThemes.Count}) -----",
-                LogLevel.Info);
-
-            DebugLogHelper.LogBlankLine(
-                monitor);
-
-            if (contentPackThemes.Count == 0)
-            {
-                monitor.Log(
-                    "    (none)",
+                    "(none)",
                     LogLevel.Info);
 
                 return;
             }
 
-            for (int i = 0;
-                 i < contentPackThemes.Count;
-                 i++)
+            //----------------------------------------
+            // Theme表示
+            //----------------------------------------
+
+            foreach (
+                string themeName in themeNames
+                    .OrderBy(p => p))
             {
-                string name =
-                    contentPackThemes[i];
-
-                int separator =
-                    name.LastIndexOf('.');
-
-                string shortName =
-                    separator >= 0
-                        ? name[(separator + 1)..]
-                        : name;
-
-                monitor.Log(
-                    $"    {shortName}",
-                    LogLevel.Info);
-
-                DebugLogHelper.LogField(
-                    monitor,
-                    "Full Name",
-                    name,
-                    indent: 8);
-
-                if (i < contentPackThemes.Count - 1)
+                if (!NotificationThemeManager.TryGetTheme(
+                    themeName,
+                    out NotificationTheme? theme)
+                    || theme == null)
                 {
-                    DebugLogHelper.LogBlankLine(
-                        monitor);
+                    continue;
                 }
+
+                LogTheme(
+                    monitor,
+                    themeName,
+                    theme);
             }
+        }
+
+        /// <summary>
+        /// Theme情報を表示します。
+        /// </summary>
+        private static void LogTheme(
+            IMonitor monitor,
+            string themeName,
+            NotificationTheme theme)
+        {
+            monitor.Log(
+                themeName,
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    Base                : {FormatValue(theme.Base)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    BackgroundColor     : {FormatValue(theme.BackgroundColor)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    BorderColor         : {FormatValue(theme.BorderColor)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    BorderStyle         : {FormatValue(theme.BorderStyle)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    BorderThickness     : {FormatValue(theme.BorderThickness)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    TextColor           : {FormatValue(theme.TextColor)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    ShadowColor         : {FormatValue(theme.ShadowColor)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    DrawShadow          : {FormatValue(theme.DrawShadow)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    ShadowOffset        : {FormatValue(theme.ShadowOffset)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    TextAnchor          : {FormatValue(theme.TextAnchor)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    TextScale           : {FormatValue(theme.TextScale)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    MinHeight           : {FormatValue(theme.MinHeight)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    MinWidth            : {FormatValue(theme.MinWidth)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    PaddingX            : {FormatValue(theme.PaddingX)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    PaddingY            : {FormatValue(theme.PaddingY)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    BorderPadding       : {FormatValue(theme.BorderPadding)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    Anchor              : {FormatValue(theme.Anchor)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    OffsetX             : {FormatValue(theme.OffsetX)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    OffsetY             : {FormatValue(theme.OffsetY)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    DismissOnLocationChange : {FormatValue(theme.DismissOnLocationChange)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                $"    DismissOnEnterLocations : {FormatLocations(theme.DismissOnEnterLocations)}",
+                LogLevel.Info);
+
+            monitor.Log(
+                "",
+                LogLevel.Info);
+        }
+
+        /// <summary>
+        /// 値をDebug表示用文字列へ変換します。
+        /// </summary>
+        private static string FormatValue(
+            object? value)
+        {
+            return value?.ToString()
+                ?? "(null)";
+        }
+
+        /// <summary>
+        /// Location一覧をDebug表示用文字列へ変換します。
+        /// </summary>
+        private static string FormatLocations(
+            IReadOnlyList<string>? locations)
+        {
+            if (locations == null
+                || locations.Count == 0)
+            {
+                return "(none)";
+            }
+
+            return string.Join(
+                ", ",
+                locations);
         }
     }
 }
