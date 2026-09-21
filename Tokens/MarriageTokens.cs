@@ -36,6 +36,15 @@ namespace Ts_Core.Tokens
                 manifest,
                 "OrderedPartners",
                 getOrderedPartners);
+
+            //----------------------------------------
+            // CanBeRomanced
+            //----------------------------------------
+
+            api.RegisterToken(
+                manifest,
+                "CanBeRomanced",
+                new CanBeRomancedToken());
         }
     }
 }

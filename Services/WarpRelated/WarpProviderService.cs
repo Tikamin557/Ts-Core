@@ -8,7 +8,7 @@ using Ts_Core.Models;
 namespace Ts_Core.Services.WarpRelated
 {
     /// <summary>
-    /// 登録済みWarp Providerのデバッグ情報です。
+    /// Warp Providerのデバッグ情報です。
     /// </summary>
     internal sealed class RegisteredWarpProviderInfo
     {
@@ -16,16 +16,6 @@ namespace Ts_Core.Services.WarpRelated
         /// Provider IDです。
         /// </summary>
         public string Id { get; init; } = "";
-
-        /// <summary>
-        /// Providerを登録したModまたはContent Packです。
-        /// </summary>
-        public string Owner { get; init; } = "";
-
-        /// <summary>
-        /// Provider定義ファイルのパスです。
-        /// </summary>
-        public string SourceFile { get; init; } = "";
 
         /// <summary>
         /// Providerの種類です。
@@ -69,7 +59,7 @@ namespace Ts_Core.Services.WarpRelated
     }
 
     /// <summary>
-    /// Warp Providerの登録・管理・Warp先解決を行うサービスです。
+    /// Warp Providerの管理・Warp先解決を行うサービスです。
     /// </summary>
     internal static class WarpProviderService
     {
@@ -87,92 +77,218 @@ namespace Ts_Core.Services.WarpRelated
             "CurrentHome";
 
         //----------------------------------------
-        // 登録済みProvider
+        // Monitor
         //----------------------------------------
 
-        private static readonly Dictionary<
-            string,
-            Func<GameLocation?, (string Location, Point Point)>>
-            WarpProviders =
-                new(
-                    StringComparer.OrdinalIgnoreCase);
+        private static IMonitor? Monitor;
 
         //----------------------------------------
-        // 登録済みProvider情報
+        // Reserved Provider Warning
         //----------------------------------------
 
-        private static readonly Dictionary<
-            string,
-            RegisteredWarpProviderInfo>
-            RegisteredProviders =
-                new(
-                    StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<string>
+            WarnedReservedProviderIds =
+                new(StringComparer.OrdinalIgnoreCase);
+
+        //----------------------------------------
+        // Initialize
+        //----------------------------------------
+
+        /// <summary>
+        /// Warp Provider Serviceを初期化します。
+        /// </summary>
+        internal static void Initialize(
+            IMonitor monitor)
+        {
+            Monitor =
+                monitor;
+        }
 
         //----------------------------------------
         // Provider情報取得
         //----------------------------------------
 
         /// <summary>
-        /// 現在登録されているJSON Warp Provider情報を取得します。
+        /// 現在のWarp Provider Data Assetを取得します。
         /// </summary>
-        internal static IReadOnlyList<RegisteredWarpProviderInfo>
+        private static Dictionary<
+            string,
+            WarpProviderModel> GetProviderData()
+        {
+            Dictionary<
+                string,
+                WarpProviderModel> providers =
+                    Game1.content.Load<
+                        Dictionary<
+                            string,
+                            WarpProviderModel>>(
+                                WarpProviderDataService.AssetName);
+
+            //----------------------------------------
+            // 予約Provider ID確認
+            //----------------------------------------
+
+            foreach (string providerId in providers.Keys)
+            {
+                if (!WarpProviderDataService
+                    .IsDefaultProvider(providerId))
+                {
+                    continue;
+                }
+
+                WarnReservedProvider(
+                    providerId);
+            }
+
+            return providers;
+        }
+
+        //----------------------------------------
+        // Reserved Provider Warning
+        //----------------------------------------
+
+        /// <summary>
+        /// TsCore標準Provider IDへの
+        /// 外部定義についてWarningを表示します。
+        /// </summary>
+        private static void WarnReservedProvider(
+            string providerId)
+        {
+            //----------------------------------------
+            // 同じIDは1回だけWarning
+            //----------------------------------------
+
+            if (!WarnedReservedProviderIds.Add(
+                    providerId))
+            {
+                return;
+            }
+
+            Monitor?.Log(
+                $"Warp Provider ID '{providerId}' is " +
+                $"reserved by T's Core and cannot be overridden.",
+                LogLevel.Warn);
+        }
+
+        //----------------------------------------
+        // Provider一覧取得
+        //----------------------------------------
+
+        /// <summary>
+        /// 現在登録されている
+        /// Warp Provider情報を取得します。
+        /// </summary>
+        internal static IReadOnlyList<
+            RegisteredWarpProviderInfo>
             GetRegisteredProviders()
         {
-            return RegisteredProviders.Values
-                .OrderBy(provider => provider.Owner)
-                .ThenBy(provider => provider.Id)
+            List<RegisteredWarpProviderInfo> providers =
+                new();
+
+            //----------------------------------------
+            // TsCore標準Provider
+            //----------------------------------------
+
+            foreach (
+                KeyValuePair<
+                    string,
+                    WarpProviderModel> entry
+                in WarpProviderDataService
+                    .GetDefaultProviders())
+            {
+                AddProviderInfo(
+                    providers,
+                    entry.Key,
+                    entry.Value);
+            }
+
+            //----------------------------------------
+            // 外部Data Asset Provider
+            //----------------------------------------
+
+            foreach (
+                KeyValuePair<
+                    string,
+                    WarpProviderModel> entry
+                in GetProviderData())
+            {
+                string providerId =
+                    entry.Key;
+
+                WarpProviderModel provider =
+                    entry.Value;
+
+                //----------------------------------------
+                // TsCore標準IDは予約済み
+                //----------------------------------------
+
+                if (WarpProviderDataService
+                    .IsDefaultProvider(providerId))
+                {
+                    WarnReservedProvider(
+                        providerId);
+
+                    continue;
+                }
+
+                //----------------------------------------
+                // 無効なProviderは表示対象外
+                //----------------------------------------
+
+                if (!IsValidProvider(
+                        providerId,
+                        provider))
+                {
+                    continue;
+                }
+
+                AddProviderInfo(
+                    providers,
+                    providerId,
+                    provider);
+            }
+
+            return providers
+                .OrderBy(provider =>
+                    provider.Id)
                 .ToList();
         }
 
-        //----------------------------------------
-        // Provider再読み込み
-        //----------------------------------------
-
         /// <summary>
-        /// 登録済みのWarp Providerをすべて削除します。
+        /// Warp Providerのデバッグ情報を追加します。
         /// </summary>
-        internal static void ClearProviders()
+        private static void AddProviderInfo(
+            List<RegisteredWarpProviderInfo> providers,
+            string providerId,
+            WarpProviderModel provider)
         {
-            WarpProviders.Clear();
-            RegisteredProviders.Clear();
-        }
+            providers.Add(
+                new RegisteredWarpProviderInfo
+                {
+                    Id = providerId,
+                    Type = provider.Type,
 
-        //----------------------------------------
-        // 組み込みProvider登録
-        //----------------------------------------
+                    SourceLocation =
+                        provider.Source,
 
-        /// <summary>
-        /// TsCore組み込みのWarp Providerを登録します。
-        /// </summary>
-        internal static void RegisterBuiltInProviders()
-        {
-            //----------------------------------------
-            // PlayerHome
-            //----------------------------------------
+                    TargetLocation =
+                        provider.Target,
 
-            AddProvider(
-                PlayerHomeProviderId,
-                sourceLocation =>
-                    GetPlayerHomeDestination());
+                    MapLocation =
+                        provider.Map,
 
-            //----------------------------------------
-            // PreviousHome
-            //----------------------------------------
+                    BuildingType =
+                        provider.BuildingType,
 
-            AddProvider(
-                PreviousHomeProviderId,
-                sourceLocation =>
-                    GetPreviousHomeDestination());
+                    OffsetX =
+                        provider.OffsetX,
 
-            //----------------------------------------
-            // CurrentHome
-            //----------------------------------------
+                    OffsetY =
+                        provider.OffsetY,
 
-            AddProvider(
-                CurrentHomeProviderId,
-                sourceLocation =>
-                    GetCurrentHomeDestination(
-                        sourceLocation));
+                    Fallback =
+                        provider.Fallback
+                });
         }
 
         //----------------------------------------
@@ -180,13 +296,35 @@ namespace Ts_Core.Services.WarpRelated
         //----------------------------------------
 
         /// <summary>
-        /// 指定されたProviderが登録されているか確認します。
+        /// 指定されたProviderが存在するか確認します。
         /// </summary>
         internal static bool ContainsProvider(
             string key)
         {
-            return WarpProviders.ContainsKey(
-                key);
+            if (string.IsNullOrWhiteSpace(
+                    key))
+            {
+                return false;
+            }
+
+            //----------------------------------------
+            // 組み込みProvider
+            //----------------------------------------
+
+            if (IsBuiltInProviderId(
+                    key))
+            {
+                return true;
+            }
+
+            //----------------------------------------
+            // Data Asset Provider
+            //----------------------------------------
+
+            return TryGetProvider(
+                key,
+                out _,
+                out _);
         }
 
         //----------------------------------------
@@ -219,13 +357,17 @@ namespace Ts_Core.Services.WarpRelated
         //----------------------------------------
 
         /// <summary>
-        /// 指定された名前と同名のGameLocationが存在するか確認します。
+        /// 指定された名前と同名のGameLocationが
+        /// 存在するか確認します。
         /// </summary>
         internal static bool HasLocationNameConflict(
             string key)
         {
-            if (string.IsNullOrWhiteSpace(key))
+            if (string.IsNullOrWhiteSpace(
+                    key))
+            {
                 return false;
+            }
 
             //----------------------------------------
             // 通常検索
@@ -236,7 +378,9 @@ namespace Ts_Core.Services.WarpRelated
                     key);
 
             if (location != null)
+            {
                 return true;
+            }
 
             //----------------------------------------
             // 大文字小文字を無視して確認
@@ -254,6 +398,182 @@ namespace Ts_Core.Services.WarpRelated
         }
 
         //----------------------------------------
+        // Provider取得
+        //----------------------------------------
+
+        /// <summary>
+        /// 指定されたProviderを取得します。
+        /// </summary>
+        private static bool TryGetProvider(
+            string key,
+            out string providerId,
+            out WarpProviderModel? provider)
+        {
+            providerId =
+                "";
+
+            provider =
+                null;
+
+            //----------------------------------------
+            // 外部Data Asset取得
+            //----------------------------------------
+
+            Dictionary<
+                string,
+                WarpProviderModel> assetProviders =
+                    GetProviderData();
+
+            //----------------------------------------
+            // TsCore標準Provider
+            //----------------------------------------
+
+            Dictionary<
+                string,
+                WarpProviderModel> defaultProviders =
+                    WarpProviderDataService
+                        .GetDefaultProviders();
+
+            if (defaultProviders.TryGetValue(
+                    key,
+                    out WarpProviderModel?
+                        defaultProvider))
+            {
+                providerId =
+                    key;
+
+                provider =
+                    defaultProvider;
+
+                return true;
+            }
+
+            //----------------------------------------
+            // 外部Data Asset Provider
+            //----------------------------------------
+
+            foreach (
+                KeyValuePair<
+                    string,
+                    WarpProviderModel> entry
+                in assetProviders)
+            {
+                if (!string.Equals(
+                        entry.Key,
+                        key,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                //----------------------------------------
+                // TsCore標準IDは予約済み
+                //----------------------------------------
+
+                if (WarpProviderDataService
+                    .IsDefaultProvider(entry.Key))
+                {
+                    WarnReservedProvider(
+                        entry.Key);
+
+                    return false;
+                }
+
+                if (!IsValidProvider(
+                        entry.Key,
+                        entry.Value))
+                {
+                    return false;
+                }
+
+                providerId =
+                    entry.Key;
+
+                provider =
+                    entry.Value;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        //----------------------------------------
+        // Provider Validation
+        //----------------------------------------
+
+        /// <summary>
+        /// Warp Provider定義が有効か確認します。
+        /// </summary>
+        private static bool IsValidProvider(
+            string providerId,
+            WarpProviderModel provider)
+        {
+            //----------------------------------------
+            // Provider ID
+            //----------------------------------------
+
+            if (string.IsNullOrWhiteSpace(
+                    providerId))
+            {
+                return false;
+            }
+
+            //----------------------------------------
+            // 組み込みProvider ID
+            //----------------------------------------
+
+            if (IsBuiltInProviderId(
+                    providerId))
+            {
+                return false;
+            }
+
+            //----------------------------------------
+            // Location名との重複
+            //----------------------------------------
+
+            if (HasLocationNameConflict(
+                    providerId))
+            {
+                return false;
+            }
+
+            //----------------------------------------
+            // Type別必須項目
+            //----------------------------------------
+
+            switch (provider.Type)
+            {
+                case "Warp":
+
+                    return
+                        !string.IsNullOrWhiteSpace(
+                            provider.Source)
+                        && !string.IsNullOrWhiteSpace(
+                            provider.Target);
+
+                case "MapEntry":
+
+                    return
+                        !string.IsNullOrWhiteSpace(
+                            provider.Map)
+                        && !string.IsNullOrWhiteSpace(
+                            provider.Target);
+
+                case "Building":
+
+                    return
+                        !string.IsNullOrWhiteSpace(
+                            provider.BuildingType);
+
+                default:
+
+                    return false;
+            }
+        }
+
+        //----------------------------------------
         // Provider解決
         //----------------------------------------
 
@@ -265,258 +585,161 @@ namespace Ts_Core.Services.WarpRelated
                 string key,
                 GameLocation? sourceLocation = null)
         {
-            if (!WarpProviders.TryGetValue(
+            //----------------------------------------
+            // PlayerHome
+            //----------------------------------------
+
+            if (string.Equals(
                     key,
-                    out Func<GameLocation?, (string Location, Point Point)>? provider))
+                    PlayerHomeProviderId,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return GetPlayerHomeDestination();
+            }
+
+            //----------------------------------------
+            // PreviousHome
+            //----------------------------------------
+
+            if (string.Equals(
+                    key,
+                    PreviousHomeProviderId,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return GetPreviousHomeDestination();
+            }
+
+            //----------------------------------------
+            // CurrentHome
+            //----------------------------------------
+
+            if (string.Equals(
+                    key,
+                    CurrentHomeProviderId,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return GetCurrentHomeDestination(
+                    sourceLocation);
+            }
+
+            //----------------------------------------
+            // Provider取得
+            //----------------------------------------
+
+            if (!TryGetProvider(
+                    key,
+                    out string providerId,
+                    out WarpProviderModel? provider)
+                || provider == null)
             {
                 throw new InvalidOperationException(
                     $"Warp Provider '{key}' was not found.");
             }
 
-            return provider(
+            return ResolveProvider(
+                providerId,
+                provider,
                 sourceLocation);
         }
 
         //----------------------------------------
-        // Provider追加
-        //----------------------------------------
-
-        private static void AddProvider(
-            string key,
-            Func<GameLocation?, (string Location, Point Point)> provider)
-        {
-            WarpProviders[key] =
-                provider;
-        }
-
-        //----------------------------------------
-        // Warp Provider登録
+        // Provider定義解決
         //----------------------------------------
 
         /// <summary>
-        /// JSONから読み込んだWarp Providerを登録します。
+        /// Warp Provider定義からWarp先を解決します。
         /// </summary>
-        internal static void RegisterProvider(
-            WarpProviderModel model,
-            string owner,
-            string sourceFile,
-            IMonitor monitor)
+        private static (string Location, Point Point)
+            ResolveProvider(
+                string providerId,
+                WarpProviderModel provider,
+                GameLocation? sourceLocation)
         {
-            //----------------------------------------
-            // Provider IDチェック
-            //----------------------------------------
-
-            if (string.IsNullOrWhiteSpace(
-                    model.Id))
+            switch (provider.Type)
             {
-                monitor.Log(
-                    $"Warp Provider in '{sourceFile}' has no Id.",
-                    LogLevel.Warn);
+                //----------------------------------------
+                // Warp
+                //----------------------------------------
 
-                return;
-            }
-
-            //----------------------------------------
-            // 組み込みProvider IDチェック
-            //----------------------------------------
-
-            if (IsBuiltInProviderId(
-                    model.Id))
-            {
-                monitor.Log(
-                    $"Warp Provider '{model.Id}' in '{sourceFile}' was ignored because " +
-                    $"the ID is reserved by TsCore.",
-                    LogLevel.Warn);
-
-                return;
-            }
-
-            //----------------------------------------
-            // Location名との重複チェック
-            //----------------------------------------
-
-            if (HasLocationNameConflict(
-                    model.Id))
-            {
-                monitor.Log(
-                    $"Warp Provider '{model.Id}' in '{sourceFile}' was ignored because " +
-                    $"the ID conflicts with an existing GameLocation name. " +
-                    $"Warp Provider IDs must not use GameLocation names.",
-                    LogLevel.Warn);
-
-                return;
-            }
-
-            //----------------------------------------
-            // 重複チェック
-            //----------------------------------------
-
-            if (RegisteredProviders.TryGetValue(
-                    model.Id,
-                    out RegisteredWarpProviderInfo? existingProvider))
-            {
-                monitor.Log(
-                    $"Duplicate Warp Provider '{model.Id}' ignored.\n" +
-                    $"Already registered by: {existingProvider.Owner}\n" +
-                    $"Existing file: {existingProvider.SourceFile}\n" +
-                    $"Ignored provider owner: {owner}\n" +
-                    $"Ignored file: {sourceFile}",
-                    LogLevel.Warn);
-
-                return;
-            }
-
-            //----------------------------------------
-            // 必須項目チェック
-            //----------------------------------------
-
-            switch (model.Type)
-            {
                 case "Warp":
 
-                    if (string.IsNullOrWhiteSpace(
-                            model.Source))
-                    {
-                        monitor.Log(
-                            $"Warp Provider '{model.Id}' of type Warp has no Source.",
-                            LogLevel.Warn);
+                    return GetWarpDestination(
+                        provider.Source!,
+                        provider.Target!,
+                        provider.Fallback,
+                        sourceLocation);
 
-                        return;
-                    }
-
-                    if (string.IsNullOrWhiteSpace(
-                            model.Target))
-                    {
-                        monitor.Log(
-                            $"Warp Provider '{model.Id}' of type Warp has no Target.",
-                            LogLevel.Warn);
-
-                        return;
-                    }
-
-                    break;
+                //----------------------------------------
+                // MapEntry
+                //----------------------------------------
 
                 case "MapEntry":
 
-                    if (string.IsNullOrWhiteSpace(
-                            model.Map))
-                    {
-                        monitor.Log(
-                            $"Warp Provider '{model.Id}' of type MapEntry has no Map.",
-                            LogLevel.Warn);
+                    return GetMapEntryDestination(
+                        provider.Map!,
+                        provider.Target!,
+                        provider.OffsetX,
+                        provider.OffsetY,
+                        provider.Fallback,
+                        sourceLocation);
 
-                        return;
-                    }
-
-                    if (string.IsNullOrWhiteSpace(
-                            model.Target))
-                    {
-                        monitor.Log(
-                            $"Warp Provider '{model.Id}' of type MapEntry has no Target.",
-                            LogLevel.Warn);
-
-                        return;
-                    }
-
-                    break;
+                //----------------------------------------
+                // Building
+                //----------------------------------------
 
                 case "Building":
 
-                    if (string.IsNullOrWhiteSpace(
-                            model.BuildingType))
-                    {
-                        monitor.Log(
-                            $"Warp Provider '{model.Id}' of type Building has no BuildingType.",
-                            LogLevel.Warn);
+                    return GetBuildingDestination(
+                        provider.BuildingType!,
+                        provider.OffsetX,
+                        provider.OffsetY,
+                        provider.Fallback,
+                        sourceLocation);
 
-                        return;
-                    }
-
-                    break;
-            }
-
-            //----------------------------------------
-            // Provider登録
-            //----------------------------------------
-
-            switch (model.Type)
-            {
-                case "Warp":
-
-                    AddProvider(
-                        model.Id,
-                        sourceLocation =>
-                            GetWarpDestination(
-                                model.Source!,
-                                model.Target!,
-                                model.Fallback,
-                                sourceLocation));
-
-                    break;
-
-                case "MapEntry":
-
-                    AddProvider(
-                        model.Id,
-                        sourceLocation =>
-                            GetMapEntryDestination(
-                                model.Map!,
-                                model.Target!,
-                                model.OffsetX,
-                                model.OffsetY,
-                                model.Fallback,
-                                sourceLocation));
-
-                    break;
-
-                case "Building":
-
-                    RegisterBuildingWarp(
-                        model.Id,
-                        model.BuildingType!,
-                        model.OffsetX,
-                        model.OffsetY,
-                        model.Fallback);
-
-                    break;
+                //----------------------------------------
+                // Unknown
+                //----------------------------------------
 
                 default:
 
-                    monitor.Log(
-                        $"Unknown Warp Provider type '{model.Type}' " +
-                        $"in '{Path.GetFileName(sourceFile)}'.",
-                        LogLevel.Warn);
+                    throw new InvalidOperationException(
+                        $"Warp Provider '{providerId}' has unsupported Type '{provider.Type}'.");
+            }
+        }
 
-                    return;
+        //----------------------------------------
+        // Fallback解決
+        //----------------------------------------
+
+        /// <summary>
+        /// Fallback ProviderからWarp先を解決します。
+        /// </summary>
+        private static bool TryResolveFallback(
+            string? fallback,
+            GameLocation? sourceLocation,
+            out (string Location, Point Point) destination)
+        {
+            destination =
+                default;
+
+            if (string.IsNullOrWhiteSpace(
+                    fallback))
+            {
+                return false;
             }
 
-            //----------------------------------------
-            // Provider情報保存
-            //----------------------------------------
+            if (!ContainsProvider(
+                    fallback))
+            {
+                return false;
+            }
 
-            RegisteredProviders[model.Id] =
-                new RegisteredWarpProviderInfo
-                {
-                    Id = model.Id,
-                    Owner = owner,
-                    SourceFile = sourceFile,
-                    Type = model.Type,
+            destination =
+                Resolve(
+                    fallback,
+                    sourceLocation);
 
-                    SourceLocation = model.Source,
-                    TargetLocation = model.Target,
-                    MapLocation = model.Map,
-
-                    BuildingType = model.BuildingType,
-                    OffsetX = model.OffsetX,
-                    OffsetY = model.OffsetY,
-
-                    Fallback = model.Fallback
-                };
-
-            monitor.Log(
-                $"Registered Warp Provider '{model.Id}' " +
-                $"from '{owner}'.",
-                LogLevel.Trace);
+            return true;
         }
 
         //----------------------------------------
@@ -559,14 +782,12 @@ namespace Ts_Core.Services.WarpRelated
             // Fallback
             //----------------------------------------
 
-            if (!string.IsNullOrWhiteSpace(
-                    fallback)
-                && WarpProviders.TryGetValue(
+            if (TryResolveFallback(
                     fallback,
-                    out Func<GameLocation?, (string Location, Point Point)>? fallbackProvider))
+                    actionSourceLocation,
+                    out (string Location, Point Point) destination))
             {
-                return fallbackProvider(
-                    actionSourceLocation);
+                return destination;
             }
 
             throw new InvalidOperationException(
@@ -618,20 +839,69 @@ namespace Ts_Core.Services.WarpRelated
             // Fallback
             //----------------------------------------
 
-            if (!string.IsNullOrWhiteSpace(
-                    fallback)
-                && WarpProviders.TryGetValue(
+            if (TryResolveFallback(
                     fallback,
-                    out Func<GameLocation?, (string Location, Point Point)>? fallbackProvider))
+                    actionSourceLocation,
+                    out (string Location, Point Point) destination))
             {
-                return fallbackProvider(
-                    actionSourceLocation);
+                return destination;
             }
 
             throw new InvalidOperationException(
                 $"MapEntry Provider could not be resolved. " +
                 $"Map: '{mapLocation}', " +
                 $"Target: '{targetLocation}', " +
+                $"Fallback: '{fallback ?? "(none)"}'.");
+        }
+
+        //----------------------------------------
+        // Building Provider
+        //----------------------------------------
+
+        private static (string Location, Point Point)
+            GetBuildingDestination(
+                string buildingType,
+                int offsetX,
+                int offsetY,
+                string? fallback,
+                GameLocation? actionSourceLocation)
+        {
+            Farm farm =
+                Game1.getFarm();
+
+            Building? building =
+                farm.buildings
+                    .FirstOrDefault(b =>
+                        b.buildingType.Value
+                        == buildingType);
+
+            if (building != null)
+            {
+                return (
+                    "Farm",
+                    new Point(
+                        building.tileX.Value
+                            + offsetX,
+                        building.tileY.Value
+                            + offsetY)
+                );
+            }
+
+            //----------------------------------------
+            // Fallback
+            //----------------------------------------
+
+            if (TryResolveFallback(
+                    fallback,
+                    actionSourceLocation,
+                    out (string Location, Point Point) destination))
+            {
+                return destination;
+            }
+
+            throw new InvalidOperationException(
+                $"Building Warp Provider could not be resolved. " +
+                $"BuildingType: '{buildingType}', " +
                 $"Fallback: '{fallback ?? "(none)"}'.");
         }
 
@@ -691,63 +961,6 @@ namespace Ts_Core.Services.WarpRelated
                 home.NameOrUniqueName,
                 home.getEntryLocation()
             );
-        }
-
-        //----------------------------------------
-        // Building Provider
-        //----------------------------------------
-
-        private static void RegisterBuildingWarp(
-            string key,
-            string buildingType,
-            int xoffset,
-            int yoffset,
-            string? fallback)
-        {
-            AddProvider(
-                key,
-                actionSourceLocation =>
-                {
-                    Farm farm =
-                        Game1.getFarm();
-
-                    Building? building =
-                        farm.buildings
-                            .FirstOrDefault(b =>
-                                b.buildingType.Value
-                                == buildingType);
-
-                    if (building != null)
-                    {
-                        return (
-                            "Farm",
-                            new Point(
-                                building.tileX.Value
-                                    + xoffset,
-                                building.tileY.Value
-                                    + yoffset)
-                        );
-                    }
-
-                    //----------------------------------------
-                    // Fallback
-                    //----------------------------------------
-
-                    if (!string.IsNullOrWhiteSpace(
-                            fallback)
-                        && WarpProviders.TryGetValue(
-                            fallback,
-                            out Func<GameLocation?, (string Location, Point Point)>? fallbackProvider))
-                    {
-                        return fallbackProvider(
-                            actionSourceLocation);
-                    }
-
-                    throw new InvalidOperationException(
-                        $"Building Warp Provider could not be resolved. " +
-                        $"BuildingType: '{buildingType}', " +
-                        $"Fallback: '{fallback ?? "(none)"}'.");
-                });
         }
     }
 }

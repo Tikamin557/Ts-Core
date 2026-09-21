@@ -103,6 +103,11 @@ namespace Ts_Core.Services.BuildingRelated
                 // 個別DrawLayer有効判定
                 //----------------------------------------
 
+                if (!drawLayer.Enabled)
+                {
+                    continue;
+                }
+
                 if (!BuildingProviderService.IsEnabledField(
                         provider,
                         drawLayer.EnabledField))
@@ -196,7 +201,7 @@ namespace Ts_Core.Services.BuildingRelated
                 Vector2 drawOffset =
                     Vector2.Zero;
 
-                if (drawLayer.AnimalDoorOffset != Point.Zero)
+                if (drawLayer.AnimalDoorOffset != Vector2.Zero)
                 {
                     drawOffset =
                         new Vector2(
@@ -342,22 +347,11 @@ namespace Ts_Core.Services.BuildingRelated
             foreach (BuildingProviderModel provider in providers)
             {
                 //----------------------------------------
-                // Building Provider全体
-                //----------------------------------------
-
-                if (!BuildingProviderService.IsProviderEnabled(
-                        provider))
-                {
-                    continue;
-                }
-
-                //----------------------------------------
                 // DrawLayers全体
                 //----------------------------------------
 
-                if (!BuildingProviderService.IsEnabledField(
-                        provider,
-                        provider.DrawLayersEnabledField))
+                if (!BuildingProviderService.AreDrawLayersEnabled(
+                        provider))
                 {
                     continue;
                 }
@@ -372,6 +366,11 @@ namespace Ts_Core.Services.BuildingRelated
                     //----------------------------------------
                     // 個別DrawLayer有効判定
                     //----------------------------------------
+
+                    if (!drawLayer.Enabled)
+                    {
+                        continue;
+                    }
 
                     if (!BuildingProviderService.IsEnabledField(
                             provider,
@@ -457,7 +456,7 @@ namespace Ts_Core.Services.BuildingRelated
                     Vector2 drawOffset =
                         Vector2.Zero;
 
-                    if (drawLayer.AnimalDoorOffset != Point.Zero)
+                    if (drawLayer.AnimalDoorOffset != Vector2.Zero)
                     {
                         drawOffset =
                             new Vector2(
@@ -708,22 +707,11 @@ namespace Ts_Core.Services.BuildingRelated
             foreach (BuildingProviderModel provider in providers)
             {
                 //----------------------------------------
-                // Building Provider全体
+                // DrawLayers全体
                 //----------------------------------------
 
-                if (!BuildingProviderService.IsProviderEnabled(
+                if (!BuildingProviderService.AreDrawLayersEnabled(
                         provider))
-                {
-                    continue;
-                }
-
-                //----------------------------------------
-                // DrawLayers
-                //----------------------------------------
-
-                if (!BuildingProviderService.IsEnabledField(
-                        provider,
-                        provider.DrawLayersEnabledField))
                 {
                     continue;
                 }
@@ -789,22 +777,11 @@ namespace Ts_Core.Services.BuildingRelated
             foreach (BuildingProviderModel provider in providers)
             {
                 //----------------------------------------
-                // Building Provider全体
-                //----------------------------------------
-
-                if (!BuildingProviderService.IsProviderEnabled(
-                        provider))
-                {
-                    continue;
-                }
-
-                //----------------------------------------
                 // DrawLayers全体
                 //----------------------------------------
 
-                if (!BuildingProviderService.IsEnabledField(
-                        provider,
-                        provider.DrawLayersEnabledField))
+                if (!BuildingProviderService.AreDrawLayersEnabled(
+                        provider))
                 {
                     continue;
                 }
@@ -819,6 +796,11 @@ namespace Ts_Core.Services.BuildingRelated
                     //----------------------------------------
                     // 個別DrawLayer
                     //----------------------------------------
+
+                    if (!drawLayer.Enabled)
+                    {
+                        continue;
+                    }
 
                     if (!BuildingProviderService.IsEnabledField(
                             provider,

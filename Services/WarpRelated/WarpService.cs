@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
-using Ts_Core.Models;
 
 namespace Ts_Core.Services.WarpRelated
 {
@@ -71,39 +70,6 @@ namespace Ts_Core.Services.WarpRelated
         {
             return WarpProviderService
                 .GetRegisteredProviders();
-        }
-
-        //----------------------------------------
-        // Provider再読み込み
-        //----------------------------------------
-
-        /// <summary>
-        /// 登録済みのWarp Providerをすべて削除します。
-        /// 再読み込み前に使用します。
-        /// </summary>
-        internal static void ClearProviders()
-        {
-            WarpProviderService.ClearProviders();
-        }
-
-        //----------------------------------------
-        // Provider登録
-        //----------------------------------------
-
-        /// <summary>
-        /// Warp Providerを登録します。
-        /// </summary>
-        public static void RegisterProvider(
-            WarpProviderModel model,
-            string owner,
-            string sourceFile,
-            IMonitor monitor)
-        {
-            WarpProviderService.RegisterProvider(
-                model,
-                owner,
-                sourceFile,
-                monitor);
         }
 
         //----------------------------------------

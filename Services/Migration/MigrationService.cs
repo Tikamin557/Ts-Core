@@ -1,13 +1,19 @@
 ﻿using StardewModdingAPI;
+using StardewValley;
 using Ts_Core.Models;
 
 namespace Ts_Core.Services.Migration
 {
     /// <summary>
-    /// 登録済みMigrationの情報です。
+    /// 登録されているMigrationの情報です。
     /// </summary>
     internal sealed class RegisteredMigrationInfo
     {
+        /// <summary>
+        /// Migration IDです。
+        /// </summary>
+        public string Id { get; init; } = "";
+
         /// <summary>
         /// Migrationの種類です。
         /// </summary>
@@ -22,16 +28,6 @@ namespace Ts_Core.Services.Migration
         /// 移行先となる新IDです。
         /// </summary>
         public string NewId { get; init; } = "";
-
-        /// <summary>
-        /// Migrationを登録したModまたはContent Packです。
-        /// </summary>
-        public string Owner { get; init; } = "";
-
-        /// <summary>
-        /// Migration定義ファイルのパスです。
-        /// </summary>
-        public string SourceFile { get; init; } = "";
     }
 
     /// <summary>
@@ -40,388 +36,262 @@ namespace Ts_Core.Services.Migration
     public static class MigrationService
     {
         //----------------------------------------
-        // アセットフォルダ
+        // Migration Data
         //----------------------------------------
 
-        private const string AssetFolder = "migration";
-
-        //----------------------------------------
-        // 登録済みMigration
-        //----------------------------------------
-
-        private static readonly List<MigrationModel>
-            Migrations =
-                new();
-
-        //----------------------------------------
-        // 登録済みMigration情報
-        //----------------------------------------
-
-        private static readonly List<RegisteredMigrationInfo>
-            RegisteredMigrations =
-                new();
+        /// <summary>
+        /// Migration用Data Assetを取得します。
+        /// </summary>
+        private static Dictionary<
+            string,
+            MigrationModel> GetMigrationData()
+        {
+            return Game1.content.Load<
+                Dictionary<
+                    string,
+                    MigrationModel>>(
+                        MigrationDataService.AssetName);
+        }
 
         //----------------------------------------
         // Migration取得
         //----------------------------------------
 
         /// <summary>
-        /// 現在登録されているMigrationを取得します。
+        /// 現在登録されている
+        /// 有効なMigrationを取得します。
         /// </summary>
         internal static IReadOnlyList<MigrationModel>
-            GetMigrations()
+            GetMigrations(
+                IMonitor? monitor = null)
         {
-            return Migrations;
+            return GetValidMigrationEntries(
+                    monitor)
+                .Select(entry =>
+                    entry.Value)
+                .ToList();
         }
 
         /// <summary>
-        /// Building用のMigration定義を取得します。
+        /// Building用の
+        /// Migration定義を取得します。
         /// </summary>
         internal static IReadOnlyList<MigrationModel>
-            GetBuildingMigrations()
+            GetBuildingMigrations(
+                IMonitor? monitor = null)
         {
-            return Migrations
-                .Where(migration =>
+            return GetValidMigrationEntries(
+                    monitor)
+                .Where(entry =>
                     string.Equals(
+                        entry.Value.Type,
+                        "Building",
+                        StringComparison.OrdinalIgnoreCase))
+                .Select(entry =>
+                    entry.Value)
+                .ToList();
+        }
+
+        /// <summary>
+        /// 現在登録されている
+        /// Migration情報を取得します。
+        /// </summary>
+        internal static IReadOnlyList<RegisteredMigrationInfo>
+            GetRegisteredMigrations(
+                IMonitor? monitor = null)
+        {
+            return GetValidMigrationEntries(
+                    monitor)
+                .Select(entry =>
+                    new RegisteredMigrationInfo
+                    {
+                        Id = entry.Key,
+                        Type = entry.Value.Type,
+                        OldId = entry.Value.OldId,
+                        NewId = entry.Value.NewId
+                    })
+                .OrderBy(migration =>
+                    migration.Type)
+                .ThenBy(migration =>
+                    migration.OldId)
+                .ToList();
+        }
+
+        //----------------------------------------
+        // Migration Validation
+        //----------------------------------------
+
+        /// <summary>
+        /// Data Asset内のMigrationから
+        /// 有効な定義のみを取得します。
+        /// </summary>
+        private static IReadOnlyList<
+            KeyValuePair<
+                string,
+                MigrationModel>>
+            GetValidMigrationEntries(
+                IMonitor? monitor)
+        {
+            Dictionary<
+                string,
+                MigrationModel> data =
+                    GetMigrationData();
+
+            List<
+                KeyValuePair<
+                    string,
+                    MigrationModel>> result =
+                        new();
+
+            //----------------------------------------
+            // 重複確認用
+            //----------------------------------------
+
+            Dictionary<
+                string,
+                string> registeredKeys =
+                    new(
+                        StringComparer.Ordinal);
+
+            //----------------------------------------
+            // Migration確認
+            //----------------------------------------
+
+            foreach (
+                KeyValuePair<
+                    string,
+                    MigrationModel> entry
+                in data)
+            {
+                string id =
+                    entry.Key;
+
+                MigrationModel migration =
+                    entry.Value;
+
+                //----------------------------------------
+                // Migration ID
+                //----------------------------------------
+
+                if (string.IsNullOrWhiteSpace(
+                        id))
+                {
+                    monitor?.Log(
+                        "Migration entry has no ID.",
+                        LogLevel.Warn);
+
+                    continue;
+                }
+
+                //----------------------------------------
+                // Type
+                //----------------------------------------
+
+                if (string.IsNullOrWhiteSpace(
+                        migration.Type))
+                {
+                    monitor?.Log(
+                        $"Migration '{id}' has no Type.",
+                        LogLevel.Warn);
+
+                    continue;
+                }
+
+                //----------------------------------------
+                // OldId
+                //----------------------------------------
+
+                if (string.IsNullOrWhiteSpace(
+                        migration.OldId))
+                {
+                    monitor?.Log(
+                        $"Migration '{id}' has no OldId.",
+                        LogLevel.Warn);
+
+                    continue;
+                }
+
+                //----------------------------------------
+                // NewId
+                //----------------------------------------
+
+                if (string.IsNullOrWhiteSpace(
+                        migration.NewId))
+                {
+                    monitor?.Log(
+                        $"Migration '{id}' has no NewId.",
+                        LogLevel.Warn);
+
+                    continue;
+                }
+
+                //----------------------------------------
+                // 同一ID
+                //----------------------------------------
+
+                if (string.Equals(
+                        migration.OldId,
+                        migration.NewId,
+                        StringComparison.Ordinal))
+                {
+                    monitor?.Log(
+                        $"Migration '{id}' has the same OldId and NewId: '{migration.OldId}'.",
+                        LogLevel.Warn);
+
+                    continue;
+                }
+
+                //----------------------------------------
+                // 現在対応しているType
+                //----------------------------------------
+
+                if (!string.Equals(
                         migration.Type,
                         "Building",
                         StringComparison.OrdinalIgnoreCase))
-                .ToList();
-        }
-
-        /// <summary>
-        /// 現在登録されているMigration情報を取得します。
-        /// </summary>
-        internal static IReadOnlyList<RegisteredMigrationInfo>
-            GetRegisteredMigrations()
-        {
-            return RegisteredMigrations
-                .OrderBy(migration => migration.Type)
-                .ThenBy(migration => migration.OldId)
-                .ToList();
-        }
-
-        //----------------------------------------
-        // 読み込み
-        //----------------------------------------
-
-        /// <summary>
-        /// Migration定義を読み込みます。
-        /// </summary>
-        public static void Load(
-            IModHelper helper,
-            IMonitor monitor)
-        {
-            ReadBuiltinMigrations(
-                helper,
-                monitor);
-
-            ReadContentPackMigrations(
-                helper,
-                monitor);
-        }
-
-        //----------------------------------------
-        // 再読み込み
-        //----------------------------------------
-
-        /// <summary>
-        /// Migration定義をすべて再読み込みします。
-        /// </summary>
-        public static void Reload(
-            IModHelper helper,
-            IMonitor monitor)
-        {
-            monitor.Log(
-                "Reloading Migrations...",
-                LogLevel.Info);
-
-            Clear();
-
-            Load(
-                helper,
-                monitor);
-
-            monitor.Log(
-                $"Migrations reloaded successfully. Registered Migrations: {RegisteredMigrations.Count}",
-                LogLevel.Info);
-        }
-
-        //----------------------------------------
-        // Migration登録
-        //----------------------------------------
-
-        /// <summary>
-        /// Migrationを登録します。
-        /// </summary>
-        private static void RegisterMigration(
-            MigrationModel model,
-            string owner,
-            string sourceFile,
-            IMonitor monitor)
-        {
-            //----------------------------------------
-            // Type
-            //----------------------------------------
-
-            if (string.IsNullOrWhiteSpace(
-                    model.Type))
-            {
-                monitor.Log(
-                    $"Migration in '{sourceFile}' has no Type.",
-                    LogLevel.Warn);
-
-                return;
-            }
-
-            //----------------------------------------
-            // OldId
-            //----------------------------------------
-
-            if (string.IsNullOrWhiteSpace(
-                    model.OldId))
-            {
-                monitor.Log(
-                    $"Migration in '{sourceFile}' has no OldId.",
-                    LogLevel.Warn);
-
-                return;
-            }
-
-            //----------------------------------------
-            // NewId
-            //----------------------------------------
-
-            if (string.IsNullOrWhiteSpace(
-                    model.NewId))
-            {
-                monitor.Log(
-                    $"Migration '{model.OldId}' in '{sourceFile}' has no NewId.",
-                    LogLevel.Warn);
-
-                return;
-            }
-
-            //----------------------------------------
-            // 同一ID
-            //----------------------------------------
-
-            if (string.Equals(
-                    model.OldId,
-                    model.NewId,
-                    StringComparison.Ordinal))
-            {
-                monitor.Log(
-                    $"Migration '{model.OldId}' in '{sourceFile}' has the same OldId and NewId.",
-                    LogLevel.Warn);
-
-                return;
-            }
-
-            //----------------------------------------
-            // 現在対応しているType
-            //----------------------------------------
-
-            if (!string.Equals(
-                    model.Type,
-                    "Building",
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                monitor.Log(
-                    $"Unsupported Migration Type '{model.Type}' in '{sourceFile}'.",
-                    LogLevel.Warn);
-
-                return;
-            }
-
-            //----------------------------------------
-            // 重複確認
-            //----------------------------------------
-
-            RegisteredMigrationInfo? existing =
-                RegisteredMigrations
-                    .FirstOrDefault(migration =>
-                        string.Equals(
-                            migration.Type,
-                            model.Type,
-                            StringComparison.OrdinalIgnoreCase)
-                        && string.Equals(
-                            migration.OldId,
-                            model.OldId,
-                            StringComparison.Ordinal));
-
-            if (existing != null)
-            {
-                monitor.Log(
-                    $"Duplicate Migration ignored.\n" +
-                    $"Type: {model.Type}\n" +
-                    $"OldId: {model.OldId}\n" +
-                    $"Already registered by: {existing.Owner}\n" +
-                    $"Existing file: {existing.SourceFile}\n" +
-                    $"Ignored migration owner: {owner}\n" +
-                    $"Ignored file: {sourceFile}",
-                    LogLevel.Warn);
-
-                return;
-            }
-
-            //----------------------------------------
-            // 登録
-            //----------------------------------------
-
-            Migrations.Add(
-                model);
-
-            RegisteredMigrations.Add(
-                new RegisteredMigrationInfo
                 {
-                    Type = model.Type,
-                    OldId = model.OldId,
-                    NewId = model.NewId,
-                    Owner = owner,
-                    SourceFile = sourceFile
-                });
-
-            monitor.Log(
-                $"Registered {model.Type} Migration '{model.OldId}' -> '{model.NewId}' from '{owner}'.",
-                LogLevel.Trace);
-        }
-
-        //----------------------------------------
-        // TsCore内のMigration
-        //----------------------------------------
-
-        private static void ReadBuiltinMigrations(
-            IModHelper helper,
-            IMonitor monitor)
-        {
-            string folder =
-                Path.Combine(
-                    helper.DirectoryPath,
-                    "assets",
-                    AssetFolder);
-
-            if (!Directory.Exists(folder))
-                return;
-
-            foreach (string file in Directory.EnumerateFiles(
-                folder,
-                "*.json",
-                SearchOption.AllDirectories))
-            {
-                string relative =
-                    Path.GetRelativePath(
-                        helper.DirectoryPath,
-                        file);
-
-                try
-                {
-                    List<MigrationModel>? migrations =
-                        helper.Data.ReadJsonFile<List<MigrationModel>>(
-                            relative);
-
-                    if (migrations == null)
-                        continue;
-
-                    foreach (MigrationModel migration in migrations)
-                    {
-                        RegisterMigration(
-                            migration,
-                            "T's Core",
-                            relative,
-                            monitor);
-                    }
-
-                    monitor.Log(
-                        $"Loaded builtin Migration file: {relative}",
-                        LogLevel.Trace);
-                }
-                catch (Exception ex)
-                {
-                    monitor.Log(
-                        $"Failed to load Migration file '{relative}': {ex.Message}",
+                    monitor?.Log(
+                        $"Migration '{id}' has unsupported Type '{migration.Type}'.",
                         LogLevel.Warn);
-                }
-            }
-        }
 
-        //----------------------------------------
-        // Content PackのMigration
-        //----------------------------------------
-
-        private static void ReadContentPackMigrations(
-            IModHelper helper,
-            IMonitor monitor)
-        {
-            foreach (IContentPack pack
-                     in helper.ContentPacks.GetOwned())
-            {
-                string folder =
-                    Path.Combine(
-                        pack.DirectoryPath,
-                        "assets",
-                        AssetFolder);
-
-                if (!Directory.Exists(folder))
                     continue;
-
-                foreach (string file in Directory.EnumerateFiles(
-                    folder,
-                    "*.json",
-                    SearchOption.AllDirectories))
-                {
-                    string relativePath =
-                        Path.GetRelativePath(
-                            pack.DirectoryPath,
-                            file);
-
-                    try
-                    {
-                        monitor.Log(
-                            $"Loading Migration file: {pack.Manifest.UniqueID}/{relativePath}",
-                            LogLevel.Trace);
-
-                        List<MigrationModel>? migrations =
-                            pack.ReadJsonFile<List<MigrationModel>>(
-                                relativePath);
-
-                        if (migrations == null)
-                            continue;
-
-                        foreach (MigrationModel migration in migrations)
-                        {
-                            RegisterMigration(
-                                migration,
-                                pack.Manifest.UniqueID,
-                                relativePath,
-                                monitor);
-                        }
-
-                        monitor.Log(
-                            $"Loaded Migration file: {pack.Manifest.UniqueID}/{relativePath}",
-                            LogLevel.Trace);
-                    }
-                    catch (Exception ex)
-                    {
-                        monitor.Log(
-                            $"Failed to load Migration file '{pack.Manifest.UniqueID}/{relativePath}': {ex.Message}",
-                            LogLevel.Warn);
-                    }
                 }
+
+                //----------------------------------------
+                // Type + OldId 重複確認
+                //----------------------------------------
+
+                string duplicateKey =
+                    $"{migration.Type.ToLowerInvariant()}\0{migration.OldId}";
+
+                if (registeredKeys.TryGetValue(
+                        duplicateKey,
+                        out string? existingId))
+                {
+                    monitor?.Log(
+                        $"Duplicate Migration ignored.\n" +
+                        $"Type: {migration.Type}\n" +
+                        $"OldId: {migration.OldId}\n" +
+                        $"Existing Migration ID: {existingId}\n" +
+                        $"Ignored Migration ID: {id}",
+                        LogLevel.Warn);
+
+                    continue;
+                }
+
+                //----------------------------------------
+                // 有効なMigration
+                //----------------------------------------
+
+                registeredKeys[
+                    duplicateKey] =
+                        id;
+
+                result.Add(
+                    entry);
             }
-        }
 
-        //----------------------------------------
-        // Migration削除
-        //----------------------------------------
-
-        /// <summary>
-        /// 登録済みMigrationをすべて削除します。
-        /// </summary>
-        internal static void Clear()
-        {
-            Migrations.Clear();
-            RegisteredMigrations.Clear();
+            return result;
         }
     }
 }

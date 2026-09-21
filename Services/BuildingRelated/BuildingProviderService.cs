@@ -1,28 +1,27 @@
-﻿using StardewModdingAPI;
-using StardewValley;
+﻿using StardewValley;
 using Ts_Core.Models;
 
 namespace Ts_Core.Services.BuildingRelated
 {
     /// <summary>
-    /// 登録済みBuilding Providerの情報です。
+    /// 登録されているBuilding Providerの情報です。
+    ///
+    /// Debug表示用に使用します。
+    /// Provider IDは
+    /// TsCore/BuildingProvidersのEntry Keyです。
     /// </summary>
     internal sealed class RegisteredBuildingProviderInfo
     {
+        //----------------------------------------
+        // Provider
+        //----------------------------------------
+
         /// <summary>
         /// Provider IDです。
+        ///
+        /// TsCore/BuildingProvidersのEntry Keyです。
         /// </summary>
         public string Id { get; init; } = "";
-
-        /// <summary>
-        /// Providerを登録したModまたはContent Packです。
-        /// </summary>
-        public string Owner { get; init; } = "";
-
-        /// <summary>
-        /// Provider定義ファイルのパスです。
-        /// </summary>
-        public string SourceFile { get; init; } = "";
 
         /// <summary>
         /// 対象となる建物タイプです。
@@ -30,9 +29,20 @@ namespace Ts_Core.Services.BuildingRelated
         public string BuildingType { get; init; } = "";
 
         /// <summary>
-        /// バレーのメイン農場でのみ建築可能かどうかです。
+        /// Building Provider全体が
+        /// 有効かどうかです。
+        /// </summary>
+        public bool BuildingsEnabled { get; init; } = true;
+
+        /// <summary>
+        /// バレーのメイン農場でのみ
+        /// 建築可能かどうかです。
         /// </summary>
         public bool ValleyFarmOnly { get; init; }
+
+        //----------------------------------------
+        // Enabled Fields
+        //----------------------------------------
 
         /// <summary>
         /// Building Provider全体の有効・無効を制御する
@@ -41,23 +51,41 @@ namespace Ts_Core.Services.BuildingRelated
         public string? BuildingsEnabledField { get; init; }
 
         /// <summary>
-        /// Lightの有効・無効を制御するData/BuildingsのCustomFieldsキーです。
+        /// Lights全体が
+        /// 有効かどうかです。
+        /// </summary>
+        public bool LightsEnabled { get; init; } = true;
+
+        /// <summary>
+        /// Lightの有効・無効を制御する
+        /// Data/BuildingsのCustomFieldsキーです。
         /// </summary>
         public string? LightsEnabledField { get; init; }
 
         /// <summary>
-        /// DrawLayerの有効・無効を制御するData/BuildingsのCustomFieldsキーです。
+        /// DrawLayers全体が
+        /// 有効かどうかです。
+        /// </summary>
+        public bool DrawLayersEnabled { get; init; } = true;
+
+        /// <summary>
+        /// DrawLayerの有効・無効を制御する
+        /// Data/BuildingsのCustomFieldsキーです。
         /// </summary>
         public string? DrawLayersEnabledField { get; init; }
 
+        //----------------------------------------
+        // Extensions
+        //----------------------------------------
+
         /// <summary>
-        /// 登録されているライト一覧です。
+        /// 登録されているLight一覧です。
         /// </summary>
         public IReadOnlyList<BuildingLightModel> Lights { get; init; }
             = Array.Empty<BuildingLightModel>();
 
         /// <summary>
-        /// 登録されている条件付きDrawLayer一覧です。
+        /// 登録されているDrawLayer一覧です。
         /// </summary>
         public IReadOnlyList<BuildingDrawLayerModel> DrawLayers { get; init; }
             = Array.Empty<BuildingDrawLayerModel>();
@@ -69,133 +97,135 @@ namespace Ts_Core.Services.BuildingRelated
     public static class BuildingProviderService
     {
         //----------------------------------------
-        // 登録済みProvider
+        // Provider Data
         //----------------------------------------
 
-        private static readonly Dictionary<string, BuildingProviderModel>
-            Providers =
-                new(StringComparer.OrdinalIgnoreCase);
+        /// <summary>
+        /// TsCore/BuildingProvidersから
+        /// Building Providerデータを取得します。
+        /// </summary>
+        private static Dictionary<
+            string,
+            BuildingProviderModel> GetProviderData()
+        {
+            return Game1.content.Load<
+                Dictionary<
+                    string,
+                    BuildingProviderModel>>(
+                        BuildingProviderDataService.AssetName);
+        }
 
         //----------------------------------------
-        // 登録済みProvider情報
+        // Registered Providers
         //----------------------------------------
 
-        private static readonly Dictionary<string, RegisteredBuildingProviderInfo>
-            RegisteredProviders =
-                new(StringComparer.OrdinalIgnoreCase);
+        /// <summary>
+        /// 現在登録されている
+        /// Building Provider情報を取得します。
+        ///
+        /// Debug表示用です。
+        /// </summary>
+        internal static IReadOnlyList<
+            RegisteredBuildingProviderInfo>
+            GetRegisteredProviders()
+        {
+            return GetProviderData()
+                .Select(
+                    entry =>
+                        new RegisteredBuildingProviderInfo
+                        {
+                            Id =
+                                entry.Key,
+
+                            BuildingType =
+                                entry.Value.BuildingType,
+
+                            BuildingsEnabled =
+                                entry.Value.BuildingsEnabled,
+
+                            ValleyFarmOnly =
+                                entry.Value.ValleyFarmOnly,
+
+                            BuildingsEnabledField =
+                                entry.Value.BuildingsEnabledField,
+
+                            LightsEnabled =
+                                entry.Value.LightsEnabled,
+
+                            LightsEnabledField =
+                                entry.Value.LightsEnabledField,
+
+                            DrawLayersEnabled =
+                                entry.Value.DrawLayersEnabled,
+
+                            DrawLayersEnabledField =
+                                entry.Value.DrawLayersEnabledField,
+
+                            Lights =
+                                entry.Value.Lights
+                                    .ToList(),
+
+                            DrawLayers =
+                                entry.Value.DrawLayers
+                                    .ToList()
+                        })
+                .OrderBy(
+                    provider =>
+                        provider.Id,
+                    StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
 
         //----------------------------------------
         // Provider取得
         //----------------------------------------
 
         /// <summary>
-        /// 現在登録されているBuilding Provider情報を取得します。
+        /// 登録されているすべての
+        /// Building Providerを
+        /// Provider IDと一緒に取得します。
         /// </summary>
-        internal static IReadOnlyList<RegisteredBuildingProviderInfo>
-            GetRegisteredProviders()
+        internal static IReadOnlyList<
+            KeyValuePair<
+                string,
+                BuildingProviderModel>>
+            GetProviderEntries()
         {
-            return RegisteredProviders.Values
-                .OrderBy(provider => provider.Owner)
-                .ThenBy(provider => provider.Id)
+            return GetProviderData()
                 .ToList();
         }
 
         /// <summary>
-        /// 指定したBuildingTypeに対応するProviderを取得します。
+        /// 指定したBuildingTypeに対応する
+        /// Building Providerを取得します。
         /// </summary>
-        internal static IReadOnlyList<BuildingProviderModel>
+        internal static IReadOnlyList<
+            BuildingProviderModel>
             GetProvidersForBuilding(
                 string buildingType)
         {
-            return Providers.Values
-                .Where(provider =>
-                    string.Equals(
-                        provider.BuildingType,
-                        buildingType,
-                        StringComparison.Ordinal))
+            return GetProviderData()
+                .Values
+                .Where(
+                    provider =>
+                        string.Equals(
+                            provider.BuildingType,
+                            buildingType,
+                            StringComparison.Ordinal))
                 .ToList();
         }
 
         /// <summary>
-        /// 登録されているすべてのProviderを取得します。
+        /// 登録されているすべての
+        /// Building Providerを取得します。
         /// </summary>
-        internal static IReadOnlyCollection<BuildingProviderModel>
+        internal static IReadOnlyCollection<
+            BuildingProviderModel>
             GetProviders()
         {
-            return Providers.Values;
-        }
-
-        //----------------------------------------
-        // Provider登録
-        //----------------------------------------
-
-        /// <summary>
-        /// Building Providerを登録します。
-        /// </summary>
-        public static void RegisterProvider(
-            BuildingProviderModel model,
-            string owner,
-            string sourceFile,
-            IMonitor monitor)
-        {
-            if (string.IsNullOrWhiteSpace(model.Id))
-            {
-                monitor.Log(
-                    $"Building Provider in '{sourceFile}' has no Id.",
-                    LogLevel.Warn);
-
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(model.BuildingType))
-            {
-                monitor.Log(
-                    $"Building Provider '{model.Id}' has no BuildingType.",
-                    LogLevel.Warn);
-
-                return;
-            }
-
-            if (RegisteredProviders.TryGetValue(
-                    model.Id,
-                    out RegisteredBuildingProviderInfo? existingProvider))
-            {
-                monitor.Log(
-                    $"Duplicate Building Provider '{model.Id}' ignored.\n" +
-                    $"Already registered by: {existingProvider.Owner}\n" +
-                    $"Existing file: {existingProvider.SourceFile}\n" +
-                    $"Ignored provider owner: {owner}\n" +
-                    $"Ignored file: {sourceFile}",
-                    LogLevel.Warn);
-
-                return;
-            }
-
-            Providers[model.Id] =
-                model;
-
-            RegisteredProviders[model.Id] =
-                new RegisteredBuildingProviderInfo
-                {
-                    Id = model.Id,
-                    Owner = owner,
-                    SourceFile = sourceFile,
-                    BuildingType = model.BuildingType,
-                    ValleyFarmOnly = model.ValleyFarmOnly,
-                    BuildingsEnabledField = model.BuildingsEnabledField,
-                    LightsEnabledField = model.LightsEnabledField,
-                    DrawLayersEnabledField = model.DrawLayersEnabledField,
-
-                    Lights = model.Lights
-                        .ToList(),
-
-                    DrawLayers = model.DrawLayers
-                        .ToList()
-                };
-
-            monitor.Log(
-                $"Registered Building Provider '{model.Id}' from '{owner}'.",
-                LogLevel.Trace);
+            return GetProviderData()
+                .Values
+                .ToList();
         }
 
         //----------------------------------------
@@ -203,30 +233,123 @@ namespace Ts_Core.Services.BuildingRelated
         //----------------------------------------
 
         /// <summary>
-        /// Building Provider全体が有効か判定します。
+        /// Building Provider全体が
+        /// 有効か判定します。
         /// </summary>
         internal static bool IsProviderEnabled(
             BuildingProviderModel provider)
         {
+            //----------------------------------------
+            // Direct Enabled
+            //----------------------------------------
+
+            if (!provider.BuildingsEnabled)
+            {
+                return false;
+            }
+
+            //----------------------------------------
+            // EnabledField
+            //----------------------------------------
+
             return IsEnabledField(
                 provider,
                 provider.BuildingsEnabledField);
         }
 
         //----------------------------------------
-        // CustomFields有効判定
+        // Lights有効判定
         //----------------------------------------
 
         /// <summary>
-        /// Data/BuildingsのCustomFieldsを確認して、
-        /// 指定されたEnabledFieldが有効か判定します。
+        /// Building ProviderのLights全体が
+        /// 有効か判定します。
+        /// </summary>
+        internal static bool AreLightsEnabled(
+            BuildingProviderModel provider)
+        {
+            //----------------------------------------
+            // Provider
+            //----------------------------------------
+
+            if (!IsProviderEnabled(
+                    provider))
+            {
+                return false;
+            }
+
+            //----------------------------------------
+            // Direct Enabled
+            //----------------------------------------
+
+            if (!provider.LightsEnabled)
+            {
+                return false;
+            }
+
+            //----------------------------------------
+            // EnabledField
+            //----------------------------------------
+
+            return IsEnabledField(
+                provider,
+                provider.LightsEnabledField);
+        }
+
+        //----------------------------------------
+        // DrawLayers有効判定
+        //----------------------------------------
+
+        /// <summary>
+        /// Building ProviderのDrawLayers全体が
+        /// 有効か判定します。
+        /// </summary>
+        internal static bool AreDrawLayersEnabled(
+            BuildingProviderModel provider)
+        {
+            //----------------------------------------
+            // Provider
+            //----------------------------------------
+
+            if (!IsProviderEnabled(
+                    provider))
+            {
+                return false;
+            }
+
+            //----------------------------------------
+            // Direct Enabled
+            //----------------------------------------
+
+            if (!provider.DrawLayersEnabled)
+            {
+                return false;
+            }
+
+            //----------------------------------------
+            // EnabledField
+            //----------------------------------------
+
+            return IsEnabledField(
+                provider,
+                provider.DrawLayersEnabledField);
+        }
+
+        //----------------------------------------
+        // Enabled Field
+        //----------------------------------------
+
+        /// <summary>
+        /// Data/BuildingsのCustomFieldsを確認し、
+        /// 指定されたEnabledFieldが
+        /// 有効か判定します。
         /// </summary>
         internal static bool IsEnabledField(
             BuildingProviderModel provider,
             string? enabledField)
         {
             //----------------------------------------
-            // EnableField未指定なら常に有効
+            // 未指定
             //----------------------------------------
 
             if (string.IsNullOrWhiteSpace(
@@ -236,26 +359,31 @@ namespace Ts_Core.Services.BuildingRelated
             }
 
             //----------------------------------------
-            // BuildingData取得
+            // Building Data
             //----------------------------------------
 
-            var buildingData =
-                DataLoader.Buildings(
-                    Game1.content);
+            Dictionary<
+                string,
+                StardewValley.GameData.Buildings.BuildingData>
+                buildingData =
+                    DataLoader.Buildings(
+                        Game1.content);
 
             if (!buildingData.TryGetValue(
                     provider.BuildingType,
-                    out var data))
+                    out StardewValley.GameData.Buildings.BuildingData? data))
             {
-                return false;
+                return true;
             }
 
             //----------------------------------------
-            // CustomFields未設定なら有効
+            // CustomFields
             //----------------------------------------
 
             if (data.CustomFields == null)
+            {
                 return true;
+            }
 
             if (!data.CustomFields.TryGetValue(
                     enabledField,
@@ -265,7 +393,7 @@ namespace Ts_Core.Services.BuildingRelated
             }
 
             //----------------------------------------
-            // true / false 判定
+            // true / false
             //----------------------------------------
 
             if (bool.TryParse(
@@ -276,14 +404,14 @@ namespace Ts_Core.Services.BuildingRelated
             }
 
             //----------------------------------------
-            // 不正な値の場合もデフォルトは有効
+            // 不正な値
             //----------------------------------------
 
             return true;
         }
 
         //----------------------------------------
-        // Valley Farm限定判定
+        // Valley Farm Only
         //----------------------------------------
 
         /// <summary>
@@ -293,29 +421,17 @@ namespace Ts_Core.Services.BuildingRelated
         internal static bool IsValleyFarmOnly(
             string buildingType)
         {
-            return Providers.Values
-                .Any(provider =>
-                    string.Equals(
-                        provider.BuildingType,
-                        buildingType,
-                        StringComparison.Ordinal)
-                    && provider.ValleyFarmOnly
-                    && IsProviderEnabled(provider));
-        }
-
-        //----------------------------------------
-        // Provider削除
-        //----------------------------------------
-
-        /// <summary>
-        /// 登録済みBuilding Providerをすべて削除します。
-        /// </summary>
-        internal static void ClearProviders()
-        {
-            BuildingLightService.RemoveAllLights();
-
-            Providers.Clear();
-            RegisteredProviders.Clear();
+            return GetProviderData()
+                .Values
+                .Any(
+                    provider =>
+                        string.Equals(
+                            provider.BuildingType,
+                            buildingType,
+                            StringComparison.Ordinal)
+                        && provider.ValleyFarmOnly
+                        && IsProviderEnabled(
+                            provider));
         }
     }
 }

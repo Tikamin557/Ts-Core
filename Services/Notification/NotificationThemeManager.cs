@@ -4,7 +4,7 @@ using StardewModdingAPI.Events;
 namespace Ts_Core.Services.Notification
 {
     /// <summary>
-    /// 通知テーマの読み込み・登録・継承管理を行います。
+    /// Notification Themeの取得・継承管理を行います。
     /// </summary>
     internal static class NotificationThemeManager
     {
@@ -18,42 +18,14 @@ namespace Ts_Core.Services.Notification
         /// </summary>
         private static IMonitor monitor = null!;
 
-        /// <summary>
-        /// 通知テーマフォルダ監視
-        /// </summary>
-        private static readonly List<FileSystemWatcher> watchers = new();
-
-        /// <summary>
-        /// テーマファイルの再読み込み処理を
-        /// 同期するためのロックオブジェクトです。
-        /// </summary>
-        private static readonly object reloadLock = new();
-
-        /// <summary>
-        /// リロード待機用タイマー
-        /// </summary>
-        private static Timer? reloadTimer;
-
-        /// <summary>
-        /// 次回Updateでリロードするか
-        /// </summary>
-        private static volatile bool reloadPending;
-
         //----------------------------------------
-        // 登録済みテーマ一覧 (読み込み済みテーマ)
+        // 解決済みTheme
         //----------------------------------------
 
-        private static readonly Dictionary<string, NotificationTheme> themes =
-            new(StringComparer.OrdinalIgnoreCase);
-
-        private static readonly HashSet<string> contentPackThemes =
-            new(StringComparer.OrdinalIgnoreCase);
-
-        private static readonly HashSet<string> contentPackThemeShortNames =
-            new(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, NotificationTheme>? resolvedThemes;
 
         /// <summary>
-        /// 通知テーマ管理を初期化します。
+        /// Notification Theme管理を初期化します。
         /// </summary>
         public static void Initialize(
             IModHelper helper,
@@ -62,431 +34,269 @@ namespace Ts_Core.Services.Notification
             NotificationThemeManager.helper = helper;
             NotificationThemeManager.monitor = monitor;
 
-            string path =
-                Path.Combine(
-                    helper.DirectoryPath,
-                    "assets",
-                    "notification");
+            //----------------------------------------
+            // Data Asset更新監視
+            //----------------------------------------
 
-            CreateWatcher(path);
-
-            foreach (IContentPack pack in helper.ContentPacks.GetOwned())
-            {
-                string contentPackPath =
-                    Path.Combine(
-                        pack.DirectoryPath,
-                        "assets",
-                        "notification");
-
-                if (Directory.Exists(contentPackPath))
-                    CreateWatcher(contentPackPath);
-            }
-
-            helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
-
-            ExportDefaultThemes();
-
-            ReloadThemes();
+            helper.Events.Content.AssetsInvalidated
+                += OnAssetsInvalidated;
         }
 
         /// <summary>
-        /// 指定したフォルダのテーマファイルを
-        /// 監視するFileWatcherを作成します。
-        /// </summary>
-        private static void CreateWatcher(string path)
-        {
-            FileSystemWatcher watcher =
-                new(path)
-                {
-                    Filter = "*.json",
-                    NotifyFilter =
-                        NotifyFilters.LastWrite |
-                        NotifyFilters.FileName
-                };
-
-            watcher.IncludeSubdirectories = true;
-
-            watcher.Changed += OnThemeFileChanged;
-            watcher.Created += OnThemeFileChanged;
-            watcher.Deleted += OnThemeFileChanged;
-            watcher.Renamed += OnThemeFileChanged;
-
-            watcher.EnableRaisingEvents = true;
-
-            watchers.Add(watcher);
-        }
-
-        /// <summary>
-        /// 使用中のリソースを解放します。
+        /// 使用中のイベントを解除します。
         /// </summary>
         public static void Dispose()
         {
-            helper.Events.GameLoop.UpdateTicked -= OnUpdateTicked;
+            helper.Events.Content.AssetsInvalidated
+                -= OnAssetsInvalidated;
 
-            lock (reloadLock)
-            {
-                reloadTimer?.Dispose();
-                reloadTimer = null;
-            }
-
-            foreach (FileSystemWatcher watcher in watchers)
-            {
-                watcher.EnableRaisingEvents = false;
-
-                watcher.Changed -= OnThemeFileChanged;
-                watcher.Created -= OnThemeFileChanged;
-                watcher.Deleted -= OnThemeFileChanged;
-                watcher.Renamed -= OnThemeFileChanged;
-
-                watcher.Dispose();
-            }
-
-            watchers.Clear();
+            resolvedThemes = null;
         }
 
         /// <summary>
-        /// テーマファイル変更時
-        /// （短時間に複数回発生するため遅延リロードする）
+        /// Data Assetが更新された時に
+        /// 解決済みThemeキャッシュを破棄します。
         /// </summary>
-        private static void OnThemeFileChanged(
+        private static void OnAssetsInvalidated(
             object? sender,
-            FileSystemEventArgs e)
+            AssetsInvalidatedEventArgs e)
         {
-            lock (reloadLock)
+            if (!e.NamesWithoutLocale.Any(
+                name =>
+                    name.IsEquivalentTo(
+                        NotificationThemeDataService.AssetName)))
             {
-                reloadTimer?.Dispose();
-
-                reloadTimer = new Timer(
-                    _ =>
-                    {
-                        reloadPending = true;
-
-                        lock (reloadLock)
-                        {
-                            reloadTimer?.Dispose();
-                            reloadTimer = null;
-                        }
-                    },
-                    null,
-                    300,
-                    Timeout.Infinite);
-            }
-        }
-
-        /// <summary>
-        /// リロード予約があればテーマを再読み込みします。
-        /// </summary>
-        private static void OnUpdateTicked(
-            object? sender,
-            UpdateTickedEventArgs e)
-        {
-            if (!reloadPending)
                 return;
-
-            reloadPending = false;
-
-            ReloadThemes();
-        }
-
-        /// <summary>
-        /// 全テーマを再読み込みします。
-        /// </summary>
-        public static void ReloadThemes()
-        {
-            try
-            {
-                Clear();
-
-                RegisterDefaults();
-
-                ReadBuiltinThemes();
-
-                ReadContentPackThemes();
-
-                ResolveInheritance();
             }
 
-            catch (Exception ex)
-            {
-                monitor.Log(
-                    ex.ToString(),
-                    LogLevel.Error);
-            }
+            resolvedThemes = null;
         }
 
+        //----------------------------------------
+        // Theme取得
+        //----------------------------------------
+
         /// <summary>
-        /// 指定したテーマを取得します。
-        /// 存在しない場合は Info を返します。
+        /// 指定したThemeを取得します。
+        /// 存在しない場合はInfoを返します。
         /// </summary>
-        public static NotificationTheme GetTheme(string name)
+        public static NotificationTheme GetTheme(
+            string name)
         {
-            if (themes.TryGetValue(name, out NotificationTheme? theme))
+            Dictionary<string, NotificationTheme> themes =
+                GetResolvedThemes();
+
+            if (themes.TryGetValue(
+                name,
+                out NotificationTheme? theme))
+            {
                 return theme;
+            }
 
             monitor.Log(
                 $"Notification theme '{name}' was not found. Using 'Info' instead.",
                 LogLevel.Warn);
 
-            return themes["Info"];
-        }
+            //----------------------------------------
+            // InfoはTsCore標準Themeなので
+            // 通常は必ず存在します。
+            //----------------------------------------
 
-        /// <summary>
-        /// TsCore標準テーマ名を取得します。
-        /// </summary>
-        public static IEnumerable<string> GetBuiltinThemeNames()
-        {
-            return themes.Keys
-                .Except(contentPackThemes)
-                .Except(contentPackThemeShortNames)
-                .OrderBy(p => p);
-        }
-
-        /// <summary>
-        /// Content Packのテーマ名を取得します。
-        /// </summary>
-        public static IEnumerable<string> GetContentPackThemeNames()
-        {
-            return contentPackThemes
-                .OrderBy(p => p);
-        }
-
-        /// <summary>
-        /// テーマを登録します。
-        /// 同名テーマが存在する場合は上書きします。
-        /// </summary>
-        public static void Register(
-            string name,
-            NotificationTheme theme)
-        {
-            ArgumentNullException.ThrowIfNull(theme);
-
-            themes[name] = theme;
-        }
-
-        //----------------------------------------
-        // 標準テーマ一覧
-        //----------------------------------------
-
-        private static readonly (string Name, NotificationTheme Theme)[] DefaultThemes =
-        {
-            (nameof(NotificationThemes.Info),
-                NotificationThemes.DefaultInfo),
-            (nameof(NotificationThemes.Success),
-                NotificationThemes.DefaultSuccess),
-            (nameof(NotificationThemes.Error),
-                NotificationThemes.DefaultError),
-            (nameof(NotificationThemes.Warning),
-                NotificationThemes.DefaultWarning),
-            (nameof(NotificationThemes.Quest),
-                NotificationThemes.DefaultQuest),
-            (nameof(NotificationThemes.Achievement),
-                NotificationThemes.DefaultAchievement),
-            (nameof(NotificationThemes.Boss),
-                NotificationThemes.DefaultBoss),
-            (nameof(NotificationThemes.Lavender),
-                NotificationThemes.DefaultLavender),
-            (nameof(NotificationThemes.Rose),
-                NotificationThemes.DefaultRose),
-            (nameof(NotificationThemes.RetroWindow),
-                NotificationThemes.DefaultRetroWindow),
-        };
-
-        /// <summary>
-        /// デフォルトテーマJSONを初回のみ出力します。
-        /// </summary>
-        private static void ExportDefaultThemes()
-        {
-            string folder = Path.Combine(
-                helper.DirectoryPath,
-                "assets",
-                "notification");
-
-            Directory.CreateDirectory(folder);
-
-            foreach (var theme in DefaultThemes)
+            if (themes.TryGetValue(
+                nameof(NotificationThemes.Info),
+                out NotificationTheme? info))
             {
-                ExportIfMissing(
-                    $"{theme.Name}.json",
-                    theme.Theme);
+                return info;
             }
+
+            //----------------------------------------
+            // 万一Data AssetからInfoまで削除された場合
+            // 組み込みDefaultを最後のFallbackにします。
+            //----------------------------------------
+
+            monitor.Log(
+                "Default notification theme 'Info' was not found in the data asset. Using the built-in fallback.",
+                LogLevel.Warn);
+
+            return NotificationThemes.DefaultInfo.Clone();
         }
 
         /// <summary>
-        /// ファイルが存在しない場合のみテーマを書き出します。
+        /// 継承解決済みの全Themeを取得します。
         /// </summary>
-        private static void ExportIfMissing(
-            string fileName,
-            NotificationTheme theme)
+        private static Dictionary<string, NotificationTheme>
+            GetResolvedThemes()
         {
-            string relative =
-                Path.Combine(
-                    "assets",
-                    "notification",
-                    fileName);
+            if (resolvedThemes != null)
+                return resolvedThemes;
 
-            string full =
-                Path.Combine(
-                    helper.DirectoryPath,
-                    relative);
+            resolvedThemes =
+                LoadAndResolveThemes();
 
-            if (File.Exists(full))
-                return;
-
-            helper.Data.WriteJsonFile(
-                relative,
-                theme.Clone());
+            return resolvedThemes;
         }
 
         /// <summary>
-        /// 組み込みデフォルトテーマを登録します。
+        /// Notification Themeを読み込み、継承を解決します。
         /// </summary>
-        private static void RegisterDefaults()
+        private static Dictionary<string, NotificationTheme>
+            LoadAndResolveThemes()
         {
-            foreach (var theme in DefaultThemes)
+            //----------------------------------------
+            // TsCore標準Theme
+            //----------------------------------------
+
+            Dictionary<string, NotificationTheme> themes =
+                NotificationThemeDataService.GetDefaultThemes();
+
+            //----------------------------------------
+            // 外部Data Asset Theme
+            //----------------------------------------
+
+            Dictionary<string, NotificationTheme> assetThemes;
+
+            try
             {
-                Register(
-                    theme.Name,
-                    theme.Theme.Clone());
+                assetThemes =
+                    helper.GameContent.Load<
+                        Dictionary<string, NotificationTheme>>(
+                            NotificationThemeDataService.AssetName);
             }
-        }
-
-        /// <summary>
-        /// Mod本体の通知テーマを読み込みます。
-        /// </summary>
-        private static void ReadBuiltinThemes()
-        {
-            string folder = Path.Combine(
-                helper.DirectoryPath,
-                "assets",
-                "notification");
-
-            if (!Directory.Exists(folder))
-                return;
-
-            foreach (string file in Directory.EnumerateFiles(
-                folder,
-                "*.json",
-                SearchOption.AllDirectories))
+            catch (Exception ex)
             {
-                //----------------------------------------
-                // assets からの相対パス
-                //----------------------------------------
-
-                string relative =
-                    Path.GetRelativePath(
-                        helper.DirectoryPath,
-                        file);
-
-                NotificationTheme? theme =
-                    helper.Data.ReadJsonFile<NotificationTheme>(relative);
-
-                if (theme == null)
-                    continue;
-
-                string shortName =
-                    Path.GetFileNameWithoutExtension(file);
-
-                bool replaced =
-                    themes.ContainsKey(shortName);
-
-                Register(
-                    shortName,
-                    theme.Clone());
-
                 monitor.Log(
-                    replaced
-                        ? $"Overriding builtin theme: {shortName}"
-                        : $"Loaded builtin theme: {shortName}",
-                    LogLevel.Trace);
-            }
-        }
+                    $"Failed loading Notification Themes from " +
+                    $"'{NotificationThemeDataService.AssetName}'.\n{ex}",
+                    LogLevel.Error);
 
-        /// <summary>
-        /// Content Pack の通知テーマを読み込みます。
-        /// </summary>
-        private static void ReadContentPackThemes()
-        {
-            foreach (IContentPack pack in helper.ContentPacks.GetOwned())
+                assetThemes =
+                    new Dictionary<string, NotificationTheme>();
+            }
+
+            foreach (var pair in assetThemes)
             {
-                string folder = Path.Combine(
-                    pack.DirectoryPath,
-                    "assets",
-                    "notification");
-
-                if (!Directory.Exists(folder))
-                    continue;
-
-                foreach (string file in Directory.EnumerateFiles(
-                    folder,
-                    "*.json",
-                    SearchOption.AllDirectories))
+                if (string.IsNullOrWhiteSpace(pair.Key)
+                    || pair.Value == null)
                 {
-                    //----------------------------------------
-                    // ContentPack内からの相対パス
-                    //----------------------------------------
-
-                    string relative =
-                        Path.GetRelativePath(
-                            pack.DirectoryPath,
-                            file);
-
-                    NotificationTheme? theme =
-                        pack.ReadJsonFile<NotificationTheme>(relative);
-
-                    if (theme == null)
-                        continue;
-
-                    string shortName =
-                        Path.GetFileNameWithoutExtension(file);
-
-                    bool replaced =
-                        themes.ContainsKey(shortName);
-
-                    Register(
-                        shortName,
-                        theme.Clone());
-
-                    Register(
-                        $"{pack.Manifest.UniqueID}.{shortName}",
-                        theme.Clone());
-
-                    contentPackThemes.Add(
-                        $"{pack.Manifest.UniqueID}.{shortName}");
-
-                    contentPackThemeShortNames.Add(
-                        shortName);
-
-                    monitor.Log(
-                        replaced
-                            ? $"Overriding notification theme: {shortName} ({pack.Manifest.UniqueID})"
-                            : $"Loaded notification theme: {shortName} ({pack.Manifest.UniqueID})",
-                        LogLevel.Trace);
+                    continue;
                 }
+
+                //----------------------------------------
+                // TsCore標準IDは予約済み
+                //----------------------------------------
+
+                if (NotificationThemeDataService
+                    .IsDefaultTheme(pair.Key))
+                {
+                    monitor.Log(
+                        $"Notification Theme ID '{pair.Key}' is " +
+                        $"reserved by T's Core and cannot be overridden.",
+                        LogLevel.Warn);
+
+                    continue;
+                }
+
+                themes[pair.Key] =
+                    pair.Value.Clone();
             }
+
+            //----------------------------------------
+            // Theme継承を解決
+            //----------------------------------------
+
+            ResolveInheritance(themes);
+
+            return themes;
+        }
+
+        //----------------------------------------
+        // Theme一覧
+        //----------------------------------------
+
+        /// <summary>
+        /// 登録されているNotification Theme名を取得します。
+        /// </summary>
+        public static IEnumerable<string> GetThemeNames()
+        {
+            return GetResolvedThemes()
+                .Keys
+                .OrderBy(p => p);
         }
 
         /// <summary>
-        /// 全テーマの継承を解決します。
+        /// TsCore標準Data Asset Theme名を取得します。
         /// </summary>
-        private static void ResolveInheritance()
+        public static IEnumerable<string>
+            GetDefaultThemeNames()
+        {
+            return GetResolvedThemes()
+                .Keys
+                .Where(
+                    NotificationThemeDataService
+                        .IsDefaultTheme)
+                .OrderBy(p => p);
+        }
+
+        /// <summary>
+        /// 外部Data Asset Theme名を取得します。
+        /// </summary>
+        public static IEnumerable<string>
+            GetExternalThemeNames()
+        {
+            return GetResolvedThemes()
+                .Keys
+                .Where(
+                    name =>
+                        !NotificationThemeDataService
+                            .IsDefaultTheme(name))
+                .OrderBy(p => p);
+        }
+
+        /// <summary>
+        /// Theme情報を直接取得します。
+        /// Debug表示用です。
+        /// </summary>
+        internal static bool TryGetTheme(
+            string name,
+            out NotificationTheme? theme)
+        {
+            return GetResolvedThemes()
+                .TryGetValue(
+                    name,
+                    out theme);
+        }
+
+        //----------------------------------------
+        // Theme継承
+        //----------------------------------------
+
+        /// <summary>
+        /// 全Themeの継承を解決します。
+        /// </summary>
+        private static void ResolveInheritance(
+            Dictionary<string, NotificationTheme> themes)
         {
             HashSet<string> resolved =
                 new(StringComparer.OrdinalIgnoreCase);
 
-            foreach (string name in themes.Keys.ToList())
+            foreach (
+                string name in themes.Keys.ToList())
             {
                 ResolveTheme(
                     name,
+                    themes,
                     resolved,
-                    new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+                    new HashSet<string>(
+                        StringComparer.OrdinalIgnoreCase));
             }
         }
 
         /// <summary>
-        /// 指定テーマの継承を解決します。
+        /// 指定Themeの継承を解決します。
         /// </summary>
         private static void ResolveTheme(
             string name,
+            Dictionary<string, NotificationTheme> themes,
             HashSet<string> resolved,
             HashSet<string> resolving)
         {
@@ -514,26 +324,38 @@ namespace Ts_Core.Services.Notification
             // Theme取得
             //----------------------------------------
 
-            NotificationTheme theme = themes[name];
+            if (!themes.TryGetValue(
+                name,
+                out NotificationTheme? theme))
+            {
+                resolving.Remove(name);
+                return;
+            }
 
             //----------------------------------------
-            // Baseなし
+            // Baseあり
             //----------------------------------------
 
             if (!string.IsNullOrWhiteSpace(theme.Base))
             {
+                string baseName =
+                    theme.Base;
+
                 //----------------------------------------
                 // 親Theme存在確認
                 //----------------------------------------
 
-                if (themes.TryGetValue(theme.Base, out NotificationTheme? parent))
+                if (themes.TryGetValue(
+                    baseName,
+                    out NotificationTheme? parent))
                 {
                     //----------------------------------------
                     // まず親を解決
                     //----------------------------------------
 
                     ResolveTheme(
-                        theme.Base,
+                        baseName,
+                        themes,
                         resolved,
                         resolving);
 
@@ -548,7 +370,7 @@ namespace Ts_Core.Services.Notification
                 else
                 {
                     monitor.Log(
-                        $"Base theme '{theme.Base}' was not found.",
+                        $"Base theme '{baseName}' was not found for notification theme '{name}'.",
                         LogLevel.Warn);
                 }
             }
@@ -563,35 +385,66 @@ namespace Ts_Core.Services.Notification
         }
 
         /// <summary>
-        /// 親テーマの未設定項目を子テーマへ継承します。
+        /// 親Themeの未設定項目を
+        /// 子Themeへ継承します。
         /// </summary>
         private static void ApplyInheritance(
             NotificationTheme parent,
             NotificationTheme child)
         {
-            child.BackgroundColor ??= parent.BackgroundColor;
+            child.BackgroundColor ??=
+                parent.BackgroundColor;
 
-            child.BorderColor ??= parent.BorderColor;
-            child.BorderStyle ??= parent.BorderStyle;
-            child.BorderThickness ??= parent.BorderThickness;
+            child.BorderColor ??=
+                parent.BorderColor;
 
-            child.TextColor ??= parent.TextColor;
-            child.ShadowColor ??= parent.ShadowColor;
-            child.DrawShadow ??= parent.DrawShadow;
-            child.ShadowOffset ??= parent.ShadowOffset;
-            child.TextAnchor ??= parent.TextAnchor;
-            child.TextScale ??= parent.TextScale;
+            child.BorderStyle ??=
+                parent.BorderStyle;
 
-            child.MinHeight ??= parent.MinHeight;
-            child.MinWidth ??= parent.MinWidth;
+            child.BorderThickness ??=
+                parent.BorderThickness;
 
-            child.PaddingX ??= parent.PaddingX;
-            child.PaddingY ??= parent.PaddingY;
-            child.BorderPadding ??= parent.BorderPadding;
+            child.TextColor ??=
+                parent.TextColor;
 
-            child.Anchor ??= parent.Anchor;
-            child.OffsetX ??= parent.OffsetX;
-            child.OffsetY ??= parent.OffsetY;
+            child.ShadowColor ??=
+                parent.ShadowColor;
+
+            child.DrawShadow ??=
+                parent.DrawShadow;
+
+            child.ShadowOffset ??=
+                parent.ShadowOffset;
+
+            child.TextAnchor ??=
+                parent.TextAnchor;
+
+            child.TextScale ??=
+                parent.TextScale;
+
+            child.MinHeight ??=
+                parent.MinHeight;
+
+            child.MinWidth ??=
+                parent.MinWidth;
+
+            child.PaddingX ??=
+                parent.PaddingX;
+
+            child.PaddingY ??=
+                parent.PaddingY;
+
+            child.BorderPadding ??=
+                parent.BorderPadding;
+
+            child.Anchor ??=
+                parent.Anchor;
+
+            child.OffsetX ??=
+                parent.OffsetX;
+
+            child.OffsetY ??=
+                parent.OffsetY;
 
             //----------------------------------------
             // 表示終了条件
@@ -603,24 +456,6 @@ namespace Ts_Core.Services.Notification
             child.DismissOnEnterLocations ??=
                 parent.DismissOnEnterLocations?
                     .ToList();
-        }
-
-        /// <summary>
-        /// 登録されている通知テーマ名を取得します。
-        /// </summary>
-        public static IEnumerable<string> GetThemeNames()
-        {
-            return themes.Keys.OrderBy(p => p);
-        }
-
-        /// <summary>
-        /// 登録済みテーマをすべて削除します。
-        /// </summary>
-        private static void Clear()
-        {
-            themes.Clear();
-            contentPackThemes.Clear();
-            contentPackThemeShortNames.Clear();
         }
     }
 }

@@ -41,17 +41,25 @@ namespace Ts_Core.Services.BuildingRelated
             // 全Providerを処理
             //----------------------------------------
 
-            foreach (BuildingProviderModel provider
-                     in BuildingProviderService.GetProviders())
+            foreach (
+                KeyValuePair<
+                    string,
+                    BuildingProviderModel> providerEntry
+                in BuildingProviderService.GetProviderEntries())
             {
-                bool buildingProviderEnabled =
-                    BuildingProviderService.IsProviderEnabled(
-                        provider);
+                string providerId =
+                    providerEntry.Key;
+
+                BuildingProviderModel provider =
+                    providerEntry.Value;
+
+                //----------------------------------------
+                // Building Provider / Lights有効判定
+                //----------------------------------------
 
                 bool lightsEnabled =
-                    BuildingProviderService.IsEnabledField(
-                        provider,
-                        provider.LightsEnabledField);
+                    BuildingProviderService.AreLightsEnabled(
+                        provider);
 
                 List<Building> buildings =
                     farm.buildings
@@ -78,7 +86,7 @@ namespace Ts_Core.Services.BuildingRelated
                     {
                         string lightId =
                             GetLightId(
-                                provider.Id,
+                                providerId,
                                 building.id.Value,
                                 light.Id);
 
@@ -94,7 +102,8 @@ namespace Ts_Core.Services.BuildingRelated
                         //----------------------------------------
 
                         bool lightEnabled =
-                            BuildingProviderService.IsEnabledField(
+                            light.Enabled
+                            && BuildingProviderService.IsEnabledField(
                                 provider,
                                 light.EnabledField);
 
@@ -102,8 +111,7 @@ namespace Ts_Core.Services.BuildingRelated
                         // 昼間またはBuilding / Light無効時はLight削除
                         //----------------------------------------
 
-                        if (!buildingProviderEnabled
-                            || !shouldLight
+                        if (!shouldLight
                             || !lightsEnabled
                             || !lightEnabled)
                         {

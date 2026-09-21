@@ -7,19 +7,23 @@ using Ts_Core.Initializers;
 using Ts_Core.Interfaces;
 using Ts_Core.Models;
 using Ts_Core.Patches;
+using Ts_Core.Patches.BigCraftableRelated;
 using Ts_Core.Providers;
+using Ts_Core.Services.BigCraftableRelated;
 using Ts_Core.Services.BuildingRelated;
 using Ts_Core.Services.ContentPatcherRelated;
 using Ts_Core.Services.DebugSupport;
+using Ts_Core.Services.DialogueRelated;
 using Ts_Core.Services.FarmhouseFixes;
+using Ts_Core.Services.GameStateQueryRelated;
 using Ts_Core.Services.GenericModConfigMenuRelated;
 using Ts_Core.Services.Location;
 using Ts_Core.Services.LocationFixes;
-using Ts_Core.Services.MachineRelated;
 using Ts_Core.Services.MapRelated.TimedExit;
 using Ts_Core.Services.Migration;
 using Ts_Core.Services.Notification;
 using Ts_Core.Services.Relationship;
+using Ts_Core.Services.ShortcutPanelRelated;
 using Ts_Core.Services.WarpRelated;
 using Ts_Core.Tokens;
 
@@ -138,15 +142,104 @@ namespace Ts_Core
             BuildingLocationRestrictionPatch.Apply(
                 harmony);
 
-            // Machine Interactionの
+            // BigCraftable Extensionの
+            // 設置範囲を適用
+            BigCraftablePlacementPatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
+            // 追加Collision範囲を占有タイルとして扱う
+            BigCraftableOccupancyPatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
+            // 追加Collision範囲を移動Collisionに適用
+            BigCraftableMovementCollisionPatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
+            // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+            BigCraftableAndroidTapToMovePatch.Apply(
+                harmony,
+                Monitor);
+
+            // BigCraftable Extensionの
+            // TilePropertyを有効化
+            BigCraftableTilePropertyPatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
+            // TileActionを有効化
+            BigCraftableActionPatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
+            // Sleep時のFarmer表示を補完
+            BigCraftableSleepActionPatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
+            // 継続寝床での起床判定を補完
+            BigCraftableSleepWakeUpPatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
             // Action / Idle Wobbleを有効化
             MachineShouldWobblePatch.Apply(
                 harmony);
 
-            // Machine Interactionの
-            // Texture / Animationを有効化
+            // BigCraftable Extensionの
+            // Texture / Animation / DrawLayerを有効化
             MachineAnimationTexturePatch.Apply(
                 harmony);
+
+            // BigCraftable Extensionの
+            // Texture Size / DrawLayerをMenu描画に適用
+            BigCraftableMenuDrawPatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
+            // Texture Size / DrawLayerをCrafting Recipe描画に適用
+            BigCraftableCraftingRecipeDrawPatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
+            // Crafting Page描画位置を中央に補正
+            BigCraftableCraftingPageDrawPatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
+            // Texture Size / DrawLayerをCrafting Page描画に適用
+            BigCraftableCraftingPagePatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
+            // 手持ち状態でのTexture / DrawLayerを適用
+            BigCraftableHeldDrawPatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
+            // 拡張Collision範囲へのTool Actionを適用
+            BigCraftableToolActionPatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
+            // 仮想Collision範囲からの素手回収を有効化
+            BigCraftableBareHandRemovalPatch.Apply(
+                harmony);
+
+            // BigCraftable Extensionの
+            // 拡張Texture用描画範囲を有効化
+            BigCraftableDrawCullingPatch.Apply(
+                harmony,
+                Monitor);
+
+            // BigCraftable Extensionの
+            // 拡張Texture用描画範囲を有効化
+            // (Ultra Smooth Mod導入時のみ)
+            BigCraftableUltraSmoothCompatibilityPatch.Apply(
+                harmony,
+                Monitor);
 
             //----------------------------------------
             // 初期化
@@ -166,6 +259,9 @@ namespace Ts_Core
                 Monitor);
 
             NotificationService.Initialize(
+                helper);
+
+            ShortcutPanelService.Initialize(
                 helper);
         }
 
@@ -233,11 +329,42 @@ namespace Ts_Core
             MachineAnimationTextureService.Initialize(
                 Monitor);
 
+            BigCraftableExtensionTextureService.Initialize(
+                Monitor);
+
             //----------------------------------------
             // アクション登録
             //----------------------------------------
 
             ActionRegistry.Register();
+
+            //----------------------------------------
+            // Game State Query登録
+            //----------------------------------------
+
+            GameStateQueryService.Register();
+
+            //----------------------------------------
+            // BigCraftable Extension
+            // Sleep TileAction登録
+            //----------------------------------------
+
+            BigCraftableSleepActionService.Register();
+
+            //----------------------------------------
+            // BigCraftable Extension
+            // Sleep継続寝床サービス初期化
+            //----------------------------------------
+
+            BigCraftableSleepPersistenceService.Initialize(
+                helper);
+
+            //----------------------------------------
+            // Warp Providerサービス初期化
+            //----------------------------------------
+
+            WarpProviderService.Initialize(
+                Monitor);
 
             //----------------------------------------
             // Warpサービス初期化
@@ -269,6 +396,13 @@ namespace Ts_Core
                 helper);
 
             //----------------------------------------
+            // Dialogue初期化
+            //----------------------------------------
+
+            DialogueService.Initialize(
+                Monitor);
+
+            //----------------------------------------
             // 配偶者部屋特殊表示物修正初期化
             //----------------------------------------
 
@@ -290,30 +424,6 @@ namespace Ts_Core
             FarmhandMapRefreshFixService.Initialize(
                 helper,
                 Monitor);
-
-            //----------------------------------------
-            // Warp定義読み込み
-            //----------------------------------------
-
-            WarpLoader.Load(
-                helper,
-                Monitor);
-
-            //----------------------------------------
-            // Building Light定義読み込み
-            //----------------------------------------
-
-            BuildingProviderLoader.Load(
-                helper,
-                Monitor);
-
-            //----------------------------------------
-            // Migration定義読み込み
-            //----------------------------------------
-
-            MigrationService.Load(
-                helper,
-                Monitor);
         }
 
         //----------------------------------------
@@ -331,31 +441,40 @@ namespace Ts_Core
             helper.Events.GameLoop.GameLaunched
                 += OnGameLaunched;
 
+            // BigCraftable Extension - Sleep
+            helper.Events.GameLoop.DayStarted
+                += BigCraftableSleepActionService.OnDayStarted;
+
             // GMCM初期更新用
             helper.Events.GameLoop.UpdateTicked
                 += OnUpdateTicked;
 
-            // Machine Interaction - Light
+            // BigCraftable Extension - Light
             helper.Events.GameLoop.UpdateTicked
                 += MachineLightService.OnUpdateTicked;
 
-            // Machine Interaction - Idle Wobble
+            // BigCraftable Extension - Idle Wobble
             helper.Events.GameLoop.UpdateTicked
                 += MachineIdleWobbleService.OnUpdateTicked;
 
             // Building Light / Migration
+            // BigCraftable Extension - Sleep継続寝床読込
             helper.Events.GameLoop.SaveLoaded
                 += OnSaveLoaded;
+
+            // BigCraftable Extension - Sleep継続寝床保存
+            helper.Events.GameLoop.Saving
+                += OnSaving;
 
             // 時刻変更処理
             helper.Events.GameLoop.TimeChanged
                 += OnTimeChanged;
 
-            // Machine Interaction - Idle Effects
+            // BigCraftable Extension - Idle Effects
             helper.Events.GameLoop.TimeChanged
                 += MachineIdleEffectService.OnTimeChanged;
 
-            // Machine Interaction - 状態クリア
+            // BigCraftable Extension - 状態クリア
             helper.Events.GameLoop.ReturnedToTitle
                 += OnReturnedToTitle;
 
@@ -370,8 +489,32 @@ namespace Ts_Core
             // Content
             //----------------------------------------
 
+            // Building Providers
             helper.Events.Content.AssetRequested
-                += MachineInteractionDataService.OnAssetRequested;
+                += BuildingProviderDataService.OnAssetRequested;
+
+            // Migration
+            helper.Events.Content.AssetRequested
+                += MigrationDataService.OnAssetRequested;
+
+            // Warp Providers
+            helper.Events.Content.AssetRequested
+                += WarpProviderDataService.OnAssetRequested;
+
+            // Notification Themes
+            helper.Events.Content.AssetRequested
+                += NotificationThemeDataService.OnAssetRequested;
+
+            // Dialogues
+            helper.Events.Content.AssetRequested
+                += DialogueDataService.OnAssetRequested;
+
+            // BigCraftable Extension
+            helper.Events.Content.AssetRequested
+                += BigCraftableExtensionDataService.OnAssetRequested;
+
+            helper.Events.Content.AssetReady
+                += BigCraftableExtensionDataService.OnAssetReady;
 
             helper.Events.Content.AssetReady
                 += OnAssetReady;
@@ -467,6 +610,13 @@ namespace Ts_Core
             SaveLoadedEventArgs e)
         {
             //----------------------------------------
+            // BigCraftable Extension
+            // Sleep継続寝床読込
+            //----------------------------------------
+
+            BigCraftableSleepPersistenceService.Load();
+
+            //----------------------------------------
             // Building Migration
             //----------------------------------------
 
@@ -483,6 +633,22 @@ namespace Ts_Core
         }
 
         //----------------------------------------
+        // Saving
+        //----------------------------------------
+
+        private void OnSaving(
+            object? sender,
+            SavingEventArgs e)
+        {
+            //----------------------------------------
+            // BigCraftable Extension
+            // Sleep継続寝床保存
+            //----------------------------------------
+
+            BigCraftableSleepPersistenceService.Save();
+        }
+
+        //----------------------------------------
         // ReturnedToTitle
         //----------------------------------------
 
@@ -491,7 +657,7 @@ namespace Ts_Core
             ReturnedToTitleEventArgs e)
         {
             //----------------------------------------
-            // Machine Interaction
+            // BigCraftable Extension
             //----------------------------------------
 
             MachineActionEffectService.Clear();
@@ -503,6 +669,14 @@ namespace Ts_Core
             MachineAnimationTextureService.Clear();
 
             MachineLightService.Clear();
+
+            BigCraftableSleepActionService.Clear();
+
+            BigCraftableSleepPersistenceService.Clear();
+
+            BigCraftableExtensionTextureService.Clear();
+
+            BigCraftableExtensionDataService.Clear();
         }
 
         //----------------------------------------

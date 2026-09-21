@@ -40,6 +40,79 @@ namespace Ts_Core.Services.DebugSupport
         }
 
         //----------------------------------------
+        // 実行可否
+        //----------------------------------------
+
+        /// <summary>
+        /// Time Skipを開始できる状態か確認します。
+        /// </summary>
+        private static bool CanStartTimeSkip()
+        {
+            //----------------------------------------
+            // セーブ未ロード時は対象外
+            //----------------------------------------
+
+            if (!Context.IsWorldReady)
+                return false;
+
+            //----------------------------------------
+            // ホスト以外は対象外
+            //----------------------------------------
+
+            if (!Context.IsMainPlayer)
+                return false;
+
+            //----------------------------------------
+            // イベント・メニュー中は対象外
+            //----------------------------------------
+
+            if (Game1.eventUp
+                || Game1.activeClickableMenu != null)
+            {
+                return false;
+            }
+
+            //----------------------------------------
+            // Time Skip実行中は対象外
+            //----------------------------------------
+
+            if (isSkipping)
+                return false;
+
+            return true;
+        }
+
+        //----------------------------------------
+        // Shortcut Panel
+        //----------------------------------------
+
+        /// <summary>
+        /// 設定されている時刻まで
+        /// Time Skipを開始します。
+        /// </summary>
+        internal static void TryStartTimeSkip()
+        {
+            if (!CanStartTimeSkip())
+                return;
+
+            StartSkip(
+                ModEntry.Config.TimeSkipTime);
+        }
+
+        /// <summary>
+        /// 設定されている時間分だけ
+        /// Time Skipを開始します。
+        /// </summary>
+        internal static void TryStartDurationTimeSkip()
+        {
+            if (!CanStartTimeSkip())
+                return;
+
+            StartDurationSkip(
+                ModEntry.Config.TimeSkipDuration);
+        }
+
+        //----------------------------------------
         // Input
         //----------------------------------------
 
@@ -51,34 +124,10 @@ namespace Ts_Core.Services.DebugSupport
             ButtonPressedEventArgs e)
         {
             //----------------------------------------
-            // セーブ未ロード時は対象外
+            // 実行できない状態
             //----------------------------------------
 
-            if (!Context.IsWorldReady)
-                return;
-
-            //----------------------------------------
-            // ホスト以外は対象外
-            //----------------------------------------
-
-            if (!Context.IsMainPlayer)
-                return;
-
-            //----------------------------------------
-            // イベント・メニュー中は対象外
-            //----------------------------------------
-
-            if (Game1.eventUp
-                || Game1.activeClickableMenu != null)
-            {
-                return;
-            }
-
-            //----------------------------------------
-            // Time Skip実行中は対象外
-            //----------------------------------------
-
-            if (isSkipping)
+            if (!CanStartTimeSkip())
                 return;
 
             //----------------------------------------
@@ -106,8 +155,7 @@ namespace Ts_Core.Services.DebugSupport
                 // Time Skip開始
                 //----------------------------------------
 
-                StartSkip(
-                    config.TimeSkipTime);
+                TryStartTimeSkip();
 
                 return;
             }
@@ -130,8 +178,7 @@ namespace Ts_Core.Services.DebugSupport
                 // Time Skip (Duration)開始
                 //----------------------------------------
 
-                StartDurationSkip(
-                    config.TimeSkipDuration);
+                TryStartDurationTimeSkip();
             }
         }
 

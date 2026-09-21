@@ -26,7 +26,8 @@ namespace Ts_Core.Services.Migration
                 return;
 
             IReadOnlyList<MigrationModel> migrations =
-                MigrationService.GetBuildingMigrations();
+                MigrationService.GetBuildingMigrations(
+                    monitor);
 
             if (migrations.Count == 0)
                 return;
