@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Menus;
+using StardewModdingAPI;
 
 namespace Ts_Core.Services.ShortcutPanelRelated
 {
@@ -14,6 +15,13 @@ namespace Ts_Core.Services.ShortcutPanelRelated
     internal sealed class ShortcutPanelSelectionMenu
         : IClickableMenu
     {
+        //----------------------------------------
+        // Translation
+        //----------------------------------------
+
+        private readonly ITranslationHelper
+            translation;
+
         //----------------------------------------
         // Entry
         //----------------------------------------
@@ -41,7 +49,26 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         // Layout
         //----------------------------------------
 
-        private const int MenuWidth = 520;
+        /// <summary>
+        /// メニューの最小幅。
+        /// </summary>
+        private const int MinMenuWidth = 520;
+
+        /// <summary>
+        /// メニューと画面端の最低余白。
+        /// </summary>
+        private const int ScreenMargin = 32;
+
+        /// <summary>
+        /// Entry内のアイコンより右側にある
+        /// テキスト開始位置。
+        /// </summary>
+        private const int EntryTextOffset = 76;
+
+        /// <summary>
+        /// Entry内のテキスト右側の余白。
+        /// </summary>
+        private const int EntryTextRightPadding = 16;
 
         private const int EntryHeight = 72;
 
@@ -58,8 +85,12 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         //----------------------------------------
 
         internal ShortcutPanelSelectionMenu(
+            ITranslationHelper translation,
             Action<string> onSelected)
         {
+            this.translation =
+                translation;
+
             this.onSelected =
                 onSelected;
 
@@ -73,6 +104,48 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 entries.Add(
                     entry);
             }
+
+            //----------------------------------------
+            // 必要なメニュー幅を計算
+            //----------------------------------------
+
+            float longestTextWidth =
+                0f;
+
+            foreach (ShortcutPanelEntry entry
+                     in entries)
+            {
+                float textWidth =
+                    Game1.smallFont.MeasureString(
+                        entry.DisplayName).X;
+
+                if (textWidth
+                    > longestTextWidth)
+                {
+                    longestTextWidth =
+                        textWidth;
+                }
+            }
+
+            int requiredMenuWidth =
+                Padding * 2
+                + EntryTextOffset
+                + (int)Math.Ceiling(
+                    longestTextWidth)
+                + EntryTextRightPadding;
+
+            int maxMenuWidth =
+                Math.Max(
+                    MinMenuWidth,
+                    Game1.uiViewport.Width
+                    - ScreenMargin * 2);
+
+            int menuWidth =
+                Math.Min(
+                    Math.Max(
+                        MinMenuWidth,
+                        requiredMenuWidth),
+                    maxMenuWidth);
 
             //----------------------------------------
             // メニューサイズ
@@ -103,7 +176,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
             int x =
                 Game1.uiViewport.Width / 2
-                - MenuWidth / 2;
+                - menuWidth / 2;
 
             int y =
                 Game1.uiViewport.Height / 2
@@ -112,7 +185,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             initialize(
                 x,
                 y,
-                MenuWidth,
+                menuWidth,
                 menuHeight);
 
             //----------------------------------------
@@ -271,7 +344,8 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             //----------------------------------------
 
             string title =
-                "Select Mod Function";
+                translation.Get(
+                    "shortcutPanel.SelectModFunction.title");
 
             Vector2 titleSize =
                 Game1.dialogueFont.MeasureString(
@@ -359,17 +433,45 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     Game1.smallFont.MeasureString(
                         entry.DisplayName);
 
+                float maxTextWidth =
+                    bounds.Width
+                    - EntryTextOffset
+                    - EntryTextRightPadding;
+
+                float textScale =
+                    1f;
+
+                //----------------------------------------
+                // 最大幅でも収まらない場合のみ
+                // テキストを縮小
+                //----------------------------------------
+
+                if (textSize.X > maxTextWidth
+                    && textSize.X > 0)
+                {
+                    textScale =
+                        maxTextWidth
+                        / textSize.X;
+                }
+
                 Vector2 textPosition =
                     new Vector2(
-                        bounds.X + 76,
+                        bounds.X
+                        + EntryTextOffset,
                         bounds.Center.Y
-                        - textSize.Y / 2f);
+                        - textSize.Y
+                        * textScale / 2f);
 
                 b.DrawString(
                     Game1.smallFont,
                     entry.DisplayName,
                     textPosition,
-                    Game1.textColor);
+                    Game1.textColor,
+                    0f,
+                    Vector2.Zero,
+                    textScale,
+                    SpriteEffects.None,
+                    0f);
             }
 
             //----------------------------------------
@@ -393,7 +495,8 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 drawShadow: false);
 
             string cancelText =
-                "Cancel";
+                translation.Get(
+                    "shortcutPanel.cancel");
 
             Vector2 cancelSize =
                 Game1.smallFont.MeasureString(

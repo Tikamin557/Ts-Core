@@ -1,5 +1,6 @@
 ﻿using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
+using System.Collections.Generic;
 
 namespace Ts_Core.Models
 {
@@ -8,6 +9,21 @@ namespace Ts_Core.Models
     /// </summary>
     public class ModConfig
     {
+        //----------------------------------------
+        // Shortcut Panel
+        //----------------------------------------
+
+        /// <summary>
+        /// ショートカットパネルの
+        /// スロット設定です。
+        /// </summary>
+        public List<ShortcutPanelSlotConfig>
+            ShortcutPanelSlots
+        {
+            get;
+            set;
+        } = new();
+
         //----------------------------------------
         // FarmHouse Fix
         //----------------------------------------

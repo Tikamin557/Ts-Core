@@ -3,9 +3,11 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
+using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
 using Ts_Core.Services.DebugSupport;
+using Ts_Core.Models;
 
 namespace Ts_Core.Services.ShortcutPanelRelated
 {
@@ -15,6 +17,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
     internal static class ShortcutPanelService
     {
         private static IModHelper helper = null!;
+
+        private static Texture2D missingShortcutIcon =
+            null!;
 
         //----------------------------------------
         // 表示状態
@@ -115,6 +120,14 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 modHelper;
 
             //----------------------------------------
+            // Assets
+            //----------------------------------------
+
+            missingShortcutIcon =
+                helper.ModContent.Load<Texture2D>(
+                    "assets/ShortcutPanel/MissingShortcut.png");
+
+            //----------------------------------------
             // スロット初期化
             //----------------------------------------
 
@@ -127,13 +140,20 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             }
 
             //----------------------------------------
+            // 保存済みスロットを復元
+            //----------------------------------------
+
+            LoadSlots();
+
+            //----------------------------------------
             // TsCore Shortcut
             //----------------------------------------
 
             ShortcutPanelRegistry.Register(
                 new ShortcutPanelEntry(
                     "TsCore/TimeSkip",
-                    "Time Skip",
+                    helper.Translation.Get(
+                        "shortcutPanel.TimeSkip"),
                     () => helper.ModContent.Load<Texture2D>(
                         "assets/ShortcutPanel/TimeSkip.png"),
                     null,
@@ -145,7 +165,8 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             ShortcutPanelRegistry.Register(
                 new ShortcutPanelEntry(
                     "TsCore/TimeSkipDuration",
-                    "Time Skip Duration",
+                    helper.Translation.Get(
+                        "shortcutPanel.TimeSkipDuration"),
                     () => helper.ModContent.Load<Texture2D>(
                         "assets/ShortcutPanel/TimeSkipDuration.png"),
                     null,
@@ -155,17 +176,6 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     }));
 
             //----------------------------------------
-            // TimeSkip と TimeSkip Duration を
-            // スロットへ割り当て
-            //----------------------------------------
-            /*
-                   slots[0].ShortcutId =
-                       "TsCore/TimeSkip";
-
-                   slots[1].ShortcutId =
-                       "TsCore/TimeSkipDuration";
-            */
-            //----------------------------------------
             // Events
             //----------------------------------------
 
@@ -174,6 +184,136 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
             helper.Events.Input.ButtonPressed
                 += OnButtonPressed;
+
+            helper.Events.Input.ButtonReleased
+                += OnButtonReleased;
+        }
+
+        //----------------------------------------
+        // Slot Config
+        //----------------------------------------
+
+        /// <summary>
+        /// config.jsonから
+        /// Shortcut Panelのスロットを復元します。
+        /// </summary>
+        private static void LoadSlots()
+        {
+            List<ShortcutPanelSlotConfig> configs =
+                ModEntry.Config.ShortcutPanelSlots;
+
+            int count =
+                Math.Min(
+                    slots.Length,
+                    configs.Count);
+
+            for (int i = 0;
+                 i < count;
+                 i++)
+            {
+                ShortcutPanelSlotConfig config =
+                    configs[i];
+
+                //----------------------------------------
+                // Mod Action
+                //----------------------------------------
+
+                if (string.Equals(
+                    config.Type,
+                    "ModAction",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!string.IsNullOrWhiteSpace(
+                        config.ShortcutId))
+                    {
+                        slots[i].SetModAction(
+                            config.ShortcutId);
+                    }
+
+                    continue;
+                }
+
+                //----------------------------------------
+                // Keybind
+                //----------------------------------------
+
+                if (string.Equals(
+                    config.Type,
+                    "Keybind",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    if (config.Keybind != null
+                        && config.Keybind.IsBound)
+                    {
+                        slots[i].SetKeybind(
+                            config.Keybind);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Shortcut Panelの現在のスロット状態を
+        /// config.jsonへ保存します。
+        /// </summary>
+        private static void SaveSlots()
+        {
+            List<ShortcutPanelSlotConfig> configs =
+                new();
+
+            foreach (ShortcutPanelSlot slot
+                     in slots)
+            {
+                ShortcutPanelSlotConfig config =
+                    new();
+
+                //----------------------------------------
+                // Mod Action
+                //----------------------------------------
+
+                if (slot.Type
+                    == ShortcutPanelSlotType.ModAction)
+                {
+                    config.Type =
+                        "ModAction";
+
+                    config.ShortcutId =
+                        slot.ShortcutId;
+                }
+
+                //----------------------------------------
+                // Keybind
+                //----------------------------------------
+
+                else if (slot.Type
+                    == ShortcutPanelSlotType.Keybind)
+                {
+                    config.Type =
+                        "Keybind";
+
+                    config.Keybind =
+                        slot.Keybind;
+                }
+
+                //----------------------------------------
+                // None
+                //----------------------------------------
+
+                else
+                {
+                    config.Type =
+                        "None";
+                }
+
+                configs.Add(
+                    config);
+            }
+
+            ModEntry.Config.ShortcutPanelSlots =
+                configs;
+
+            helper.WriteConfig(
+                ModEntry.Config);
         }
 
         //----------------------------------------
@@ -290,6 +430,44 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             if (!Context.IsWorldReady)
                 return;
 
+            //----------------------------------------
+            // イベント中は操作しない
+            //----------------------------------------
+
+            if (Game1.eventUp)
+                return;
+
+            //----------------------------------------
+            // Keybind入力待機中
+            //----------------------------------------
+
+            if (Game1.activeClickableMenu
+                is ShortcutPanelKeybindMenu keybindMenu)
+            {
+                //----------------------------------------
+                // 左クリックはメニュー自身へ任せる
+                //----------------------------------------
+
+                if (e.Button == SButton.MouseLeft)
+                    return;
+
+                //----------------------------------------
+                // 入力されたキーを渡す
+                //
+                // 注意:
+                // ここではSuppressしない。
+                // SuppressするとSMAPIによって
+                // 次のtickでButtonReleasedが発生し、
+                // 複合キーを入力する前に
+                // 登録が確定してしまう。
+                //----------------------------------------
+
+                keybindMenu.ReceiveButton(
+                    e.Button);
+
+                return;
+            }
+
             if (Game1.activeClickableMenu != null)
                 return;
 
@@ -319,11 +497,25 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             if (tabBounds.Contains(
                 cursor))
             {
-                isOpen =
-                    !isOpen;
+                //----------------------------------------
+                // タブ上の入力を抑制
+                //----------------------------------------
 
                 helper.Input.Suppress(
                     e.Button);
+
+                //----------------------------------------
+                // 左クリックのみ開閉
+                //----------------------------------------
+
+                if (e.Button
+                    != SButton.MouseLeft)
+                {
+                    return;
+                }
+
+                isOpen =
+                    !isOpen;
 
                 Game1.playSound(
                     "shwip");
@@ -359,8 +551,8 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 helper.Input.Suppress(
                     e.Button);
 
-                ShortcutPanelEntry? entry =
-                    slots[i].GetEntry();
+                ShortcutPanelSlot slot =
+                    slots[i];
 
                 //----------------------------------------
                 // 右クリック
@@ -374,14 +566,16 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     // 空スロットなら何もしない
                     //----------------------------------------
 
-                    if (entry == null)
+                    if (!slot.IsAssigned())
                         return;
 
                     //----------------------------------------
                     // Shortcutを解除
                     //----------------------------------------
 
-                    slots[i].Clear();
+                    slot.Clear();
+
+                    SaveSlots();
 
                     Game1.playSound(
                         "bigDeSelect");
@@ -393,12 +587,12 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 // 左クリック
                 //----------------------------------------
 
-                if (entry == null)
-                {
-                    //----------------------------------------
-                    // 空スロット
-                    //----------------------------------------
+                //----------------------------------------
+                // 空スロット
+                //----------------------------------------
 
+                if (!slot.IsAssigned())
+                {
                     int slotIndex =
                         i;
 
@@ -406,23 +600,77 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                         "smallSelect");
 
                     Game1.activeClickableMenu =
-                        new ShortcutPanelSelectionMenu(
-                            shortcutId =>
+                        new ShortcutPanelTypeSelectionMenu(
+                            helper.Translation,
+
+                            //----------------------------------------
+                            // Key
+                            //----------------------------------------
+
+                            onKeybindSelected: () =>
                             {
-                                slots[slotIndex].ShortcutId =
-                                    shortcutId;
+                                Game1.activeClickableMenu =
+                                    new ShortcutPanelKeybindMenu(
+                                        helper.Translation,
+                                        keybind =>
+                                        {
+                                            slots[slotIndex]
+                                                .SetKeybind(
+                                                    keybind);
+
+                                            SaveSlots();
+                                        });
+                            },
+
+                            //----------------------------------------
+                            // Mod Function
+                            //----------------------------------------
+
+                            onModActionSelected: () =>
+                            {
+                                Game1.activeClickableMenu =
+                                    new ShortcutPanelSelectionMenu(
+                                        helper.Translation,
+                                        shortcutId =>
+                                        {
+                                            slots[slotIndex]
+                                                .SetModAction(
+                                                    shortcutId);
+
+                                            SaveSlots();
+                                        });
                             });
 
                     return;
                 }
 
                 //----------------------------------------
-                // Shortcutを実行
+                // Mod Action
                 //----------------------------------------
 
-                entry.Execute();
+                if (slot.Type
+                    == ShortcutPanelSlotType.ModAction)
+                {
+                    ShortcutPanelEntry? entry =
+                        slot.GetEntry();
 
-                return;
+                    entry?.Execute();
+
+                    return;
+                }
+
+                //----------------------------------------
+                // Keybind
+                //----------------------------------------
+
+                if (slot.Type
+                    == ShortcutPanelSlotType.Keybind)
+                {
+                    slot.ExecuteKeybind(
+                        helper.Input);
+
+                    return;
+                }
             }
 
             //----------------------------------------
@@ -438,6 +686,32 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             }
         }
 
+        /// <summary>
+        /// Shortcut Panelのキー登録中に
+        /// キーが離された時の処理です。
+        /// </summary>
+        private static void OnButtonReleased(
+            object? sender,
+            ButtonReleasedEventArgs e)
+        {
+            //----------------------------------------
+            // Keybind入力待機中のみ処理
+            //----------------------------------------
+
+            if (Game1.activeClickableMenu
+                is not ShortcutPanelKeybindMenu keybindMenu)
+            {
+                return;
+            }
+
+            //----------------------------------------
+            // Keybind入力を更新
+            //----------------------------------------
+
+            keybindMenu.ReceiveButtonReleased(
+                e.Button);
+        }
+
         //----------------------------------------
         // Draw
         //----------------------------------------
@@ -450,6 +724,13 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             RenderedHudEventArgs e)
         {
             if (!Context.IsWorldReady)
+                return;
+
+            //----------------------------------------
+            // イベント中は表示しない
+            //----------------------------------------
+
+            if (Game1.eventUp)
                 return;
 
             if (Game1.dayTimeMoneyBox == null)
@@ -479,6 +760,151 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
             DrawTab(
                 spriteBatch);
+
+            //----------------------------------------
+            // Hover Text
+            //----------------------------------------
+
+            DrawHoverText(
+                spriteBatch);
+        }
+
+        //----------------------------------------
+        // Hover Text
+        //----------------------------------------
+
+        /// <summary>
+        /// Shortcut PanelのHover Textを描画します。
+        /// </summary>
+        private static void DrawHoverText(
+            SpriteBatch spriteBatch)
+        {
+            //----------------------------------------
+            // メニュー表示中はHoverを表示しない
+            //----------------------------------------
+
+            if (Game1.activeClickableMenu != null)
+                return;
+
+            //----------------------------------------
+            // マウス位置
+            //----------------------------------------
+
+            Point cursor =
+                Game1.getMousePosition();
+
+            //----------------------------------------
+            // 開閉タブ
+            //----------------------------------------
+
+            if (tabBounds.Contains(
+                cursor))
+            {
+                string text =
+                    isOpen
+                        ? helper.Translation.Get(
+                            "shortcutPanel.Hover.close")
+                        : helper.Translation.Get(
+                            "shortcutPanel.Hover.open");
+
+                IClickableMenu.drawHoverText(
+                    spriteBatch,
+                    text,
+                    Game1.smallFont);
+
+                return;
+            }
+
+            //----------------------------------------
+            // パネルが閉じている場合
+            //----------------------------------------
+
+            if (!isOpen)
+                return;
+
+            //----------------------------------------
+            // スロット
+            //----------------------------------------
+
+            for (int i = 0;
+                 i < slotBounds.Length;
+                 i++)
+            {
+                if (!slotBounds[i].Contains(
+                    cursor))
+                {
+                    continue;
+                }
+
+                ShortcutPanelSlot slot =
+                    slots[i];
+
+                //----------------------------------------
+                // 未登録
+                //----------------------------------------
+
+                if (!slot.IsAssigned())
+                {
+                    IClickableMenu.drawHoverText(
+                        spriteBatch,
+                        helper.Translation.Get(
+                            "shortcutPanel.Hover.register"),
+                        Game1.smallFont);
+
+                    return;
+                }
+
+                //----------------------------------------
+                // Keybind
+                //----------------------------------------
+
+                if (slot.Type
+                    == ShortcutPanelSlotType.Keybind)
+                {
+                    IClickableMenu.drawHoverText(
+                        spriteBatch,
+                        helper.Translation.Get(
+                            "shortcutPanel.Hover.remove"),
+                        Game1.smallFont);
+
+                    return;
+                }
+
+                //----------------------------------------
+                // Mod Action
+                //----------------------------------------
+
+                if (slot.Type
+                    == ShortcutPanelSlotType.ModAction)
+                {
+                    ShortcutPanelEntry? entry =
+                        slot.GetEntry();
+
+                    string text;
+
+                    if (entry != null)
+                    {
+                        text =
+                            entry.DisplayName
+                            + Environment.NewLine
+                            + helper.Translation.Get(
+                                "shortcutPanel.Hover.remove");
+                    }
+                    else
+                    {
+                        text =
+                            helper.Translation.Get(
+                                "shortcutPanel.Hover.remove");
+                    }
+
+                    IClickableMenu.drawHoverText(
+                        spriteBatch,
+                        text,
+                        Game1.smallFont);
+
+                    return;
+                }
+            }
         }
 
         //----------------------------------------
@@ -526,7 +952,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     slotBounds[i];
 
                 //----------------------------------------
-                // スロット背景
+                // Slot Background
                 //----------------------------------------
 
                 spriteBatch.Draw(
@@ -539,52 +965,305 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                         64),
                     Color.White);
 
+                ShortcutPanelSlot slot =
+                    slots[i];
+
                 //----------------------------------------
-                // Shortcut取得
+                // Mod Action
                 //----------------------------------------
 
-                ShortcutPanelEntry? entry =
-                    slots[i].GetEntry();
-
-                if (entry == null)
+                if (slot.Type
+                    == ShortcutPanelSlotType.ModAction)
                 {
+                    ShortcutPanelEntry? entry =
+                        slot.GetEntry();
+
+                    if (entry == null)
+                    {
+                        DrawMissingShortcutIcon(
+                            spriteBatch,
+                            bounds);
+
+                        continue;
+                    }
+
+                    Texture2D? iconTexture =
+                        entry.GetIconTexture();
+
+                    if (iconTexture == null)
+                        continue;
+
+                    const int iconSize = 48;
+
+                    Rectangle iconBounds =
+                        new Rectangle(
+                            bounds.Center.X
+                            - iconSize / 2,
+                            bounds.Center.Y
+                            - iconSize / 2,
+                            iconSize,
+                            iconSize);
+
+                    spriteBatch.Draw(
+                        iconTexture,
+                        iconBounds,
+                        entry.IconSourceRect,
+                        Color.White);
+
                     continue;
                 }
 
                 //----------------------------------------
-                // アイコンテクスチャ取得
+                // Keybind
                 //----------------------------------------
 
-                Texture2D? iconTexture =
-                    entry.GetIconTexture();
-
-                if (iconTexture == null)
+                if (slot.Type
+                    == ShortcutPanelSlotType.Keybind)
                 {
+                    Keybind? keybind =
+                        slot.Keybind?
+                            .Keybinds
+                            .FirstOrDefault();
+
+                    if (keybind == null)
+                        continue;
+
+                    SButton[] buttons =
+                        keybind.Buttons
+                            .ToArray();
+
+                    if (buttons.Length == 0)
+                        continue;
+
+                    //----------------------------------------
+                    // 1キー
+                    //----------------------------------------
+
+                    if (buttons.Length == 1)
+                    {
+                        DrawKeybindText(
+                            spriteBatch,
+                            bounds,
+                            buttons[0].ToString());
+
+                        continue;
+                    }
+
+                    //----------------------------------------
+                    // 複合キー
+                    //----------------------------------------
+
+                    DrawMultiKeybindText(
+                        spriteBatch,
+                        bounds,
+                        buttons);
+
                     continue;
                 }
+            }
+        }
 
-                //----------------------------------------
-                // アイコンの描画範囲
-                //----------------------------------------
+        /// <summary>
+        /// 現在利用できないShortcutの
+        /// アイコンを描画します。
+        /// </summary>
+        private static void DrawMissingShortcutIcon(
+            SpriteBatch spriteBatch,
+            Rectangle bounds)
+        {
+            const int iconSize =
+                48;
 
-                const int iconSize = 48;
+            Rectangle destinationRect =
+                new Rectangle(
+                    bounds.Center.X
+                        - iconSize / 2,
+                    bounds.Center.Y
+                        - iconSize / 2,
+                    iconSize,
+                    iconSize);
 
-                Rectangle iconBounds =
-                    new Rectangle(
-                        bounds.Center.X - iconSize / 2,
-                        bounds.Center.Y - iconSize / 2,
-                        iconSize,
-                        iconSize);
+            spriteBatch.Draw(
+                missingShortcutIcon,
+                destinationRect,
+                Color.White);
+        }
 
-                //----------------------------------------
-                // アイコン
-                //----------------------------------------
+        //----------------------------------------
+        // Draw Keybind Text
+        //----------------------------------------
 
-                spriteBatch.Draw(
-                    iconTexture,
-                    iconBounds,
-                    entry.IconSourceRect,
-                    Color.White);
+        private static void DrawKeybindText(
+            SpriteBatch spriteBatch,
+            Rectangle bounds,
+            string text)
+        {
+            Vector2 textSize =
+                Game1.smallFont.MeasureString(
+                    text);
+
+            float maxWidth =
+                bounds.Width - 10;
+
+            float scale =
+                1f;
+
+            if (textSize.X > maxWidth
+                && textSize.X > 0)
+            {
+                scale =
+                    maxWidth / textSize.X;
+            }
+
+            Vector2 position =
+                new Vector2(
+                    bounds.Center.X
+                    - textSize.X
+                    * scale / 2f,
+                    bounds.Center.Y
+                    - textSize.Y
+                    * scale / 2f);
+
+            spriteBatch.DrawString(
+                Game1.smallFont,
+                text,
+                position,
+                Game1.textColor,
+                0f,
+                Vector2.Zero,
+                scale,
+                SpriteEffects.None,
+                0f);
+        }
+
+        //----------------------------------------
+        // Draw Multi Keybind Text
+        //----------------------------------------
+
+        private static void DrawMultiKeybindText(
+            SpriteBatch spriteBatch,
+            Rectangle bounds,
+            SButton[] buttons)
+        {
+            //----------------------------------------
+            // 表示行を作成
+            //----------------------------------------
+
+            List<string> lines =
+                new();
+
+            for (int i = 0;
+                 i < buttons.Length;
+                 i++)
+            {
+                if (i > 0)
+                {
+                    lines.Add(
+                        "+");
+                }
+
+                lines.Add(
+                    buttons[i].ToString());
+            }
+
+            //----------------------------------------
+            // 使用可能サイズ
+            //----------------------------------------
+
+            float maxWidth =
+                bounds.Width - 8;
+
+            float maxHeight =
+                bounds.Height - 8;
+
+            //----------------------------------------
+            // 全体のScaleを計算
+            //----------------------------------------
+
+            float scale =
+                1f;
+
+            float largestWidth =
+                0f;
+
+            float totalHeight =
+                0f;
+
+            foreach (string line in lines)
+            {
+                Vector2 size =
+                    Game1.smallFont.MeasureString(
+                        line);
+
+                if (size.X > largestWidth)
+                {
+                    largestWidth =
+                        size.X;
+                }
+
+                totalHeight +=
+                    size.Y;
+            }
+
+            if (largestWidth > maxWidth
+                && largestWidth > 0)
+            {
+                scale =
+                    Math.Min(
+                        scale,
+                        maxWidth / largestWidth);
+            }
+
+            if (totalHeight > maxHeight
+                && totalHeight > 0)
+            {
+                scale =
+                    Math.Min(
+                        scale,
+                        maxHeight / totalHeight);
+            }
+
+            //----------------------------------------
+            // 縦方向の開始位置
+            //----------------------------------------
+
+            float scaledTotalHeight =
+                totalHeight * scale;
+
+            float y =
+                bounds.Center.Y
+                - scaledTotalHeight / 2f;
+
+            //----------------------------------------
+            // 各行を中央揃えで描画
+            //----------------------------------------
+
+            foreach (string line in lines)
+            {
+                Vector2 size =
+                    Game1.smallFont.MeasureString(
+                        line);
+
+                Vector2 position =
+                    new Vector2(
+                        bounds.Center.X
+                        - size.X
+                        * scale / 2f,
+                        y);
+
+                spriteBatch.DrawString(
+                    Game1.smallFont,
+                    line,
+                    position,
+                    Game1.textColor,
+                    0f,
+                    Vector2.Zero,
+                    scale,
+                    SpriteEffects.None,
+                    0f);
+
+                y +=
+                    size.Y * scale;
             }
         }
 

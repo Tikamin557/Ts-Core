@@ -26,6 +26,7 @@ using Ts_Core.Services.Relationship;
 using Ts_Core.Services.ShortcutPanelRelated;
 using Ts_Core.Services.WarpRelated;
 using Ts_Core.Tokens;
+using Ts_Core.Api;
 
 namespace Ts_Core
 {
@@ -263,6 +264,19 @@ namespace Ts_Core
 
             ShortcutPanelService.Initialize(
                 helper);
+        }
+
+        //----------------------------------------
+        // API
+        //----------------------------------------
+
+        /// <summary>
+        /// 外部Modへ公開する
+        /// T's Core APIを返します。
+        /// </summary>
+        public override object GetApi()
+        {
+            return new TsCoreApi();
         }
 
         //----------------------------------------
