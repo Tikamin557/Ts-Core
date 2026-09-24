@@ -49,6 +49,8 @@ instead.
 
 T's Core can be used by SMAPI C# mods through its documented public APIs.
 
+C# mods can also register their own actions with the T's Core Shortcut Panel, allowing players to access those functions directly from the in-game panel.
+
 > **Important**
 >
 > Do not rely on internal classes, internal fields, or undocumented behavior.
@@ -74,6 +76,7 @@ T's Core currently provides the following systems.
 | Content Patcher Integration | Provides additional Content Patcher development and configuration features. |
 | Other Features | Provides additional Tile Actions and Game State Queries, including custom sleeping actions and location category checks. |
 | Content Patcher Tokens | Provides custom tokens for use with Content Patcher. |
+| Shortcut Panel | Provides a customizable in-game shortcut panel and a public API that allows C# mods to register their own shortcut actions. |
 | Shared Utilities | Provides common functionality shared between T's Mods. |
 
 See the [Detailed Documentation](#-detailed-documentation) section for individual guides.
@@ -101,7 +104,7 @@ Dialogues registered through `TsCore/Dialogues` can be displayed from map Tile A
 
 T's Core also provides custom Tile Actions and Game State Queries for additional gameplay behavior and conditions. These smaller features are documented in the **[Other Features Guide](ModderGuide_OtherFeatures.md)**.
 
-T's Core also provides additional Content Patcher features such as custom tokens...
+T's Core also provides additional Content Patcher features such as custom tokens, extended Content Pack reloading for development, and conditional GMCM field visibility based on installed mods.
 
 Each system has its own setup and available options. See the corresponding guide in the [Detailed Documentation](#-detailed-documentation) section for details and examples.
 
