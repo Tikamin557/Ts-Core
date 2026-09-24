@@ -3,9 +3,11 @@
 > **This mod is primarily intended for other mods.**
 > Most players only need to install it when it is required by another mod.
 
-A shared library and framework for Stardew Valley SMAPI mods.
+A shared library and framework for Stardew Valley SMAPI mods, with support for both PC and Android.
 
 It provides reusable APIs, Content Patcher integration, custom actions, data-driven systems, migration support, and development tools that other mods can use to improve compatibility and reduce duplicated code.
+
+T's Core also includes optional convenience features for players, including a customizable Shortcut Panel for quick access to frequently used functions, key inputs, and mod settings directly from the game screen.
 
 ---
 
@@ -18,6 +20,9 @@ It provides reusable APIs, Content Patcher integration, custom actions, data-dri
 
 ## ✨ Features
 
+- Customizable Shortcut Panel for quick access to frequently used functions, key inputs, and mod settings
+  - Supports mouse controls on PC and touch-friendly controls on Android
+- Android support, including Android-specific controls and an in-game SMAPI console
 - Relationship services and support for third-party marriage APIs
 - Location tracking and location-related services
 - Warp Actions and reusable Warp Providers
@@ -44,7 +49,7 @@ It provides reusable APIs, Content Patcher integration, custom actions, data-dri
 3. Download the latest version of T's Core.
 4. Extract it into your `Mods` folder.
 
-> **Players:** You only need to install T's Core if another mod lists it as a requirement.
+> **Players:** You only need to install T's Core if another mod lists it as a requirement. T's Core supports both PC and Android.
 
 ---
 
