@@ -1,6 +1,5 @@
 ﻿using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
-using System.Collections.Generic;
 
 namespace Ts_Core.Models
 {
@@ -10,22 +9,7 @@ namespace Ts_Core.Models
     public class ModConfig
     {
         //----------------------------------------
-        // Shortcut Panel
-        //----------------------------------------
-
-        /// <summary>
-        /// ショートカットパネルの
-        /// スロット設定です。
-        /// </summary>
-        public List<ShortcutPanelSlotConfig>
-            ShortcutPanelSlots
-        {
-            get;
-            set;
-        } = new();
-
-        //----------------------------------------
-        // FarmHouse Fix
+        // FarmHouse修正
         //----------------------------------------
 
         /// <summary>
@@ -33,6 +17,93 @@ namespace Ts_Core.Models
         /// カスタムタイルが上書きされる問題を修正します。
         /// </summary>
         public bool EnableSpouseRoomTileFix
+        {
+            get;
+            set;
+        } = false;
+
+        //----------------------------------------
+        // ショートカットパネル
+        //----------------------------------------
+
+        /// <summary>
+        /// ショートカットパネルを表示するかどうか。
+        /// </summary>
+        public bool ShortcutPanelEnabled
+        {
+            get;
+            set;
+        } = true;
+
+        /// <summary>
+        /// ショートカットパネルの開閉タブの
+        /// 表示倍率です。
+        /// 100～200で指定します。
+        /// </summary>
+        public int ShortcutPanelTabScale
+        {
+            get;
+            set;
+        } = 100;
+
+        /// <summary>
+        /// ショートカットパネル本体の
+        /// 表示倍率です。
+        /// 100～200で指定します。
+        /// </summary>
+        public int ShortcutPanelScale
+        {
+            get;
+            set;
+        } = 100;
+
+        /// <summary>
+        /// ショートカットパネルの開閉タブ背景の
+        /// 不透明度です。
+        /// 0～100で指定します。
+        /// </summary>
+        public int ShortcutPanelTabOpacity
+        {
+            get;
+            set;
+        } = 100;
+
+        /// <summary>
+        /// ショートカットパネル本体とスロット背景の
+        /// 不透明度です。
+        /// 0～100で指定します。
+        /// </summary>
+        public int ShortcutPanelOpacity
+        {
+            get;
+            set;
+        } = 100;
+
+        /// <summary>
+        /// 「現在の画面」のスクリーンショットに
+        /// ゲームUIを含めるかどうか。
+        /// </summary>
+        public bool ScreenshotIncludeUi
+        {
+            get;
+            set;
+        } = true;
+
+        /// <summary>
+        /// 「現在の画面」のスクリーンショットに
+        /// ショートカットパネルを含めるかどうか。
+        /// </summary>
+        public bool ScreenshotIncludeShortcutPanel
+        {
+            get;
+            set;
+        } = false;
+
+        /// <summary>
+        /// 「現在の画面」のスクリーンショットに
+        /// マウスカーソルを含めるかどうか。
+        /// </summary>
+        public bool ScreenshotIncludeMouseCursor
         {
             get;
             set;

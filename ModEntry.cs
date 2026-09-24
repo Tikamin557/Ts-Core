@@ -1,7 +1,8 @@
-using HarmonyLib;
+﻿using HarmonyLib;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using Ts_Core.Actions;
+using Ts_Core.Api;
 using Ts_Core.Debug;
 using Ts_Core.Initializers;
 using Ts_Core.Interfaces;
@@ -23,10 +24,10 @@ using Ts_Core.Services.MapRelated.TimedExit;
 using Ts_Core.Services.Migration;
 using Ts_Core.Services.Notification;
 using Ts_Core.Services.Relationship;
+using Ts_Core.Services.ScreenshotRelated;
 using Ts_Core.Services.ShortcutPanelRelated;
 using Ts_Core.Services.WarpRelated;
 using Ts_Core.Tokens;
-using Ts_Core.Api;
 
 namespace Ts_Core
 {
@@ -37,11 +38,11 @@ namespace Ts_Core
     public class ModEntry : Mod
     {
         //----------------------------------------
-        // API対応優先順位
+        // 外部API対応優先順位
         //----------------------------------------
 
         /// <summary>
-        /// API対応している結婚Modの優先順位。
+        /// 外部API対応している結婚Modの優先順位。
         /// 上から順に優先して使用される。
         /// </summary>
         private static readonly string[] SupportedMarriageApis =
@@ -51,7 +52,7 @@ namespace Ts_Core
         };
 
         //----------------------------------------
-        // Config
+        // 設定
         //----------------------------------------
 
         internal static ModConfig Config
@@ -82,11 +83,14 @@ namespace Ts_Core
         // エントリーポイント
         //----------------------------------------
 
+        /// <summary>
+        /// Modの起動時に呼ばれ、設定の読み込み・サービス初期化・各システムとイベントの登録を行います。
+        /// </summary>
         public override void Entry(
             IModHelper helper)
         {
             //----------------------------------------
-            // Config読み込み
+            // 設定読み込み
             //----------------------------------------
 
             Config =
@@ -97,7 +101,7 @@ namespace Ts_Core
                     ModManifest.UniqueID);
 
             //----------------------------------------
-            // Harmony Patch
+            // Harmonyパッチ
             //----------------------------------------
 
             // Stardew Valley標準のWarp警告を抑制
@@ -262,12 +266,19 @@ namespace Ts_Core
             NotificationService.Initialize(
                 helper);
 
+            // ショートカットパネルより先に初期化し、
+            // パネル描画前のCurrent Screenを取得できるようにする。
+            ScreenshotService.Initialize(
+                helper,
+                Monitor);
+
             ShortcutPanelService.Initialize(
-                helper);
+                helper,
+                Monitor);
         }
 
         //----------------------------------------
-        // API
+        // 外部API
         //----------------------------------------
 
         /// <summary>
@@ -283,6 +294,9 @@ namespace Ts_Core
         // サービス初期化
         //----------------------------------------
 
+        /// <summary>
+        /// T's Coreで使用する各サービスを初期化します。
+        /// </summary>
         private void InitializeServices(
             IModHelper helper)
         {
@@ -316,6 +330,9 @@ namespace Ts_Core
         // システム登録
         //----------------------------------------
 
+        /// <summary>
+        /// T's Coreが提供する各機能やシステムを登録します。
+        /// </summary>
         private void RegisterSystems(
             IModHelper helper)
         {
@@ -444,6 +461,9 @@ namespace Ts_Core
         // イベント登録
         //----------------------------------------
 
+        /// <summary>
+        /// ゲーム中に使用するSMAPIイベントを登録します。
+        /// </summary>
         private void RegisterEvents(
             IModHelper helper)
         {
@@ -538,6 +558,9 @@ namespace Ts_Core
         // 配偶者をルーム順で取得
         //----------------------------------------
 
+        /// <summary>
+        /// 現在の配偶者を、部屋配置などで使用する順序に並べて返します。
+        /// </summary>
         private IEnumerable<string> GetOrderedPartners()
         {
             return service
@@ -549,6 +572,9 @@ namespace Ts_Core
         // GameLaunched
         //----------------------------------------
 
+        /// <summary>
+        /// ゲーム起動完了時の初期化処理を行います。
+        /// </summary>
         private void OnGameLaunched(
             object? sender,
             GameLaunchedEventArgs e)
@@ -566,6 +592,7 @@ namespace Ts_Core
 
             GenericModConfigMenuService.Register(
                 Helper,
+                Monitor,
                 ModManifest,
                 getConfig: () => Config,
                 setConfig: config => Config = config);
@@ -584,6 +611,9 @@ namespace Ts_Core
         // Content Patcher GMCM初期更新用
         //----------------------------------------
 
+        /// <summary>
+        /// ゲームの更新tickごとに必要なT's Coreの処理を実行します。
+        /// </summary>
         private void OnUpdateTicked(
             object? sender,
             UpdateTickedEventArgs e)
@@ -619,10 +649,17 @@ namespace Ts_Core
         // SaveLoaded
         //----------------------------------------
 
+        /// <summary>
+        /// セーブデータ読み込み完了時に必要な初期化・再登録処理を行います。
+        /// </summary>
         private void OnSaveLoaded(
             object? sender,
             SaveLoadedEventArgs e)
         {
+            // SaveLoaded時点で現在の言語が確定しているため、
+            // TsCore内蔵Shortcutの表示名を現在のi18nで更新します。
+            ShortcutPanelService.RegisterBuiltInShortcuts();
+
             //----------------------------------------
             // BigCraftable Extension
             // Sleep継続寝床読込
@@ -650,6 +687,9 @@ namespace Ts_Core
         // Saving
         //----------------------------------------
 
+        /// <summary>
+        /// セーブ実行時に必要な保存前処理を行います。
+        /// </summary>
         private void OnSaving(
             object? sender,
             SavingEventArgs e)
@@ -666,6 +706,9 @@ namespace Ts_Core
         // ReturnedToTitle
         //----------------------------------------
 
+        /// <summary>
+        /// タイトル画面へ戻った時に、セーブ固有の状態をリセットします。
+        /// </summary>
         private void OnReturnedToTitle(
             object? sender,
             ReturnedToTitleEventArgs e)
@@ -697,6 +740,9 @@ namespace Ts_Core
         // TimeChanged
         //----------------------------------------
 
+        /// <summary>
+        /// ゲーム内時刻が変化した時に必要な処理を実行します。
+        /// </summary>
         private void OnTimeChanged(
             object? sender,
             TimeChangedEventArgs e)
@@ -709,6 +755,9 @@ namespace Ts_Core
         // Warped
         //----------------------------------------
 
+        /// <summary>
+        /// プレイヤーが別ロケーションへ移動した時に必要な処理を実行します。
+        /// </summary>
         private void OnWarped(
             object? sender,
             WarpedEventArgs e)
@@ -728,6 +777,9 @@ namespace Ts_Core
         // AssetReady
         //----------------------------------------
 
+        /// <summary>
+        /// ゲームアセットの読み込み完了時に、対象アセットに必要な処理を行います。
+        /// </summary>
         private void OnAssetReady(
             object? sender,
             AssetReadyEventArgs e)
@@ -750,6 +802,9 @@ namespace Ts_Core
         // Content Patcher Token登録
         //----------------------------------------
 
+        /// <summary>
+        /// Content Patcherから利用できるT's Core独自トークンを登録します。
+        /// </summary>
         private void RegisterContentPatcherTokens()
         {
             var api =

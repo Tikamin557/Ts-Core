@@ -1,4 +1,6 @@
-﻿using StardewModdingAPI;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 
 namespace Ts_Core.Interfaces
@@ -59,6 +61,44 @@ namespace Ts_Core.Interfaces
             IManifest mod,
             Func<string> text,
             Func<string>? tooltip = null);
+
+        /// <summary>
+        /// 説明文を追加します。
+        /// </summary>
+        void AddParagraph(
+            IManifest mod,
+            Func<string> text);
+
+
+        /// <summary>
+        /// カスタム描画の設定項目を追加します。
+        /// </summary>
+        void AddComplexOption(
+            IManifest mod,
+            Func<string> name,
+            Action<SpriteBatch, Vector2> draw,
+            Func<string>? tooltip = null,
+            Action? beforeMenuOpened = null,
+            Action? beforeSave = null,
+            Action? afterSave = null,
+            Action? beforeReset = null,
+            Action? afterReset = null,
+            Action? beforeMenuClosed = null,
+            Func<int>? height = null,
+            string? fieldId = null);
+
+        /// <summary>
+        /// 現在開いているGMCMのModとページを取得します。
+        /// </summary>
+        bool TryGetCurrentMenu(
+            out IManifest mod,
+            out string page);
+
+        /// <summary>
+        /// 指定Modの設定メニューを開きます.
+        /// </summary>
+        void OpenModMenuAsChildMenu(
+            IManifest mod);
 
         /// <summary>
         /// 数値設定項目を追加します。

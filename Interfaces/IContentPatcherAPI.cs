@@ -1,4 +1,4 @@
-using StardewModdingAPI;
+﻿using StardewModdingAPI;
 
 namespace Ts_Core.Interfaces
 {

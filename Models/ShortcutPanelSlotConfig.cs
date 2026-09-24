@@ -10,7 +10,7 @@ namespace Ts_Core.Models
     {
         /// <summary>
         /// 登録タイプです。
-        /// None / ModAction / Keybind
+        /// None / ModAction / Keybind / Gmcm
         /// </summary>
         public string Type
         {
@@ -22,6 +22,15 @@ namespace Ts_Core.Models
         /// Mod機能のShortcut IDです。
         /// </summary>
         public string? ShortcutId
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// GMCM個別設定の対象Mod UniqueIDです。
+        /// </summary>
+        public string? GmcmModId
         {
             get;
             set;

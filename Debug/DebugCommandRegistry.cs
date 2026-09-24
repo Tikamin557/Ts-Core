@@ -63,6 +63,14 @@ namespace Ts_Core.Debug
             // Debug
             //----------------------------------------
 
+            // ショートカットパネルの位置計算情報を表示
+            helper.ConsoleCommands.Add(
+                "tscore_debug_shortcut",
+                "Print detailed Shortcut Panel position diagnostics.",
+                (command, args) =>
+                    DebugShortcutPanelLogger.Log(
+                        monitor));
+
             // Content PatcherのContent Packを再読み込み
             helper.ConsoleCommands.Add(
                 "tscore_cp_reload",
