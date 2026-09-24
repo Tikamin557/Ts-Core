@@ -252,6 +252,9 @@ namespace Ts_Core.Services.ContentPatcherRelated.ContentPatcherOption
         // 対応Option確認
         //----------------------------------------
 
+        /// <summary>
+        /// 取得したContent Patcher設定項目がT's Core側で扱える種類かを判定します。
+        /// </summary>
         private static bool IsSupportedOption(
             string optionName)
         {
@@ -363,6 +366,9 @@ namespace Ts_Core.Services.ContentPatcherRelated.ContentPatcherOption
         // Dictionary値取得
         //----------------------------------------
 
+        /// <summary>
+        /// Reflectionで取得した辞書形式オブジェクトから、指定キーの値を取得します。
+        /// </summary>
         private static object? GetDictionaryValue(
             object dictionary,
             string key)
@@ -401,6 +407,9 @@ namespace Ts_Core.Services.ContentPatcherRelated.ContentPatcherOption
         // Property取得
         //----------------------------------------
 
+        /// <summary>
+        /// Reflectionを使用して、対象オブジェクトの指定プロパティ値を取得します。
+        /// </summary>
         private static object? GetPropertyValue(
             object? instance,
             string propertyName)

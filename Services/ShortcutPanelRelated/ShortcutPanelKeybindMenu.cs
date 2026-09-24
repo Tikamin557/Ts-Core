@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
@@ -79,6 +76,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         // Constructor
         //----------------------------------------
 
+        /// <summary>
+        /// PCでショートカットへ登録するキー入力を待ち受けるメニューを初期化します。
+        /// </summary>
         internal ShortcutPanelKeybindMenu(
             ITranslationHelper translation,
             Action<KeybindList> onSelected)
@@ -162,6 +162,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         // Key Input
         //----------------------------------------
 
+        /// <summary>
+        /// キー入力を受け取り、登録候補となるキーの組み合わせへ追加します。
+        /// </summary>
         internal void ReceiveButton(
             SButton button)
         {
@@ -198,6 +201,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         // Key Released
         //----------------------------------------
 
+        /// <summary>
+        /// 押していたキーが離されたことを受け取り、キー登録を確定できる状態か処理します。
+        /// </summary>
         internal void ReceiveButtonReleased(
             SButton button)
         {
@@ -260,6 +266,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         // Click
         //----------------------------------------
 
+        /// <summary>
+        /// キー登録画面のキャンセルなど、マウスクリック操作を処理します。
+        /// </summary>
         public override void receiveLeftClick(
             int x,
             int y,
@@ -284,6 +293,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         // Draw
         //----------------------------------------
 
+        /// <summary>
+        /// キー入力待機画面と現在入力されているキー情報を描画します。
+        /// </summary>
         public override void draw(
             SpriteBatch b)
         {

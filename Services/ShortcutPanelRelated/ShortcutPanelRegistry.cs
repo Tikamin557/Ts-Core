@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Ts_Core.Services.ShortcutPanelRelated
+﻿namespace Ts_Core.Services.ShortcutPanelRelated
 {
     /// <summary>
     /// Shortcut Panelで使用できる
@@ -19,7 +16,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     StringComparer.OrdinalIgnoreCase);
 
         //----------------------------------------
-        // Register
+        // 登録
         //----------------------------------------
 
         /// <summary>
@@ -41,7 +38,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         }
 
         //----------------------------------------
-        // Get
+        // 取得
         //----------------------------------------
 
         /// <summary>
@@ -64,7 +61,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         }
 
         //----------------------------------------
-        // GetAll
+        // 取得All
         //----------------------------------------
 
         /// <summary>
@@ -78,7 +75,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         }
 
         //----------------------------------------
-        // Contains
+        // 登録確認
         //----------------------------------------
 
         /// <summary>
@@ -99,7 +96,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         }
 
         //----------------------------------------
-        // Clear
+        // 全件削除
         //----------------------------------------
 
         /// <summary>

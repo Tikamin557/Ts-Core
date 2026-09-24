@@ -386,6 +386,9 @@ namespace Ts_Core.Services.ContentPatcherRelated
         // Property取得
         //----------------------------------------
 
+        /// <summary>
+        /// Reflectionを使用して、対象オブジェクトの指定プロパティ値を取得します。
+        /// </summary>
         private static object? GetPropertyValue(
             object? instance,
             string propertyName)

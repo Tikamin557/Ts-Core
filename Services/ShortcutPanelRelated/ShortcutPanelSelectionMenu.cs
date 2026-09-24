@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
-using StardewModdingAPI;
 
 namespace Ts_Core.Services.ShortcutPanelRelated
 {
@@ -84,6 +82,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         // Constructor
         //----------------------------------------
 
+        /// <summary>
+        /// ショートカットへ登録するT's Coreまたは外部Modの機能を選択するメニューを初期化します。
+        /// </summary>
         internal ShortcutPanelSelectionMenu(
             ITranslationHelper translation,
             Action<string> onSelected)
@@ -242,6 +243,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         // Click
         //----------------------------------------
 
+        /// <summary>
+        /// Mod機能一覧の項目やキャンセル操作のクリックを処理します。
+        /// </summary>
         public override void receiveLeftClick(
             int x,
             int y,
@@ -264,6 +268,18 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
                 ShortcutPanelEntry entry =
                     entries[i];
+
+                if (!entry.IsAvailable())
+                {
+                    if (entry.PlayUnavailableSound)
+                    {
+                        Game1.playSound(
+                            "cancel");
+                    }
+
+                    entry.ExecuteUnavailableAction();
+                    return;
+                }
 
                 Game1.playSound(
                     "smallSelect");
@@ -303,6 +319,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         // Draw
         //----------------------------------------
 
+        /// <summary>
+        /// 登録可能なMod機能一覧とキャンセル操作を描画します。
+        /// </summary>
         public override void draw(
             SpriteBatch b)
         {
@@ -379,6 +398,11 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 ShortcutPanelEntry entry =
                     entries[i];
 
+                float entryAlpha =
+                    entry.IsAvailable()
+                        ? 1f
+                        : 0.45f;
+
                 //----------------------------------------
                 // Button
                 //----------------------------------------
@@ -395,7 +419,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     bounds.Y,
                     bounds.Width,
                     bounds.Height,
-                    Color.White,
+                    Color.White * entryAlpha,
                     1f,
                     drawShadow: false);
 
@@ -422,7 +446,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                         texture,
                         iconBounds,
                         entry.IconSourceRect,
-                        Color.White);
+                        Color.White * entryAlpha);
                 }
 
                 //----------------------------------------
@@ -466,7 +490,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     Game1.smallFont,
                     entry.DisplayName,
                     textPosition,
-                    Game1.textColor,
+                    Game1.textColor * entryAlpha,
                     0f,
                     Vector2.Zero,
                     textScale,
@@ -514,6 +538,40 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 cancelText,
                 cancelPosition,
                 Game1.textColor);
+
+            //----------------------------------------
+            // 使用不可項目のHover
+            //----------------------------------------
+
+            Point mousePosition =
+                Game1.getMousePosition();
+
+            for (int i = 0;
+                 i < entries.Count;
+                 i++)
+            {
+                ShortcutPanelEntry entry =
+                    entries[i];
+
+                if (entry.IsAvailable()
+                    || !entryBounds[i].Contains(mousePosition))
+                {
+                    continue;
+                }
+
+                string? hoverText =
+                    entry.GetUnavailableHoverText();
+
+                if (!string.IsNullOrWhiteSpace(hoverText))
+                {
+                    IClickableMenu.drawHoverText(
+                        b,
+                        hoverText,
+                        Game1.smallFont);
+                }
+
+                break;
+            }
 
             //----------------------------------------
             // Mouse

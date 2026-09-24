@@ -19,6 +19,11 @@
         /// <summary>
         /// キー入力。
         /// </summary>
-        Keybind
+        Keybind,
+
+        /// <summary>
+        /// GMCM個別設定。
+        /// </summary>
+        Gmcm
     }
 }

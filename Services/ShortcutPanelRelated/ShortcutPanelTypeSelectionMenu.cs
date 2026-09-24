@@ -1,8 +1,7 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using StardewValley;
 using StardewModdingAPI;
+using StardewValley;
 using StardewValley.Menus;
 
 namespace Ts_Core.Services.ShortcutPanelRelated
@@ -31,6 +30,12 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         private readonly Action
             onModActionSelected;
 
+        private readonly Action
+            onGmcmSelected;
+
+        private readonly bool
+            isGmcmInstalled;
+
         //----------------------------------------
         // Bounds
         //----------------------------------------
@@ -38,6 +43,8 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         private Rectangle keybindBounds;
 
         private Rectangle modActionBounds;
+
+        private Rectangle gmcmBounds;
 
         private Rectangle cancelBounds;
 
@@ -60,7 +67,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         /// </summary>
         private const int ScreenMargin = 32;
 
-        private const int MenuHeight = 360;
+        private const int MenuHeight = 436;
 
         private const int Padding = 24;
 
@@ -74,10 +81,15 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         // Constructor
         //----------------------------------------
 
+        /// <summary>
+        /// 空きスロットへ登録する種類（キー・Mod機能・GMCM設定）を選ぶメニューを初期化します。
+        /// </summary>
         internal ShortcutPanelTypeSelectionMenu(
             ITranslationHelper translation,
             Action onKeybindSelected,
-            Action onModActionSelected)
+            Action onModActionSelected,
+            Action onGmcmSelected,
+            bool isGmcmInstalled)
         {
             this.translation =
                 translation;
@@ -87,6 +99,12 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
             this.onModActionSelected =
                 onModActionSelected;
+
+            this.onGmcmSelected =
+                onGmcmSelected;
+
+            this.isGmcmInstalled =
+                isGmcmInstalled;
 
             //----------------------------------------
             // タイトル
@@ -188,6 +206,21 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 + ButtonSpacing;
 
             //----------------------------------------
+            // GMCM
+            //----------------------------------------
+
+            gmcmBounds =
+                new Rectangle(
+                    buttonX,
+                    buttonY,
+                    buttonWidth,
+                    ButtonHeight);
+
+            buttonY +=
+                ButtonHeight
+                + ButtonSpacing;
+
+            //----------------------------------------
             // Cancel
             //----------------------------------------
 
@@ -203,6 +236,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         // Click
         //----------------------------------------
 
+        /// <summary>
+        /// 登録種類の選択またはキャンセルのクリックを処理し、次の登録画面へ進みます。
+        /// </summary>
         public override void receiveLeftClick(
             int x,
             int y,
@@ -245,6 +281,24 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             }
 
             //----------------------------------------
+            // GMCM
+            //----------------------------------------
+
+            if (gmcmBounds.Contains(
+                x,
+                y))
+            {
+                Game1.playSound(
+                    "smallSelect");
+
+                exitThisMenu();
+
+                onGmcmSelected();
+
+                return;
+            }
+
+            //----------------------------------------
             // Cancel
             //----------------------------------------
 
@@ -263,6 +317,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         // Draw
         //----------------------------------------
 
+        /// <summary>
+        /// ショートカット種類の選択肢と説明を描画します。
+        /// </summary>
         public override void draw(
             SpriteBatch b)
         {
@@ -332,6 +389,17 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     "shortcutPanel.TypeSelection.modFunction"));
 
             //----------------------------------------
+            // GMCM
+            //----------------------------------------
+
+            DrawButton(
+                b,
+                gmcmBounds,
+                translation.Get(
+                    "shortcutPanel.TypeSelection.gmcm"),
+                isGmcmInstalled);
+
+            //----------------------------------------
             // Cancel
             //----------------------------------------
 
@@ -353,10 +421,14 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         // Draw Button
         //----------------------------------------
 
+        /// <summary>
+        /// 種類選択メニューで使用するボタンを描画します。
+        /// </summary>
         private static void DrawButton(
             SpriteBatch b,
             Rectangle bounds,
-            string text)
+            string text,
+            bool enabled = true)
         {
             IClickableMenu.drawTextureBox(
                 b,
@@ -370,7 +442,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 bounds.Y,
                 bounds.Width,
                 bounds.Height,
-                Color.White,
+                enabled
+                    ? Color.White
+                    : Color.White * 0.45f,
                 1f,
                 drawShadow: false);
 
@@ -389,13 +463,18 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 Game1.smallFont,
                 text,
                 textPosition,
-                Game1.textColor);
+                enabled
+                    ? Game1.textColor
+                    : Game1.textColor * 0.45f);
         }
 
         //----------------------------------------
         // Draw Centered Text
         //----------------------------------------
 
+        /// <summary>
+        /// 指定範囲の中央へ文字列を描画します。
+        /// </summary>
         private static void DrawCenteredText(
             SpriteBatch b,
             string text,
