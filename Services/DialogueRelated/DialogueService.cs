@@ -1,5 +1,6 @@
-﻿using StardewModdingAPI;
+using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Buildings;
 using StardewValley.Menus;
 using StardewValley.Triggers;
 using Ts_Core.Models.DialogueRelated;
@@ -49,7 +50,8 @@ namespace Ts_Core.Services.DialogueRelated
         public static bool Show(
             string dialogueId,
             GameLocation location,
-            Farmer player)
+            Farmer player,
+            Building? sourceBuilding = null)
         {
             if (string.IsNullOrWhiteSpace(
                     dialogueId))
@@ -89,7 +91,8 @@ namespace Ts_Core.Services.DialogueRelated
                 dialogueId,
                 dialogue,
                 location,
-                player);
+                player,
+                sourceBuilding);
 
             return true;
 
@@ -107,7 +110,8 @@ namespace Ts_Core.Services.DialogueRelated
             string dialogueId,
             DialogueModel dialogue,
             GameLocation location,
-            Farmer player)
+            Farmer player,
+            Building? sourceBuilding)
         {
             //----------------------------------------
             // Condition
@@ -118,19 +122,62 @@ namespace Ts_Core.Services.DialogueRelated
                     location,
                     player))
             {
-                //----------------------------------------
-                // Fail Audio Cue
-                //----------------------------------------
+                HandleConditionFailure(
+                    dialogueId,
+                    dialogue.FailText,
+                    dialogue.FailAudioCue,
+                    null,
+                    null,
+                    player,
+                    dialogue.HideDialogue,
+                    sourceBuilding);
 
-                if (!string.IsNullOrWhiteSpace(
-                        dialogue.FailAudioCue))
-                {
-                    Game1.playSound(
-                        dialogue.FailAudioCue);
-                }
+                return;
+            }
 
-                ShowText(
-                    dialogue.FailText);
+            //----------------------------------------
+            // Conditions
+            //----------------------------------------
+
+            if (!CheckConditions(
+                    dialogueId,
+                    dialogue.Conditions,
+                    location,
+                    player,
+                    dialogue.HideDialogue,
+                    sourceBuilding))
+            {
+                return;
+            }
+
+            //----------------------------------------
+            // Usage Limit
+            //----------------------------------------
+
+            UsageLimitResult usageLimitResult =
+                CheckUsageLimit(
+                    dialogueId,
+                    dialogue.UsageLimit,
+                    sourceBuilding);
+
+            if (usageLimitResult
+                == UsageLimitResult.Invalid)
+            {
+                return;
+            }
+
+            if (usageLimitResult
+                == UsageLimitResult.AlreadyUsed)
+            {
+                HandleConditionFailure(
+                    dialogueId,
+                    dialogue.FailText,
+                    dialogue.FailAudioCue,
+                    null,
+                    null,
+                    player,
+                    dialogue.HideDialogue,
+                    sourceBuilding);
 
                 return;
             }
@@ -147,12 +194,36 @@ namespace Ts_Core.Services.DialogueRelated
             }
 
             //----------------------------------------
+            // Dialogue非表示
+            //----------------------------------------
+
+            if (dialogue.HideDialogue)
+            {
+                if (RunSuccessActions(
+                        dialogueId,
+                        dialogue.AfterActions,
+                        dialogue.RandomActions,
+                        sourceBuilding))
+                {
+                    MarkUsageLimit(
+                        dialogueId,
+                        dialogue.UsageLimit,
+                        sourceBuilding);
+                }
+
+                return;
+            }
+
+            //----------------------------------------
             // Dialogue終了後Action
             //----------------------------------------
 
             RegisterAfterActions(
                 dialogueId,
-                dialogue.AfterActions);
+                dialogue.AfterActions,
+                dialogue.RandomActions,
+                dialogue.UsageLimit,
+                sourceBuilding);
 
             //----------------------------------------
             // 選択肢なし
@@ -201,7 +272,8 @@ namespace Ts_Core.Services.DialogueRelated
                             dialogue,
                             answer,
                             location,
-                            who);
+                            who,
+                            sourceBuilding);
                     };
 
             location.createQuestionDialogue(
@@ -222,7 +294,8 @@ namespace Ts_Core.Services.DialogueRelated
             DialogueModel dialogue,
             string answer,
             GameLocation location,
-            Farmer player)
+            Farmer player,
+            Building? sourceBuilding)
         {
             //----------------------------------------
             // Response Index取得
@@ -265,20 +338,31 @@ namespace Ts_Core.Services.DialogueRelated
                     location,
                     player))
             {
-                //----------------------------------------
-                // Fail Audio Cue
-                //----------------------------------------
+                HandleConditionFailure(
+                    dialogueId,
+                    response.FailText,
+                    response.FailAudioCue,
+                    null,
+                    null,
+                    player,
+                    dialogue.HideDialogue,
+                    sourceBuilding);
 
-                if (!string.IsNullOrWhiteSpace(
-                        response.FailAudioCue))
-                {
-                    Game1.playSound(
-                        response.FailAudioCue);
-                }
+                return;
+            }
 
-                ShowText(
-                    response.FailText);
+            //----------------------------------------
+            // Conditions
+            //----------------------------------------
 
+            if (!CheckConditions(
+                    dialogueId,
+                    response.Conditions,
+                    location,
+                    player,
+                    dialogue.HideDialogue,
+                    sourceBuilding))
+            {
                 return;
             }
 
@@ -303,7 +387,8 @@ namespace Ts_Core.Services.DialogueRelated
                 Show(
                     response.Next,
                     Game1.currentLocation,
-                    player);
+                    player,
+                    sourceBuilding);
             }
         }
 
@@ -332,6 +417,261 @@ namespace Ts_Core.Services.DialogueRelated
                 player,
                 null,
                 player.ActiveObject);
+        }
+
+        //----------------------------------------
+        // Conditions
+        //----------------------------------------
+
+        /// <summary>
+        /// 複数のGame State Query条件を上から順番に判定します。
+        /// 最初に失敗した条件のFail処理を実行します。
+        /// </summary>
+        private static bool CheckConditions(
+            string dialogueId,
+            List<DialogueConditionModel> conditions,
+            GameLocation location,
+            Farmer player,
+            bool hideDialogue,
+            Building? sourceBuilding)
+        {
+            foreach (DialogueConditionModel condition in conditions)
+            {
+                if (CheckCondition(
+                        condition.Condition,
+                        location,
+                        player))
+                {
+                    continue;
+                }
+
+                HandleConditionFailure(
+                    dialogueId,
+                    condition.FailText,
+                    condition.FailAudioCue,
+                    condition.FailActions,
+                    condition.FailNext,
+                    player,
+                    hideDialogue,
+                    sourceBuilding);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        //----------------------------------------
+        // Condition Fail
+        //----------------------------------------
+
+        /// <summary>
+        /// Condition失敗時の処理を実行します。
+        /// FailTextがある場合、FailActionsとFailNextは
+        /// FailTextを閉じた後に実行します。
+        /// </summary>
+        private static void HandleConditionFailure(
+            string dialogueId,
+            string? failText,
+            string? failAudioCue,
+            List<string>? failActions,
+            string? failNext,
+            Farmer player,
+            bool hideDialogue,
+            Building? sourceBuilding)
+        {
+            //----------------------------------------
+            // Fail Audio Cue
+            //----------------------------------------
+
+            if (!string.IsNullOrWhiteSpace(
+                    failAudioCue))
+            {
+                Game1.playSound(
+                    failAudioCue);
+            }
+
+            //----------------------------------------
+            // Fail後処理
+            //----------------------------------------
+
+            void RunFailContinuation()
+            {
+                if (failActions != null
+                    && !RunActions(
+                        dialogueId,
+                        failActions))
+                {
+                    return;
+                }
+
+                if (!string.IsNullOrWhiteSpace(
+                        failNext))
+                {
+                    Show(
+                        failNext,
+                        Game1.currentLocation,
+                        player,
+                        sourceBuilding);
+                }
+            }
+
+            //----------------------------------------
+            // Dialogue非表示
+            //----------------------------------------
+
+            if (hideDialogue)
+            {
+                RunFailContinuation();
+                return;
+            }
+
+            //----------------------------------------
+            // FailTextなし
+            //----------------------------------------
+
+            if (string.IsNullOrWhiteSpace(
+                    failText))
+            {
+                RunFailContinuation();
+                return;
+            }
+
+            //----------------------------------------
+            // FailTextあり
+            //----------------------------------------
+
+            bool hasContinuation =
+                (failActions != null
+                    && failActions.Count > 0)
+                || !string.IsNullOrWhiteSpace(
+                    failNext);
+
+            if (hasContinuation)
+            {
+                var previousAfterDialogues =
+                    Game1.afterDialogues;
+
+                Game1.afterDialogues =
+                    () =>
+                    {
+                        previousAfterDialogues?.Invoke();
+                        RunFailContinuation();
+                    };
+            }
+
+            ShowText(
+                failText);
+        }
+
+        //----------------------------------------
+        // Usage Limit
+        //----------------------------------------
+
+        /// <summary>
+        /// Dialogueの使用回数制限を確認します。
+        /// 現在はBuilding / Dayのみ対応しています。
+        /// </summary>
+        private enum UsageLimitResult
+        {
+            Available,
+            AlreadyUsed,
+            Invalid
+        }
+
+        private static UsageLimitResult CheckUsageLimit(
+            string dialogueId,
+            DialogueUsageLimitModel? usageLimit,
+            Building? sourceBuilding)
+        {
+            if (usageLimit == null)
+                return UsageLimitResult.Available;
+
+            if (!string.Equals(
+                    usageLimit.Scope,
+                    "Building",
+                    StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(
+                    usageLimit.Period,
+                    "Day",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                Monitor?.Log(
+                    $"Dialogue '{dialogueId}' has an unsupported "
+                    + $"UsageLimit (Scope='{usageLimit.Scope}', "
+                    + $"Period='{usageLimit.Period}').",
+                    LogLevel.Warn);
+
+                return UsageLimitResult.Invalid;
+            }
+
+            if (string.IsNullOrWhiteSpace(
+                    usageLimit.Key))
+            {
+                Monitor?.Log(
+                    $"Dialogue '{dialogueId}' has UsageLimit but "
+                    + "its Key is empty.",
+                    LogLevel.Warn);
+
+                return UsageLimitResult.Invalid;
+            }
+
+            if (sourceBuilding == null)
+            {
+                Monitor?.Log(
+                    $"Dialogue '{dialogueId}' uses a Building "
+                    + "UsageLimit, but it wasn't started from a "
+                    + "Building instance.",
+                    LogLevel.Warn);
+
+                return UsageLimitResult.Invalid;
+            }
+
+            string today =
+                Game1.Date.TotalDays.ToString();
+
+            if (sourceBuilding.modData.TryGetValue(
+                    usageLimit.Key,
+                    out string? lastUsedDay)
+                && lastUsedDay == today)
+            {
+                return UsageLimitResult.AlreadyUsed;
+            }
+
+            return UsageLimitResult.Available;
+        }
+
+        /// <summary>
+        /// Dialogueの使用済み状態を記録します。
+        /// </summary>
+        private static void MarkUsageLimit(
+            string dialogueId,
+            DialogueUsageLimitModel? usageLimit,
+            Building? sourceBuilding)
+        {
+            if (usageLimit == null
+                || sourceBuilding == null)
+            {
+                return;
+            }
+
+            if (!string.Equals(
+                    usageLimit.Scope,
+                    "Building",
+                    StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(
+                    usageLimit.Period,
+                    "Day",
+                    StringComparison.OrdinalIgnoreCase)
+                || string.IsNullOrWhiteSpace(
+                    usageLimit.Key))
+            {
+                return;
+            }
+
+            sourceBuilding.modData[
+                usageLimit.Key] =
+                    Game1.Date.TotalDays.ToString();
         }
 
         //----------------------------------------
@@ -389,6 +729,139 @@ namespace Ts_Core.Services.DialogueRelated
             }
 
             return true;
+        }
+
+        //----------------------------------------
+        // Random Action
+        //----------------------------------------
+
+        private const string RandomActionBuildingIdKey =
+            "Tikamin557.TsCore/DialogueBuildingId";
+
+        /// <summary>
+        /// 通常ActionとランダムActionを順番に実行します。
+        /// </summary>
+        private static bool RunSuccessActions(
+            string dialogueId,
+            List<string> actions,
+            List<DialogueRandomActionModel> randomActions,
+            Building? sourceBuilding)
+        {
+            if (!RunActions(
+                    dialogueId,
+                    actions))
+            {
+                return false;
+            }
+
+            return RunRandomActions(
+                dialogueId,
+                randomActions,
+                sourceBuilding);
+        }
+
+        /// <summary>
+        /// RandomActionsからWeightに応じて1件を選択し、
+        /// そのActionsを実行します。
+        /// </summary>
+        private static bool RunRandomActions(
+            string dialogueId,
+            List<DialogueRandomActionModel> randomActions,
+            Building? sourceBuilding)
+        {
+            if (randomActions.Count == 0)
+                return true;
+
+            int totalWeight = 0;
+
+            foreach (DialogueRandomActionModel candidate in randomActions)
+            {
+                if (candidate.Weight <= 0)
+                {
+                    Monitor?.Log(
+                        $"Dialogue '{dialogueId}' has RandomActions "
+                        + "with Weight <= 0. All weights must be at least 1.",
+                        LogLevel.Warn);
+
+                    return false;
+                }
+
+                try
+                {
+                    checked
+                    {
+                        totalWeight += candidate.Weight;
+                    }
+                }
+                catch (OverflowException)
+                {
+                    Monitor?.Log(
+                        $"Dialogue '{dialogueId}' has RandomActions "
+                        + "whose total Weight is too large.",
+                        LogLevel.Warn);
+
+                    return false;
+                }
+            }
+
+            string buildingSeed =
+                GetRandomActionBuildingSeed(
+                    sourceBuilding);
+
+            string seedText =
+                $"{dialogueId}|{Game1.Date.TotalDays}|{buildingSeed}";
+
+            int seed =
+                Game1.hash.GetDeterministicHashCode(
+                    seedText);
+
+            Random random = new Random(seed);
+            int roll = random.Next(totalWeight);
+
+            DialogueRandomActionModel selected =
+                randomActions[0];
+
+            foreach (DialogueRandomActionModel candidate in randomActions)
+            {
+                if (roll < candidate.Weight)
+                {
+                    selected = candidate;
+                    break;
+                }
+
+                roll -= candidate.Weight;
+            }
+
+            return RunActions(
+                dialogueId,
+                selected.Actions);
+        }
+
+        /// <summary>
+        /// Building由来の場合は永続IDを取得します。
+        /// Building以外ではDialogue共通Seedを使用します。
+        /// </summary>
+        private static string GetRandomActionBuildingSeed(
+            Building? sourceBuilding)
+        {
+            if (sourceBuilding == null)
+                return "NoBuilding";
+
+            if (!sourceBuilding.modData.TryGetValue(
+                    RandomActionBuildingIdKey,
+                    out string? buildingId)
+                || string.IsNullOrWhiteSpace(
+                    buildingId))
+            {
+                buildingId = Guid.NewGuid()
+                    .ToString("N");
+
+                sourceBuilding.modData[
+                    RandomActionBuildingIdKey] =
+                        buildingId;
+            }
+
+            return buildingId;
         }
 
         //----------------------------------------
@@ -463,10 +936,17 @@ namespace Ts_Core.Services.DialogueRelated
         /// </summary>
         private static void RegisterAfterActions(
             string dialogueId,
-            List<string> actions)
+            List<string> actions,
+            List<DialogueRandomActionModel> randomActions,
+            DialogueUsageLimitModel? usageLimit,
+            Building? sourceBuilding)
         {
-            if (actions.Count == 0)
+            if (actions.Count == 0
+                && randomActions.Count == 0
+                && usageLimit == null)
+            {
                 return;
+            }
 
             var previousAfterDialogues =
                 Game1.afterDialogues;
@@ -476,9 +956,17 @@ namespace Ts_Core.Services.DialogueRelated
                 {
                     previousAfterDialogues?.Invoke();
 
-                    RunActions(
-                        dialogueId,
-                        actions);
+                    if (RunSuccessActions(
+                            dialogueId,
+                            actions,
+                            randomActions,
+                            sourceBuilding))
+                    {
+                        MarkUsageLimit(
+                            dialogueId,
+                            usageLimit,
+                            sourceBuilding);
+                    }
                 };
         }
     }

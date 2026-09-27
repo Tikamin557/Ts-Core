@@ -126,6 +126,11 @@ namespace Ts_Core
             SpouseRoomVisualFixPatch.Apply(
                 harmony);
 
+            // Buildingから開始されたDialogueの
+            // 操作元Buildingを追跡
+            DialogueBuildingContext.Apply(
+                harmony);
+
             // FarmHouseの通常玄関からのWarpを追跡
             FarmHouseEntranceTracker.Apply(
                 harmony);

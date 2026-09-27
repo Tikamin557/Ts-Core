@@ -1,4 +1,4 @@
-﻿using StardewModdingAPI;
+using StardewModdingAPI;
 using Ts_Core.Interfaces;
 using Ts_Core.Services.Relationship;
 

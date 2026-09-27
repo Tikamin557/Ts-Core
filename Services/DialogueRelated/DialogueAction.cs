@@ -84,7 +84,8 @@ namespace Ts_Core.Services.DialogueRelated
             return DialogueService.Show(
                 dialogueId,
                 location,
-                who);
+                who,
+                DialogueBuildingContext.ActiveBuilding);
         }
     }
 }
