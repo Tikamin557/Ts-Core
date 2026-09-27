@@ -1,26 +1,16 @@
 ﻿namespace Ts_Core.Models.DialogueRelated
 {
     /// <summary>
-    /// TsCore Dialogueの選択肢1件分の定義です。
+    /// TsCore Dialogueの条件1件分の定義です。
     /// </summary>
-    public sealed class DialogueResponseModel
+    public sealed class DialogueConditionModel
     {
-        //----------------------------------------
-        // 表示内容
-        //----------------------------------------
-
-        /// <summary>
-        /// 選択肢に表示するテキストです。
-        /// </summary>
-        public string Text { get; set; } = "";
-
         //----------------------------------------
         // 条件
         //----------------------------------------
 
         /// <summary>
-        /// この選択肢を実行するための
-        /// Game State Query条件です。
+        /// 判定するGame State Query条件です。
         /// </summary>
         public string? Condition { get; set; }
 
@@ -29,14 +19,6 @@
         /// 表示するテキストです。
         /// </summary>
         public string? FailText { get; set; }
-
-        /// <summary>
-        /// この選択肢を実行するための複数条件です。
-        /// 上から順番に判定し、最初に失敗した条件の
-        /// Fail処理を実行します。
-        /// </summary>
-        public List<DialogueConditionModel> Conditions { get; set; } =
-            new();
 
         //----------------------------------------
         // Fail Audio
@@ -49,23 +31,25 @@
         public string? FailAudioCue { get; set; }
 
         //----------------------------------------
-        // Action
+        // Fail Action
         //----------------------------------------
 
         /// <summary>
-        /// 選択時に実行するTrigger Action一覧です。
+        /// Condition失敗時に実行する
+        /// Trigger Action一覧です。
+        /// FailTextがある場合は、Dialogueを閉じた後に実行します。
         /// </summary>
-        public List<string> Actions { get; set; } =
+        public List<string> FailActions { get; set; } =
             new();
 
         //----------------------------------------
-        // 次のDialogue
+        // Fail Next
         //----------------------------------------
 
         /// <summary>
-        /// Action実行後に続けて表示する
-        /// Dialogue IDです。
+        /// Condition失敗時に続けて表示するDialogue IDです。
+        /// FailTextがある場合は、Dialogueを閉じた後に表示します。
         /// </summary>
-        public string? Next { get; set; }
+        public string? FailNext { get; set; }
     }
 }
