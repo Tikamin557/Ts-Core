@@ -352,6 +352,18 @@ namespace Ts_Core.Services.WarpRelated
                 ?? defaultBlackoutDuration;
 
             //----------------------------------------
+            // プレイヤー操作停止
+            //----------------------------------------
+
+            // CanMoveだけではツール使用などの入力を完全には停止できないため、
+            // Warp中はGame1側の操作入力も停止する。
+            bool previousFreezeControls =
+                Game1.freezeControls;
+
+            Game1.freezeControls = true;
+            player.CanMove = false;
+
+            //----------------------------------------
             // Warp演出開始
             //----------------------------------------
 
@@ -394,12 +406,6 @@ namespace Ts_Core.Services.WarpRelated
             }
 
             //----------------------------------------
-            // プレイヤー操作停止
-            //----------------------------------------
-
-            player.CanMove = false;
-
-            //----------------------------------------
             // Warp実行処理
             //----------------------------------------
 
@@ -437,6 +443,8 @@ namespace Ts_Core.Services.WarpRelated
                             //----------------------------------------
 
                             Game1.screenGlow = false;
+                            Game1.freezeControls =
+                                previousFreezeControls;
                             player.CanMove = true;
                         });
                 };

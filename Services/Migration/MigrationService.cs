@@ -1,6 +1,6 @@
 ﻿using StardewModdingAPI;
 using StardewValley;
-using Ts_Core.Models;
+using Ts_Core.Models.Migration;
 
 namespace Ts_Core.Services.Migration
 {

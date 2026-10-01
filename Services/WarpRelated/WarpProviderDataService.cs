@@ -1,5 +1,5 @@
 ﻿using StardewModdingAPI.Events;
-using Ts_Core.Models;
+using Ts_Core.Models.WarpRelated;
 
 namespace Ts_Core.Services.WarpRelated
 {

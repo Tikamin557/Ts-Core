@@ -2,7 +2,7 @@
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Extensions;
-using Ts_Core.Models;
+using Ts_Core.Models.BuildingRelated;
 
 namespace Ts_Core.Services.BuildingRelated
 {

@@ -5,10 +5,10 @@ using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
-using Ts_Core.Models;
+using Ts_Core.Models.ShortcutPanelRelated;
 using Ts_Core.Services.DebugSupport;
+using Ts_Core.Services.PolyamorySweetRoomsRelated;
 using Ts_Core.Services.ScreenshotRelated;
-
 namespace Ts_Core.Services.ShortcutPanelRelated
 {
     /// <summary>
@@ -298,6 +298,45 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                         helper.Translation.Get(
                             "shortcutPanel.SmapiConsole.androidOnly"),
                     playUnavailableSound: false));
+
+            //----------------------------------------
+            // PSR配偶者部屋設定
+            // PSR未導入・Preset無しでは登録自体は保持したまま
+            // 利用不可にし、再導入時に保存済みSlotを復帰できるようにする。
+            //----------------------------------------
+
+            ShortcutPanelRegistry.Register(
+                new ShortcutPanelEntry(
+                    "TsCore/PsrRoomPresets",
+                    helper.Translation.Get(
+                        "shortcutPanel.PsrRoomPresets"),
+                    () => helper.ModContent.Load<Texture2D>(
+                        "assets/ShortcutPanel/PsrRoomPresets.png"),
+                    null,
+                    () =>
+                    {
+                        PsrRoomPresetUiService.Open();
+                    },
+                    isAvailable: () =>
+                        Context.IsWorldReady
+                        && PsrRoomPresetUiService.IsAvailable(),
+                    unavailableAction: null,
+                    unavailableHoverTextProvider: () =>
+                    {
+                        if (!PsrRoomPresetUiService.IsPsrInstalled())
+                        {
+                            return helper.Translation.Get(
+                                "shortcutPanel.PsrRoomPresets.psrRequired");
+                        }
+
+                        if (!PsrRoomPresetUiService.HasAvailablePresets())
+                        {
+                            return helper.Translation.Get(
+                                "config.PsrRoomPresets.noPreset");
+                        }
+
+                        return null;
+                    }));
 
             ShortcutPanelRegistry.Register(
                 new ShortcutPanelEntry(
@@ -1069,11 +1108,15 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 return;
 
             //----------------------------------------
-            // イベント中は操作しない
+            // イベント中・HUD非表示中・操作ロック中は操作しない
             //----------------------------------------
 
-            if (Game1.eventUp)
+            if (Game1.eventUp
+                || !Game1.displayHUD
+                || Game1.freezeControls)
+            {
                 return;
+            }
 
             //----------------------------------------
             // キー設定入力待機中
@@ -1363,7 +1406,22 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     ShortcutPanelEntry? entry =
                         slot.GetEntry();
 
-                    entry?.Execute();
+                    if (entry == null)
+                        return;
+
+                    if (!entry.IsAvailable())
+                    {
+                        if (entry.PlayUnavailableSound)
+                        {
+                            Game1.playSound(
+                                "cancel");
+                        }
+
+                        entry.ExecuteUnavailableAction();
+                        return;
+                    }
+
+                    entry.Execute();
 
                     return;
                 }
@@ -1408,6 +1466,17 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             {
                 helper.Input.Suppress(
                     e.Button);
+                return;
+            }
+
+            //----------------------------------------
+            // パネル外の左クリック・タップで閉じる
+            //----------------------------------------
+
+            if (ModEntry.Config.ShortcutPanelCloseOnOutsideClick
+                && e.Button == SButton.MouseLeft)
+            {
+                isOpen = false;
             }
         }
 
@@ -1491,7 +1560,21 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
             if (slot.Type == ShortcutPanelSlotType.ModAction)
             {
-                slot.GetEntry()?.Execute();
+                ShortcutPanelEntry? entry = slot.GetEntry();
+
+                if (entry == null)
+                    return;
+
+                if (!entry.IsAvailable())
+                {
+                    if (entry.PlayUnavailableSound)
+                        Game1.playSound("cancel");
+
+                    entry.ExecuteUnavailableAction();
+                    return;
+                }
+
+                entry.Execute();
                 return;
             }
 
@@ -1539,6 +1622,8 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             if (Game1.activeClickableMenu != null
                 || !Context.IsWorldReady
                 || Game1.eventUp
+                || !Game1.displayHUD
+                || Game1.freezeControls
                 || !ModEntry.Config.ShortcutPanelEnabled)
             {
                 return;
@@ -1659,11 +1744,15 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 return;
 
             //----------------------------------------
-            // イベント中は表示しない
+            // イベント中・HUD非表示中・操作ロック中は表示しない
             //----------------------------------------
 
-            if (Game1.eventUp)
+            if (Game1.eventUp
+                || !Game1.displayHUD
+                || Game1.freezeControls)
+            {
                 return;
+            }
 
             if (Game1.dayTimeMoneyBox == null)
                 return;
@@ -1919,16 +2008,28 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
                     if (entry != null)
                     {
-                        text =
-                            entry.DisplayName
-                            + Environment.NewLine
-                            + helper.Translation.Get(
-                                "shortcutPanel.Hover.modFunction")
-                            + Environment.NewLine
-                            + helper.Translation.Get(
-                                IsAndroidEnvironment()
-                                    ? "shortcutPanel.Hover.remove.android"
-                                    : "shortcutPanel.Hover.remove");
+                        string? unavailableHoverText =
+                            !entry.IsAvailable()
+                                ? entry.GetUnavailableHoverText()
+                                : null;
+
+                        if (!string.IsNullOrWhiteSpace(unavailableHoverText))
+                        {
+                            text = unavailableHoverText;
+                        }
+                        else
+                        {
+                            text =
+                                entry.DisplayName
+                                + Environment.NewLine
+                                + helper.Translation.Get(
+                                    "shortcutPanel.Hover.modFunction")
+                                + Environment.NewLine
+                                + helper.Translation.Get(
+                                    IsAndroidEnvironment()
+                                        ? "shortcutPanel.Hover.remove.android"
+                                        : "shortcutPanel.Hover.remove");
+                        }
                     }
                     else
                     {
@@ -2217,11 +2318,23 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                             iconSize,
                             iconSize);
 
+                    bool isAvailable =
+                        entry.IsAvailable();
+
                     spriteBatch.Draw(
                         iconTexture,
                         iconBounds,
                         entry.IconSourceRect,
-                        Color.White);
+                        isAvailable
+                            ? Color.White
+                            : Color.Gray * 0.65f);
+
+                    if (!isAvailable)
+                    {
+                        DrawUnavailableShortcutMark(
+                            spriteBatch,
+                            iconBounds);
+                    }
 
                     continue;
                 }
@@ -2321,6 +2434,92 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     continue;
                 }
             }
+        }
+
+        /// <summary>
+        /// 一時的に利用できないShortcutへ
+        /// 赤い×印を描画します。
+        /// </summary>
+        private static void DrawUnavailableShortcutMark(
+            SpriteBatch spriteBatch,
+            Rectangle iconBounds)
+        {
+            float scale =
+                GetPanelScale()
+                / GetShortcutPanelDrawDateTimeScale();
+
+            int markSize =
+                Math.Max(12,
+                    iconBounds.Width / 2);
+
+            int lineThickness =
+                Math.Max(2,
+                    (int)MathF.Round(3f * scale));
+
+            int outlineThickness =
+                lineThickness +
+                Math.Max(1,
+                    (int)MathF.Round(2f * scale));
+
+            Vector2 center =
+                new Vector2(
+                    iconBounds.Right - markSize / 2f,
+                    iconBounds.Bottom - markSize / 2f);
+
+            DrawUnavailableShortcutMarkLine(
+                spriteBatch,
+                center,
+                markSize,
+                outlineThickness,
+                MathF.PI / 4f,
+                Color.Black);
+
+            DrawUnavailableShortcutMarkLine(
+                spriteBatch,
+                center,
+                markSize,
+                outlineThickness,
+                -MathF.PI / 4f,
+                Color.Black);
+
+            DrawUnavailableShortcutMarkLine(
+                spriteBatch,
+                center,
+                markSize,
+                lineThickness,
+                MathF.PI / 4f,
+                Color.Red);
+
+            DrawUnavailableShortcutMarkLine(
+                spriteBatch,
+                center,
+                markSize,
+                lineThickness,
+                -MathF.PI / 4f,
+                Color.Red);
+        }
+
+        /// <summary>
+        /// 利用不可マークの線を1本描画します。
+        /// </summary>
+        private static void DrawUnavailableShortcutMarkLine(
+            SpriteBatch spriteBatch,
+            Vector2 center,
+            int length,
+            int thickness,
+            float rotation,
+            Color color)
+        {
+            spriteBatch.Draw(
+                Game1.staminaRect,
+                center,
+                null,
+                color,
+                rotation,
+                new Vector2(0.5f, 0.5f),
+                new Vector2(length, thickness),
+                SpriteEffects.None,
+                0f);
         }
 
         /// <summary>

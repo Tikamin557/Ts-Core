@@ -6,6 +6,7 @@ using StardewValley.Menus;
 using Ts_Core.Debug;
 using Ts_Core.Interfaces;
 using Ts_Core.Models;
+using Ts_Core.Services.PolyamorySweetRoomsRelated;
 using Ts_Core.Services.ShortcutPanelRelated;
 
 namespace Ts_Core.Services.GenericModConfigMenuRelated
@@ -31,6 +32,17 @@ namespace Ts_Core.Services.GenericModConfigMenuRelated
         private static bool smapiConsoleOpenPending;
         private static int smapiConsoleOpenAfterTick;
         private static ITranslationHelper? smapiConsoleTranslation;
+
+        private const int PsrRoomPresetButtonWidth = 360;
+        private const int PsrRoomPresetButtonHeight = 64;
+        private static Rectangle psrRoomPresetButtonBounds;
+        private static int psrRoomPresetButtonLastDrawTick;
+        private static bool psrRoomPresetInputRegistered;
+        private static bool psrRoomPresetOpenPending;
+
+        private static bool gmcmButtonHoverOverlayRegistered;
+        private static string? gmcmButtonHoverText;
+        private static int gmcmButtonHoverDrawTick;
 
         //----------------------------------------
         // GMCMのMod ID
@@ -343,11 +355,329 @@ namespace Ts_Core.Services.GenericModConfigMenuRelated
             // 左側の項目名と同じAndroid専用の案内を表示します。
             if (!isAvailable && hover)
             {
-                IClickableMenu.drawHoverText(
-                    spriteBatch,
+                QueueGmcmButtonHoverText(
                     helper.Translation.Get(
-                        "config.SmapiConsole.androidOnly"),
-                    Game1.smallFont);
+                        "config.SmapiConsole.androidOnly"));
+            }
+        }
+
+        /// <summary>
+        /// GMCM内の独自ボタン用Hover Textを、GMCM本体の描画後に表示するため予約します。
+        /// </summary>
+        private static void QueueGmcmButtonHoverText(string text)
+        {
+            gmcmButtonHoverText = text;
+            gmcmButtonHoverDrawTick = Game1.ticks;
+        }
+
+        /// <summary>
+        /// GMCM内の独自ボタン用Hover Textを、通常の設定項目より前面に描画します。
+        /// </summary>
+        private static void RegisterGmcmButtonHoverOverlay(
+            IModHelper helper,
+            IGenericModConfigMenuApi api,
+            IManifest manifest)
+        {
+            if (gmcmButtonHoverOverlayRegistered)
+                return;
+
+            gmcmButtonHoverOverlayRegistered = true;
+
+            helper.Events.Display.RenderedActiveMenu +=
+                (sender, e) =>
+                {
+                    if (gmcmButtonHoverDrawTick != Game1.ticks
+                        || string.IsNullOrWhiteSpace(gmcmButtonHoverText))
+                    {
+                        return;
+                    }
+
+                    string text = gmcmButtonHoverText;
+                    gmcmButtonHoverText = null;
+
+                    if (!api.TryGetCurrentMenu(
+                            out IManifest currentMod,
+                            out _)
+                        || currentMod.UniqueID != manifest.UniqueID)
+                    {
+                        return;
+                    }
+
+                    DrawGmcmButtonHoverText(
+                        e.SpriteBatch,
+                        text);
+                };
+        }
+
+        /// <summary>
+        /// GMCM内の独自ボタン用Hover Textを、画面内に収まる位置へ描画します。
+        /// </summary>
+        private static void DrawGmcmButtonHoverText(
+            SpriteBatch spriteBatch,
+            string text)
+        {
+            const int padding = 16;
+            const int screenMargin = 8;
+            const int cursorOffset = 32;
+            const int maxTextWidth = 520;
+
+            // GMCM の CustomOption は GMCM 側の描画座標系で描画されます。
+            // GraphicsDevice の実ピクセル幅や uiScale から画面端を逆算すると、
+            // GMCM の座標系と一致しない環境があります。
+            // そのため Hover はカーソルの右側ではなく、基本的に左側へ出します。
+            // これなら右端付近のボタンでも画面外へはみ出しません。
+            string wrappedText =
+                Game1.parseText(
+                    text,
+                    Game1.smallFont,
+                    maxTextWidth);
+
+            Vector2 textSize =
+                Game1.smallFont.MeasureString(
+                    wrappedText);
+
+            int boxWidth =
+                (int)MathF.Ceiling(textSize.X)
+                + padding * 2;
+
+            int boxHeight =
+                (int)MathF.Ceiling(textSize.Y)
+                + padding * 2;
+
+            Point mousePosition =
+                Game1.getMousePosition();
+
+            int hoverX =
+                mousePosition.X
+                - boxWidth
+                - cursorOffset;
+
+            int hoverY =
+                mousePosition.Y
+                + cursorOffset;
+
+            // 左側に十分な余白がない場合だけカーソル右側へ切り替えます。
+            if (hoverX < screenMargin)
+            {
+                hoverX =
+                    mousePosition.X
+                    + cursorOffset;
+            }
+
+            hoverX =
+                Math.Max(
+                    screenMargin,
+                    hoverX);
+
+            hoverY =
+                Math.Max(
+                    screenMargin,
+                    hoverY);
+
+            IClickableMenu.drawTextureBox(
+                spriteBatch,
+                Game1.menuTexture,
+                new Rectangle(
+                    0,
+                    256,
+                    60,
+                    60),
+                hoverX,
+                hoverY,
+                boxWidth,
+                boxHeight,
+                Color.White,
+                1f,
+                drawShadow: true);
+
+            spriteBatch.DrawString(
+                Game1.smallFont,
+                wrappedText,
+                new Vector2(
+                    hoverX + padding,
+                    hoverY + padding),
+                Game1.textColor);
+        }
+
+        //----------------------------------------
+        // PSR配偶者部屋設定
+        //
+        // GMCMのComplexOptionとして独自ボタンを描画します。
+        // GMCM本体を直接閉じると内部状態とずれるため、
+        // クリック後はUpdateTickedでPSR画面を子メニューとして開きます。
+        //----------------------------------------
+
+        /// <summary>
+        /// PSR設定ボタンを使用できない理由を優先順位付きで返します。
+        /// PSR未導入を最優先し、その後にセーブ未読込、Preset無しを確認します。
+        /// </summary>
+        private static string GetPsrRoomPresetUnavailableText(
+            IModHelper helper)
+        {
+            // PSR itself is the primary requirement. If it isn't installed,
+            // show that reason even on the title screen.
+            if (!PsrRoomPresetUiService.IsPsrInstalled())
+            {
+                return helper.Translation.Get(
+                    "shortcutPanel.PsrRoomPresets.psrRequired");
+            }
+
+            if (!Context.IsWorldReady)
+            {
+                return helper.Translation.Get(
+                    "config.PsrRoomPresets.worldRequired");
+            }
+
+            if (!PsrRoomPresetUiService.HasAvailablePresets())
+            {
+                return helper.Translation.Get(
+                    "config.PsrRoomPresets.noPreset");
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// GMCMのComplexOptionには通常ボタンのクリック処理が無いため、
+        /// 描画時に記録した領域を使ってMouseLeft入力を独自に処理します。
+        /// </summary>
+        private static void RegisterPsrRoomPresetInput(
+            IModHelper helper,
+            IGenericModConfigMenuApi api,
+            IManifest manifest)
+        {
+            if (psrRoomPresetInputRegistered)
+                return;
+
+            psrRoomPresetInputRegistered = true;
+
+            helper.Events.Input.ButtonPressed +=
+                (sender, e) =>
+                {
+                    if (e.Button != SButton.MouseLeft)
+                        return;
+
+                    if (Game1.ticks > psrRoomPresetButtonLastDrawTick + 1)
+                        return;
+
+                    if (!api.TryGetCurrentMenu(
+                            out IManifest currentMod,
+                            out _)
+                        || currentMod.UniqueID != manifest.UniqueID)
+                    {
+                        return;
+                    }
+
+                    Vector2 cursorPosition =
+                        Utility.ModifyCoordinatesForUIScale(
+                            e.Cursor.ScreenPixels);
+
+                    if (!psrRoomPresetButtonBounds.Contains(
+                            cursorPosition.ToPoint()))
+                    {
+                        return;
+                    }
+
+                    if (!Context.IsWorldReady
+                        || !PsrRoomPresetUiService.IsAvailable())
+                    {
+                        return;
+                    }
+
+                    Game1.playSound("smallSelect");
+
+                    // GMCM本体を閉じたりactiveClickableMenuを差し替えると、
+                    // GMCM側のActiveConfigMenuとの状態がずれてしまいます。
+                    // PSR設定画面はGMCMの子メニューとして開きます。
+                    // これならGMCMの状態を保持したまま安全に別画面へ遷移できます。
+                    psrRoomPresetOpenPending = true;
+                };
+
+            helper.Events.GameLoop.UpdateTicked +=
+                (sender, e) =>
+                {
+                    if (!psrRoomPresetOpenPending)
+                        return;
+
+                    psrRoomPresetOpenPending = false;
+
+                    if (Game1.activeClickableMenu == null
+                        || !api.TryGetCurrentMenu(
+                            out IManifest currentMod,
+                            out _)
+                        || currentMod.UniqueID != manifest.UniqueID)
+                    {
+                        return;
+                    }
+
+                    PsrRoomPresetUiService.OpenAsChildMenu(
+                        Game1.activeClickableMenu);
+                };
+        }
+
+        /// <summary>
+        /// GMCM内の「割り当て設定を開く」ボタンを描画します。
+        /// 利用不可時は半透明表示にし、理由を最前面Hoverへ予約します。
+        /// </summary>
+        private static void DrawPsrRoomPresetButton(
+            SpriteBatch spriteBatch,
+            Vector2 position,
+            IModHelper helper)
+        {
+            psrRoomPresetButtonBounds =
+                new Rectangle(
+                    (int)position.X,
+                    (int)position.Y,
+                    PsrRoomPresetButtonWidth,
+                    PsrRoomPresetButtonHeight);
+
+            psrRoomPresetButtonLastDrawTick = Game1.ticks;
+
+            Point mousePosition = Game1.getMousePosition();
+            bool hover = psrRoomPresetButtonBounds.Contains(mousePosition);
+            bool isAvailable = Context.IsWorldReady
+                && PsrRoomPresetUiService.IsAvailable();
+            float alpha = isAvailable ? (hover ? 1f : 0.9f) : 0.45f;
+
+            IClickableMenu.drawTextureBox(
+                spriteBatch,
+                psrRoomPresetButtonBounds.X,
+                psrRoomPresetButtonBounds.Y,
+                psrRoomPresetButtonBounds.Width,
+                psrRoomPresetButtonBounds.Height,
+                isAvailable ? Color.White * alpha : Color.White);
+
+            if (!isAvailable)
+            {
+                spriteBatch.Draw(
+                    Game1.fadeToBlackRect,
+                    new Rectangle(
+                        psrRoomPresetButtonBounds.X + 4,
+                        psrRoomPresetButtonBounds.Y + 4,
+                        psrRoomPresetButtonBounds.Width - 8,
+                        psrRoomPresetButtonBounds.Height - 8),
+                    Color.White * 0.45f);
+            }
+
+            string text = helper.Translation.Get(
+                "config.PsrRoomPresets.button");
+
+            Vector2 textSize = Game1.smallFont.MeasureString(text);
+            Vector2 textPosition =
+                new Vector2(
+                    psrRoomPresetButtonBounds.Center.X - textSize.X / 2f,
+                    psrRoomPresetButtonBounds.Center.Y - textSize.Y / 2f);
+
+            spriteBatch.DrawString(
+                Game1.smallFont,
+                text,
+                textPosition,
+                Game1.textColor * alpha);
+
+            if (!isAvailable && hover)
+            {
+                QueueGmcmButtonHoverText(
+                    GetPsrRoomPresetUnavailableText(helper));
             }
         }
 
@@ -427,6 +757,16 @@ namespace Ts_Core.Services.GenericModConfigMenuRelated
                 api,
                 manifest);
 
+            RegisterPsrRoomPresetInput(
+                helper,
+                api,
+                manifest);
+
+            RegisterGmcmButtonHoverOverlay(
+                helper,
+                api,
+                manifest);
+
             if (IsAndroidEnvironment())
             {
                 RegisterSmapiConsoleInput(
@@ -476,6 +816,28 @@ namespace Ts_Core.Services.GenericModConfigMenuRelated
                     "EnableSpouseRoomTileFix");
 
             //----------------------------------------
+            // PSR配偶者部屋設定
+            //----------------------------------------
+
+            api.AddComplexOption(
+                manifest,
+                name: () =>
+                    helper.Translation.Get(
+                        "config.PsrRoomPresets.name"),
+                draw: (spriteBatch, position) =>
+                    DrawPsrRoomPresetButton(
+                        spriteBatch,
+                        position,
+                        helper),
+                tooltip: () =>
+                    helper.Translation.Get(
+                        "config.PsrRoomPresets.description"),
+                height: () =>
+                    PsrRoomPresetButtonHeight + 8,
+                fieldId:
+                    "PsrRoomPresets");
+
+            //----------------------------------------
             // Shortcut Panel
             //----------------------------------------
 
@@ -517,6 +879,28 @@ namespace Ts_Core.Services.GenericModConfigMenuRelated
                         "config.ShortcutPanelEnabled.description"),
                 fieldId:
                     "ShortcutPanelEnabled");
+
+            //----------------------------------------
+            // Shortcut Panel - パネル外クリックで閉じる
+            //----------------------------------------
+
+            api.AddBoolOption(
+                manifest,
+                getValue: () =>
+                    getConfig()
+                        .ShortcutPanelCloseOnOutsideClick,
+                setValue: value =>
+                    getConfig()
+                        .ShortcutPanelCloseOnOutsideClick =
+                            value,
+                name: () =>
+                    helper.Translation.Get(
+                        "config.ShortcutPanelCloseOnOutsideClick.name"),
+                tooltip: () =>
+                    helper.Translation.Get(
+                        "config.ShortcutPanelCloseOnOutsideClick.description"),
+                fieldId:
+                    "ShortcutPanelCloseOnOutsideClick");
 
             //----------------------------------------
             // Shortcut Panel - 開閉タブサイズ

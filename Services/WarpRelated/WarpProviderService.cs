@@ -3,7 +3,7 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Locations;
-using Ts_Core.Models;
+using Ts_Core.Models.WarpRelated;
 
 namespace Ts_Core.Services.WarpRelated
 {

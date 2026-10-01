@@ -6,7 +6,7 @@ using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Delegates;
 using StardewValley.Objects;
-using Ts_Core.Models;
+using Ts_Core.Models.BuildingRelated;
 
 namespace Ts_Core.Services.BuildingRelated
 {
