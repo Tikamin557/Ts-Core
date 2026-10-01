@@ -443,6 +443,8 @@ TsCore/WarpProviders
 TsCore/NotificationThemes
 TsCore/Migrations
 TsCore/MachineInteraction
+TsCore/PostRenovationPatches
+TsCore/PsrRoomPresets
 ```
 
 When developing a Content Patcher Content Pack which edits these assets, use:
@@ -556,7 +558,7 @@ Although `tscore_cp_reload` can significantly reduce the number of game restarts
 
 - ← [Notification System](ModderGuide_NotificationSystem.md)
 - ↑ [Guide Index](#top)
-- → [Other Features](ModderGuide_OtherFeatures.md)
+- → [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
 
 ← [Back to README](../README.md)
 

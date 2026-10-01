@@ -16,6 +16,8 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Migration System](ModderGuide_MigrationSystem.md)
 - 📄 [Notification System](ModderGuide_NotificationSystem.md)
 - 📄 [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
+- 📄 [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
+- 📄 [Polyamory Sweet Rooms Integration](ModderGuide_PolyamorySweetRoomsIntegration.md)
 - 📄 [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [Back to README](../README.md)
@@ -43,6 +45,7 @@ This guide explains how to use Warp Actions, register custom Warp Providers, and
 ## Contents
 
 - [Warp Actions](#warp-actions)
+- [Tile Property Warp](#tile-property-warp)
 - [Warp Providers](#warp-providers)
 - [Content Pack Setup](#content-pack-setup)
 - [Registering Warp Providers](#registering-warp-providers)
@@ -70,6 +73,7 @@ All three actions support:
 - Warp Providers
 - Location names
 - Direct coordinates
+- Tile Property Warp destinations using `TsCoreWarpPoint`
 - Optional facing directions
 - Custom audio cues
 - Repeated audio playback
@@ -127,6 +131,76 @@ TsCoreMagicWarp Farm 64 15 Auto wand 3 100 200 250
 When only a location name is specified, T's Core automatically uses the location's default warp point.
 
 > **Note:** Optional arguments are positional. To specify a later argument, all preceding arguments must also be specified.
+
+---
+
+## Tile Property Warp
+
+T's Core Warp Actions can resolve a destination from a custom tile property instead of using fixed coordinates.
+
+Add the following property to a tile in the destination map:
+
+```text
+TsCoreWarpPoint = <UniqueKey> [OffsetX] [OffsetY]
+```
+
+Then use the key in any T's Core Warp Action:
+
+```text
+<Action> <LocationName> <UniqueKey> [FacingDirection] [AudioCue] [RepeatCount] [IntervalMs] [BlackoutDurationMs] [AudioStartDelayMs]
+```
+
+For example, a destination tile can contain:
+
+```text
+TsCoreWarpPoint = MyRoomEntrance
+```
+
+and the warp action can use:
+
+```text
+TsCoreMagicWarp Farmhouse MyRoomEntrance Left
+```
+
+T's Core searches all layers in the specified location for a matching `TsCoreWarpPoint` value and uses that tile as the destination.
+
+### Destination Offsets
+
+Optional X and Y offsets can be included in the property value:
+
+```text
+TsCoreWarpPoint = MyRoomEntrance 1 -2
+```
+
+In this example, the final destination is one tile to the right and two tiles above the tile containing the property.
+
+Both offsets must be integers. If omitted, they default to `0`.
+
+### Unique Keys
+
+The first value in `TsCoreWarpPoint` is the unique key used by the Warp Action.
+
+Keys are matched exactly. Use a unique value within each destination location.
+
+If the same key is found more than once in the same location, T's Core logs a warning and uses the first matching tile.
+
+If an offset is invalid, or the property contains more than the supported three values, that property is ignored and a warning is logged.
+
+### Example
+
+Map tile property:
+
+```text
+TsCoreWarpPoint = Example_SpouseRoom_Upper
+```
+
+Warp Action:
+
+```text
+TsCoreMagicWarp Farmhouse Example_SpouseRoom_Upper Left
+```
+
+This is useful for maps whose destination coordinates can change depending on Content Patcher settings or other map edits. The Warp Action can keep the same unique key while the tile containing `TsCoreWarpPoint` moves with the map patch.
 
 ---
 

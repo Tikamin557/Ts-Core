@@ -74,6 +74,8 @@ T's Core currently provides the following systems.
 | Migration System | Provides migration support for IDs stored in existing save data. |
 | Notification System | Provides customizable on-screen notifications and Notification Themes. |
 | Content Patcher Integration | Provides additional Content Patcher development and configuration features. |
+| Post Renovation Patch | Applies data-driven map patches after FarmHouse renovations and other runtime FarmHouse layout changes. |
+| Polyamory Sweet Rooms Integration | Allows supported Farmhouse mods to provide configurable spouse room presets for Polyamory Sweet Rooms. |
 | Other Features | Provides additional Tile Actions and Game State Queries, including custom sleeping actions and location category checks. |
 | Content Patcher Tokens | Provides custom tokens for use with Content Patcher. |
 | Shortcut Panel | Provides a customizable in-game shortcut panel and a public API that allows C# mods to register their own shortcut actions. |
@@ -97,6 +99,8 @@ Custom definitions can be registered for:
 - Migration definitions
 - BigCraftable Extensions
 - Dialogues
+- Post Renovation Patches
+- Polyamory Sweet Rooms spouse room presets
 
 BigCraftable Extensions registered through `TsCore/BigCraftableExtension` can add configurable interactions, collision sizes, textures, animations, effects, lights, and other optional behavior to BigCraftables.
 
@@ -179,6 +183,8 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Migration System](ModderGuide_MigrationSystem.md)
 - [Notification System](ModderGuide_NotificationSystem.md)
 - [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
+- [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
+- [Polyamory Sweet Rooms Integration](ModderGuide_PolyamorySweetRoomsIntegration.md)
 - [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [Back to README](../README.md)

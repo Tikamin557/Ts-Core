@@ -282,7 +282,7 @@ Additional Tile Actions, Game State Queries, and other smaller public features m
 
 ## Modder Guide
 
-- ← [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
+- ← [Polyamory Sweet Rooms Integration](ModderGuide_PolyamorySweetRoomsIntegration.md)
 - ↑ [Guide Index](#top)
 - → *(End of Guide)*
 
