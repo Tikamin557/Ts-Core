@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using Ts_Core.Actions;
@@ -20,9 +20,11 @@ using Ts_Core.Services.GameStateQueryRelated;
 using Ts_Core.Services.GenericModConfigMenuRelated;
 using Ts_Core.Services.Location;
 using Ts_Core.Services.LocationFixes;
+using Ts_Core.Services.MapRelated.PostRenovation;
 using Ts_Core.Services.MapRelated.TimedExit;
 using Ts_Core.Services.Migration;
 using Ts_Core.Services.Notification;
+using Ts_Core.Services.PolyamorySweetRoomsRelated;
 using Ts_Core.Services.Relationship;
 using Ts_Core.Services.ScreenshotRelated;
 using Ts_Core.Services.ShortcutPanelRelated;
@@ -121,10 +123,22 @@ namespace Ts_Core
             SpouseRoomTileFixPatch.Apply(
                 harmony);
 
+            // FarmHouseのRenovation適用後に
+            // Map Patchを適用
+            PostRenovationPatch.Apply(
+                harmony);
+
             // FarmHouse配偶者部屋の特殊表示物を
             // T's Core Option設定に応じて調整
             SpouseRoomVisualFixPatch.Apply(
                 harmony);
+
+            // Polyamory Sweet Roomsで
+            // 存在しない配偶者の部屋生成をスキップ
+            PolyamorySweetRoomsCompatibilityPatch.Apply(
+                harmony,
+                helper,
+                Monitor);
 
             // Buildingから開始されたDialogueの
             // 操作元Buildingを追跡
@@ -167,8 +181,8 @@ namespace Ts_Core
             BigCraftableMovementCollisionPatch.Apply(
                 harmony);
 
-            // BigCraftable Extensionの
-            // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+            // BigCraftable Extensionの追加Collisionと
+            // PlayerPassableTilesをAndroid Tap-to-Moveへ反映
             BigCraftableAndroidTapToMovePatch.Apply(
                 harmony,
                 Monitor);
@@ -329,6 +343,21 @@ namespace Ts_Core
             service =
                 new PartnerService(
                     provider);
+
+            //----------------------------------------
+            // PSR Room Presets
+            //----------------------------------------
+
+            // PSR Content Packのcontent.json読み書き
+            PsrRoomContentService.Initialize(
+                helper,
+                Monitor);
+
+            // PSR設定画面の利用可否判定・表示
+            PsrRoomPresetUiService.Initialize(
+                helper.Translation,
+                service,
+                helper.ModRegistry);
         }
 
         //----------------------------------------
@@ -407,6 +436,21 @@ namespace Ts_Core
             //----------------------------------------
 
             WarpService.Initialize(
+                Monitor);
+
+            //----------------------------------------
+            // Tile Property Warpサービス初期化
+            //----------------------------------------
+
+            TilePropertyWarpService.Initialize(
+                Monitor);
+
+            //----------------------------------------
+            // Post Renovation Patch初期化
+            //----------------------------------------
+
+            PostRenovationPatchService.Initialize(
+                helper,
                 Monitor);
 
             //----------------------------------------
@@ -551,6 +595,16 @@ namespace Ts_Core
             // BigCraftable Extension
             helper.Events.Content.AssetRequested
                 += BigCraftableExtensionDataService.OnAssetRequested;
+
+            // Post Renovation Patch
+            helper.Events.Content.AssetRequested
+                += PostRenovationPatchDataService.OnAssetRequested;
+
+            // PSR Room Presets
+            // Content PatcherからPreset定義を登録する
+            // TsCore/PsrRoomPresets Data Assetを提供
+            helper.Events.Content.AssetRequested
+                += PsrRoomPresetDataService.OnAssetRequested;
 
             helper.Events.Content.AssetReady
                 += BigCraftableExtensionDataService.OnAssetReady;

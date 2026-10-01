@@ -36,6 +36,16 @@ namespace Ts_Core.Models
         } = true;
 
         /// <summary>
+        /// ショートカットパネルが開いている時に、
+        /// パネル外のクリック・タップで閉じるかどうか。
+        /// </summary>
+        public bool ShortcutPanelCloseOnOutsideClick
+        {
+            get;
+            set;
+        } = false;
+
+        /// <summary>
         /// ショートカットパネルの開閉タブの
         /// 表示倍率です。
         /// 100～200で指定します。

@@ -377,6 +377,138 @@ namespace Ts_Core.Actions
             }
 
             //----------------------------------------
+            // Tile Property Warp
+            //----------------------------------------
+            // <Action> <Location> <UniqueKey>
+            // <Action> <Location> <UniqueKey> <Facing>
+            // <Action> <Location> <UniqueKey> <Facing> <AudioCue>
+            // <Action> <Location> <UniqueKey> <Facing> <AudioCue> <RepeatCount>
+            // <Action> <Location> <UniqueKey> <Facing> <AudioCue> <RepeatCount> <IntervalMs>
+            // <Action> <Location> <UniqueKey> <Facing> <AudioCue> <RepeatCount> <IntervalMs> <BlackoutDurationMs>
+            // <Action> <Location> <UniqueKey> <Facing> <AudioCue> <RepeatCount> <IntervalMs> <BlackoutDurationMs> <AudioStartDelayMs>
+            //----------------------------------------
+
+            if (action.Length >= 3
+                && action.Length <= 9
+                && TilePropertyWarpService.TryResolve(
+                    action[1],
+                    action[2],
+                    out Point tilePropertyPoint))
+            {
+                int? facingDirection = null;
+                string? audioCue = null;
+
+                int audioRepeatCount = 1;
+                int audioIntervalMs = 100;
+                int? blackoutDurationMs = null;
+                int audioStartDelayMs = 0;
+
+                //----------------------------------------
+                // Facing
+                //----------------------------------------
+
+                if (action.Length >= 4)
+                {
+                    if (!TryParseFacingDirection(
+                            action[3],
+                            out facingDirection))
+                    {
+                        return false;
+                    }
+                }
+
+                //----------------------------------------
+                // Audio Cue
+                //----------------------------------------
+
+                if (action.Length >= 5)
+                {
+                    audioCue =
+                        action[4];
+                }
+
+                //----------------------------------------
+                // Audio Repeat Count
+                //----------------------------------------
+
+                if (action.Length >= 6)
+                {
+                    if (!int.TryParse(
+                            action[5],
+                            out audioRepeatCount)
+                        || audioRepeatCount < 1)
+                    {
+                        return false;
+                    }
+                }
+
+                //----------------------------------------
+                // Audio Interval
+                //----------------------------------------
+
+                if (action.Length >= 7)
+                {
+                    if (!int.TryParse(
+                            action[6],
+                            out audioIntervalMs)
+                        || audioIntervalMs < 0)
+                    {
+                        return false;
+                    }
+                }
+
+                //----------------------------------------
+                // Blackout Duration
+                //----------------------------------------
+
+                if (action.Length >= 8)
+                {
+                    if (!int.TryParse(
+                            action[7],
+                            out int parsedBlackoutDuration)
+                        || parsedBlackoutDuration < 0)
+                    {
+                        return false;
+                    }
+
+                    blackoutDurationMs =
+                        parsedBlackoutDuration;
+                }
+
+                //----------------------------------------
+                // Audio Start Delay
+                //----------------------------------------
+
+                if (action.Length >= 9)
+                {
+                    if (!int.TryParse(
+                            action[8],
+                            out audioStartDelayMs)
+                        || audioStartDelayMs < 0)
+                    {
+                        return false;
+                    }
+                }
+
+                //----------------------------------------
+                // Warp実行
+                //----------------------------------------
+
+                WarpService.Warp(
+                    action[1],
+                    tilePropertyPoint,
+                    effectMode,
+                    facingDirection,
+                    audioCue,
+                    audioRepeatCount,
+                    audioIntervalMs,
+                    blackoutDurationMs,
+                    audioStartDelayMs);
+
+                return true;
+            }
+
+            //----------------------------------------
             // Provider + 座標Warp
             //----------------------------------------
             // <Action> <Provider> <X> <Y>

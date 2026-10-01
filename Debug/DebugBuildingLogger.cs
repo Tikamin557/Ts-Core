@@ -1,7 +1,7 @@
 ﻿using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
-using Ts_Core.Models;
+using Ts_Core.Models.BuildingRelated;
 using Ts_Core.Services.BuildingRelated;
 
 namespace Ts_Core.Debug

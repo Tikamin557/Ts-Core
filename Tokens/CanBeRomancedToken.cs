@@ -1,5 +1,4 @@
-﻿using StardewValley;
-using StardewValley.GameData.Characters;
+﻿using Ts_Core.Services.Relationship;
 
 namespace Ts_Core.Tokens
 {
@@ -66,22 +65,10 @@ namespace Ts_Core.Tokens
             if (string.IsNullOrWhiteSpace(input))
                 yield break;
 
-            Dictionary<string, CharacterData> data =
-                Game1.content.Load<
-                    Dictionary<string, CharacterData>>(
-                        "Data/Characters");
-
-            if (!data.TryGetValue(
-                    input.Trim(),
-                    out CharacterData? character))
-            {
-                yield return "false";
-                yield break;
-            }
-
-            yield return character.CanBeRomanced
-                ? "true"
-                : "false";
+            yield return RomanceCandidateService.CanBeRomanced(
+                input.Trim())
+                    ? "true"
+                    : "false";
         }
     }
 }
