@@ -1,4 +1,4 @@
-using HarmonyLib;
+﻿using HarmonyLib;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using Ts_Core.Actions;
@@ -121,6 +121,11 @@ namespace Ts_Core
 
             // FarmHouse配偶者部屋の不要タイルを修正
             SpouseRoomTileFixPatch.Apply(
+                harmony);
+
+            // CP等から読み込まれた配偶者部屋の
+            // 窓・照明の昼夜切り替えを補完
+            SpouseRoomWindowFixPatch.Apply(
                 harmony);
 
             // FarmHouseのRenovation適用後に
