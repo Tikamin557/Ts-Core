@@ -41,6 +41,7 @@ T's Core also includes optional convenience features for players, including a cu
   - Conditional GMCM field visibility based on installed mods
 - Custom Data Assets for registering definitions through Content Patcher
 - Polyamory Sweet Rooms integration with configurable spouse room presets for supported mods
+- Compatibility and game-behavior fixes for FarmHouse warps, cellar restoration, Rain Totem location contexts, and custom spouse rooms
 - Common utilities shared between T's Mods
 
 ---
@@ -104,6 +105,8 @@ Additional Content Patcher integration features include extended Content Pack re
 See the **[Content Patcher Integration Guide](docs/ModderGuide_ContentPatcherIntegration.md)** for details.
 
 T's Core also provides additional Tile Actions and Game State Queries, including custom sleeping actions and location category checks.
+
+T's Core also includes several internal compatibility and game-behavior fixes used by T's Mods, including fixes for custom FarmHouse warp destinations, cellar restoration after map rebuilds, Rain Totem location contexts, custom tiles near spouse rooms, and day/night window behavior in custom spouse rooms.
 
 See the **[Other Features Guide](docs/ModderGuide_OtherFeatures.md)** for details.
 

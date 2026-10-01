@@ -41,6 +41,7 @@
     -   [TsCore_Sleep Remove](#tscore_sleep-remove)
 -   [Game State Queries](#game-state-queries)
     -   [TsCore_LOCATION_CATEGORY](#tscore_location_category)
+-   [Compatibility and Game Fixes](#compatibility-and-game-fixes)
 -   [Notes](#notes)
 
 ------------------------------------------------------------------------
@@ -242,6 +243,48 @@ TsCore_LOCATION_CATEGORY Target Dungeon
     "PlacementCondition": "!TsCore_LOCATION_CATEGORY Target Dungeon"
 }
 ```
+
+------------------------------------------------------------------------
+
+<a id="compatibility-and-game-fixes"></a>
+
+# Compatibility and Game Fixes
+
+T's Coreには、T's Modsで使用するための内部的な互換性修正やゲーム動作の補完も含まれています。
+
+これらは個別の公開APIを提供する機能ではなく、該当するFarmHouse、Map、天候、配偶者部屋の動作を必要に応じて自動的に補正します。
+
+## FarmHouse Warp Fix
+
+通常の玄関ではなくカスタムWarpからFarmHouseへ入った場合、Stardew ValleyがLocationの初期化時にプレイヤーをFarmHouseの玄関位置へ移動させることがあります。
+
+T's Coreはこの場合に本来のカスタムWarp先を維持します。通常の玄関からのWarpやCellarからFarmHouseへのWarpでは、Stardew Valley標準の動作を維持します。
+
+## Rain Totem Location Context Fix
+
+Stardew ValleyのLocationでは、`RainTotemAffectsContext` を使用してレイントーテムの効果を別のLocation Contextへ向けることができます。
+
+T's Coreは、Default以外のContextが指定された場合に、翌日の雨が対象Contextへ正しく反映されないことがある問題を補正します。
+
+## Cellar Entrance Fix
+
+FarmHouse Mapの再構築や再読み込み後に、Cellarへの入口やWarp状態が消える場合があります。
+
+T's CoreはCellarが開放済みのFarmHouseで必要に応じてStardew Valley標準のCellarタイル、Cellar Warp、関連する床状態を再適用します。
+
+## Spouse Room Tile Fix
+
+Stardew ValleyのFarmHouse Renovation処理によって、配偶者部屋付近のカスタムFront LayerタイルがVanillaタイルで上書きされる場合があります。
+
+T's Coreは、その位置がVanillaのタイル状態ではない場合に既存のカスタムタイルを維持できます。
+
+この修正はT's Coreの設定にある **配偶者部屋のタイル修正** で切り替えられます。使用しているFarmHouse Modによっては、この設定は必要ありません。
+
+## Custom Spouse Room Window Fix
+
+Content Patcherから読み込まれたカスタム配偶者部屋では、通常の `indoor` の窓タイルを使用していても、配偶者部屋のMap Override処理によって別のTileSheet IDが割り当てられる場合があります。その結果、Stardew Valley標準の `DayTiles`、`NightTiles`、`WindowLight` による窓の昼夜切り替えが正しく生成・維持されないことがあります。
+
+T's Coreは、このような配偶者部屋の窓でもStardew Valley標準の昼夜切り替え処理を利用できるよう補正します。また、すでに夜または雨天の状態でカスタム配偶者部屋が再読み込みされた場合は、夜用タイル状態を再適用します。
 
 ------------------------------------------------------------------------
 

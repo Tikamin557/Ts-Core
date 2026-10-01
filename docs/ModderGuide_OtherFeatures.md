@@ -39,6 +39,7 @@ These features can be used by Content Patcher packs without requiring custom C# 
   - [TsCore_Sleep Remove](#tscore_sleep-remove)
 - [Game State Queries](#game-state-queries)
   - [TsCore_LOCATION_CATEGORY](#tscore_location_category)
+- [Compatibility and Game Fixes](#compatibility-and-game-fixes)
 - [Notes](#notes)
 
 ---
@@ -231,6 +232,48 @@ For example, BigCraftable Extension can prevent a Big Craftable from being place
     "PlacementCondition": "!TsCore_LOCATION_CATEGORY Target Dungeon"
 }
 ```
+
+---
+
+<a id="compatibility-and-game-fixes"></a>
+
+# Compatibility and Game Fixes
+
+T's Core also includes a number of internal compatibility and game-behavior fixes used by T's Mods.
+
+These fixes don't provide a separate public API. They automatically correct specific FarmHouse, map, weather, and spouse-room behaviors when applicable.
+
+## FarmHouse Warp Fix
+
+When entering a FarmHouse through a custom warp instead of the normal front entrance, Stardew Valley may reset the player to the FarmHouse entrance position while initializing the location.
+
+T's Core preserves the intended custom warp destination in this case. Normal front-door warps and cellar-to-FarmHouse warps continue to use Stardew Valley's normal behavior.
+
+## Rain Totem Location Context Fix
+
+Stardew Valley locations can use `RainTotemAffectsContext` to redirect a Rain Totem's effect to another Location Context.
+
+T's Core corrects cases where a non-default target context would otherwise not receive the expected rain for the following day.
+
+## Cellar Entrance Fix
+
+In some cases, rebuilding or reloading a FarmHouse map can remove the cellar entrance or its warp state.
+
+For upgraded FarmHouses with a cellar, T's Core reapplies Stardew Valley's normal cellar tiles, cellar warps, and related floor state when needed.
+
+## Spouse Room Tile Fix
+
+Stardew Valley's FarmHouse renovation processing can overwrite a custom Front-layer tile near the spouse-room area with a vanilla tile.
+
+T's Core can preserve the existing custom tile when the map is not using the vanilla tile state at that position.
+
+This fix is controlled by the **Spouse Room Tile Fix** option in T's Core's configuration. Depending on the FarmHouse mod being used, this option may not be necessary.
+
+## Custom Spouse Room Window Fix
+
+Custom spouse-room maps loaded through Content Patcher can use the normal `indoor` window tiles, but the spouse-room map override process may assign them a different TileSheet ID. This can prevent Stardew Valley from creating or maintaining the normal `DayTiles`, `NightTiles`, and `WindowLight` behavior for those windows.
+
+T's Core allows those spouse-room window tiles to use Stardew Valley's normal day/night window handling. It also restores the nighttime tile state if a custom spouse room is reloaded while it is already night or raining.
 
 ---
 
