@@ -26,6 +26,8 @@ T's Core also includes optional convenience features for players, including a cu
 - Relationship services and support for third-party marriage APIs
 - Location tracking and location-related services
 - Warp Actions and reusable Warp Providers
+  - Tile property-based warp destinations using `TsCoreWarpPoint`
+- Post Renovation Patch system for applying map patches after FarmHouse renovations and other runtime map changes
 - Custom Map Properties for additional location behavior
   - Timed exits with optional dialogue and sound
 - Building Services for adding custom settings and visual features to buildings
@@ -38,6 +40,7 @@ T's Core also includes optional convenience features for players, including a cu
   - Extended Content Pack reload tools for development
   - Conditional GMCM field visibility based on installed mods
 - Custom Data Assets for registering definitions through Content Patcher
+- Polyamory Sweet Rooms integration with configurable spouse room presets for supported mods
 - Common utilities shared between T's Mods
 
 ---
@@ -63,7 +66,8 @@ The Modder Guide covers:
 
 - Relationship Services
 - Location Services
-- Warp Services and custom Warp Providers
+- Warp Services, custom Warp Providers, and tile property-based warp destinations
+- Post Renovation Patch system
 - Map Properties
 - Building Services and custom Building Providers
 - BigCraftable Extension
@@ -71,10 +75,11 @@ The Modder Guide covers:
 - Migration System and custom migration definitions
 - Notification System and custom Notification Themes
 - Content Patcher Integration and Tokens
+- Polyamory Sweet Rooms spouse room presets
 - Other Features, including custom Tile Actions and Game State Queries
 - Debug and reload commands
 
-T's Core provides custom Data Assets which allow Content Patcher packs to register Warp Providers, Building Providers, BigCraftable Extensions, Dialogues, Notification Themes, and migration definitions without writing C# code.
+T's Core provides custom Data Assets which allow Content Patcher packs to register Warp Providers, Building Providers, BigCraftable Extensions, Dialogues, Notification Themes, migration definitions, Post Renovation Patches, and Polyamory Sweet Rooms spouse room presets without writing C# code.
 
 The BigCraftable Extension system can add configurable interactions, collision sizes, placement conditions, custom textures and animations, effects, lights, wobble effects, interaction conditions, required items, and other optional behavior to BigCraftables.
 
@@ -87,6 +92,12 @@ See the **[Dialogue System Guide](docs/ModderGuide_DialogueSystem.md)** for deta
 Custom Map Properties can also add location-specific behavior without C# code, including Timed Exit properties which can automatically warp the player out of a location at or after a specified in-game time, with optional dialogue and sound.
 
 See the **[Map Properties Guide](docs/ModderGuide_MapProperties.md)** for details.
+
+Warp Services also support tile property-based destinations using `TsCoreWarpPoint`, allowing warp destinations to be located by a custom key instead of relying on fixed coordinates.
+
+The Post Renovation Patch system allows map patches to be applied after FarmHouse renovations and other runtime map changes, for cases where normal Content Patcher map edits would otherwise be overwritten.
+
+Supported mods can also provide spouse room presets for Polyamory Sweet Rooms, allowing players to configure character assignments through T's Core.
 
 Additional Content Patcher integration features include extended Content Pack reloading for development and conditional GMCM field visibility based on installed mods.
 
