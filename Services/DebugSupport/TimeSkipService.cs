@@ -383,8 +383,19 @@ namespace Ts_Core.Services.DebugSupport
                     targetTime;
             }
 
+            int previousTime =
+                Game1.timeOfDay;
+
             Game1.timeOfDay =
                 nextTime;
+
+            //----------------------------------------
+            // 夜タイル切り替え
+            //----------------------------------------
+
+            ApplyNightTilesIfCrossed(
+                previousTime,
+                nextTime);
 
             //----------------------------------------
             // NPCのScheduleを更新
@@ -437,6 +448,41 @@ namespace Ts_Core.Services.DebugSupport
                 waitingForSchedule =
                     true;
             }
+        }
+
+        //----------------------------------------
+        // 夜タイル切り替え
+        //----------------------------------------
+
+        /// <summary>
+        /// Time SkipでStardew Valley標準の夜タイル切り替え時刻を
+        /// 跨いだ場合、現在地のNightTilesを適用します。
+        /// </summary>
+        private static void ApplyNightTilesIfCrossed(
+            int previousTime,
+            int currentTime)
+        {
+            GameLocation location =
+                Game1.currentLocation;
+
+            int nightTilesTime =
+                Game1.getTrulyDarkTime(location) - 100;
+
+            //----------------------------------------
+            // 暗転時刻を跨いでいない場合は対象外
+            //----------------------------------------
+
+            if (previousTime >= nightTilesTime
+                || currentTime < nightTilesTime)
+            {
+                return;
+            }
+
+            //----------------------------------------
+            // Vanillaの夜タイル切り替えを適用
+            //----------------------------------------
+
+            location.switchOutNightTiles();
         }
 
         //----------------------------------------
