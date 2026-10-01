@@ -1,0 +1,130 @@
+# T's Core
+
+> **This mod is primarily intended for other mods.**
+> Most players only need to install it when it is required by another mod.
+
+A shared library and framework for Stardew Valley SMAPI mods, with support for both PC and Android.
+
+It provides reusable APIs, Content Patcher integration, custom actions, data-driven systems, migration support, and development tools that other mods can use to improve compatibility and reduce duplicated code.
+
+T's Core also includes optional convenience features for players, including a customizable Shortcut Panel for quick access to frequently used functions, key inputs, and mod settings directly from the game screen.
+
+---
+
+> [!IMPORTANT]
+> **🚧 Work in Progress**
+>
+> The documentation and guides are currently being written and expanded. Additional examples, API references, and tutorials will be added over time.
+
+---
+
+## ✨ Features
+
+- Customizable Shortcut Panel for quick access to frequently used functions, key inputs, and mod settings
+  - Supports mouse controls on PC and touch-friendly controls on Android
+- Android support, including Android-specific controls and an in-game SMAPI console
+- Relationship services and support for third-party marriage APIs
+- Location tracking and location-related services
+- Warp Actions and reusable Warp Providers
+  - Tile property-based warp destinations using `TsCoreWarpPoint`
+- Post Renovation Patch system for applying map patches after FarmHouse renovations and other runtime map changes
+- Custom Map Properties for additional location behavior
+  - Timed exits with optional dialogue and sound
+- Building Services for adding custom settings and visual features to buildings
+- BigCraftable Extension for adding custom interactions, collision sizes, placement conditions, textures, animations, effects, lights, and other optional behavior to BigCraftables
+- Additional Tile Actions and Game State Queries for custom gameplay behavior and conditions
+- Dialogue System for creating data-driven dialogues with conditions, responses, actions, and dialogue chaining
+- Migration System for updating IDs stored in existing save data
+- Customizable Notification System and Notification Themes
+- Content Patcher tokens and integration
+  - Extended Content Pack reload tools for development
+  - Conditional GMCM field visibility based on installed mods
+- Custom Data Assets for registering definitions through Content Patcher
+- Polyamory Sweet Rooms integration with configurable spouse room presets for supported mods
+- Common utilities shared between T's Mods
+
+---
+
+## 📦 Installation
+
+1. Install [SMAPI](https://www.nexusmods.com/stardewvalley/mods/2400).
+2. Install [Content Patcher](https://www.nexusmods.com/stardewvalley/mods/1915).
+3. Download the latest version of T's Core.
+4. Extract it into your `Mods` folder.
+
+> **Players:** You only need to install T's Core if another mod lists it as a requirement. T's Core supports both PC and Android.
+
+---
+
+## 🛠 For Mod Authors
+
+If you want to integrate your mod with T's Core, please see the **[Modder Guide](docs/ModderGuide.md)**.
+
+T's Core can be used from C# mods and Content Patcher mods depending on the feature. Many features can be configured directly through Content Patcher without writing C# code.
+
+The Modder Guide covers:
+
+- Relationship Services
+- Location Services
+- Warp Services, custom Warp Providers, and tile property-based warp destinations
+- Post Renovation Patch system
+- Map Properties
+- Building Services and custom Building Providers
+- BigCraftable Extension
+- Dialogue System
+- Migration System and custom migration definitions
+- Notification System and custom Notification Themes
+- Content Patcher Integration and Tokens
+- Polyamory Sweet Rooms spouse room presets
+- Other Features, including custom Tile Actions and Game State Queries
+- Debug and reload commands
+
+T's Core provides custom Data Assets which allow Content Patcher packs to register Warp Providers, Building Providers, BigCraftable Extensions, Dialogues, Notification Themes, migration definitions, Post Renovation Patches, and Polyamory Sweet Rooms spouse room presets without writing C# code.
+
+The BigCraftable Extension system can add configurable interactions, collision sizes, placement conditions, custom textures and animations, effects, lights, wobble effects, interaction conditions, required items, and other optional behavior to BigCraftables.
+
+See the **[BigCraftable Extension Guide](docs/ModderGuide_BigCraftableExtension.md)** for details.
+
+The Dialogue System can create custom map dialogues with conditions, player responses, Trigger Actions, dialogue chaining, automatic closing, and Audio Cues.
+
+See the **[Dialogue System Guide](docs/ModderGuide_DialogueSystem.md)** for details.
+
+Custom Map Properties can also add location-specific behavior without C# code, including Timed Exit properties which can automatically warp the player out of a location at or after a specified in-game time, with optional dialogue and sound.
+
+See the **[Map Properties Guide](docs/ModderGuide_MapProperties.md)** for details.
+
+Warp Services also support tile property-based destinations using `TsCoreWarpPoint`, allowing warp destinations to be located by a custom key instead of relying on fixed coordinates.
+
+The Post Renovation Patch system allows map patches to be applied after FarmHouse renovations and other runtime map changes, for cases where normal Content Patcher map edits would otherwise be overwritten.
+
+Supported mods can also provide spouse room presets for Polyamory Sweet Rooms, allowing players to configure character assignments through T's Core.
+
+Additional Content Patcher integration features include extended Content Pack reloading for development and conditional GMCM field visibility based on installed mods.
+
+See the **[Content Patcher Integration Guide](docs/ModderGuide_ContentPatcherIntegration.md)** for details.
+
+T's Core also provides additional Tile Actions and Game State Queries, including custom sleeping actions and location category checks.
+
+See the **[Other Features Guide](docs/ModderGuide_OtherFeatures.md)** for details.
+
+---
+
+## 💬 Feedback & Bug Reports
+
+Suggestions, feedback, and feature requests can be posted on the **[Nexus Mods Posts page](https://www.nexusmods.com/stardewvalley/mods/50043?tab=posts)**.
+
+Bug reports can be submitted on the **[Nexus Mods Bugs page](https://www.nexusmods.com/stardewvalley/mods/50043?tab=bugs)**.
+
+When reporting a bug, please include:
+
+- SMAPI log
+- T's Core version
+- Stardew Valley version
+- Steps to reproduce the issue
+
+---
+
+## 🔗 Links
+
+- [Nexus Mods - T's Core](https://www.nexusmods.com/stardewvalley/mods/50043)
+- [All Mods by Tikamin557](https://www.nexusmods.com/profile/tikamin557/mods)
