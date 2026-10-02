@@ -1199,14 +1199,8 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     e.Button);
 
                 //----------------------------------------
-                // 左クリックのみ開閉
+                // 左右クリックで開閉
                 //----------------------------------------
-
-                if (e.Button
-                    != SButton.MouseLeft)
-                {
-                    return;
-                }
 
                 isOpen =
                     !isOpen;
@@ -1470,11 +1464,10 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             }
 
             //----------------------------------------
-            // パネル外の左クリック・タップで閉じる
+            // パネル外の左右クリック・タップで閉じる
             //----------------------------------------
 
-            if (ModEntry.Config.ShortcutPanelCloseOnOutsideClick
-                && e.Button == SButton.MouseLeft)
+            if (ModEntry.Config.ShortcutPanelCloseOnOutsideClick)
             {
                 isOpen = false;
             }

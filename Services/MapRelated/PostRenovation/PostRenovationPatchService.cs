@@ -144,9 +144,27 @@ namespace Ts_Core.Services.MapRelated.PostRenovation
                 return false;
             }
 
-            return Helper.GameContent
-                .ParseAssetName(target)
-                .IsEquivalentTo(mapPath);
+            //----------------------------------------
+            // 複数Target
+            //----------------------------------------
+
+            string[] targets =
+                target.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries
+                    | StringSplitOptions.TrimEntries);
+
+            foreach (string targetName in targets)
+            {
+                if (Helper.GameContent
+                    .ParseAssetName(targetName)
+                    .IsEquivalentTo(mapPath))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void ApplyPatch(
@@ -156,12 +174,52 @@ namespace Ts_Core.Services.MapRelated.PostRenovation
             if (Helper == null)
                 return;
 
-            if (string.IsNullOrWhiteSpace(
-                    patch.FromFile))
+            bool hasMapPatch =
+                !string.IsNullOrWhiteSpace(
+                    patch.FromFile);
+
+            bool hasMapTiles =
+                patch.MapTiles?.Count > 0;
+
+            if (!hasMapPatch
+                && !hasMapTiles)
             {
                 throw new InvalidOperationException(
-                    "FromFile is empty.");
+                    "FromFile and MapTiles are both empty.");
             }
+
+            //----------------------------------------
+            // Map Patch
+            //----------------------------------------
+
+            if (hasMapPatch)
+            {
+                ApplyMapPatch(
+                    targetMap,
+                    patch);
+            }
+
+            //----------------------------------------
+            // Map Tile Property
+            //----------------------------------------
+
+            if (hasMapTiles)
+            {
+                ApplyMapTiles(
+                    targetMap,
+                    patch.MapTiles!);
+            }
+        }
+
+        /// <summary>
+        /// FromFileで指定されたMap Patchを適用します。
+        /// </summary>
+        private static void ApplyMapPatch(
+            Map targetMap,
+            PostRenovationPatchModel patch)
+        {
+            if (Helper == null)
+                return;
 
             Map sourceMap =
                 Helper.GameContent.Load<Map>(
@@ -285,6 +343,71 @@ namespace Ts_Core.Services.MapRelated.PostRenovation
                                 targetY] = newTile;
                         }
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 指定されたMap TileへPropertyを設定します。
+        /// </summary>
+        private static void ApplyMapTiles(
+            Map targetMap,
+            IEnumerable<PostRenovationMapTileModel> mapTiles)
+        {
+            foreach (PostRenovationMapTileModel mapTile
+                in mapTiles)
+            {
+                if (string.IsNullOrWhiteSpace(
+                        mapTile.Layer))
+                {
+                    throw new InvalidOperationException(
+                        "MapTiles Layer is empty.");
+                }
+
+                if (mapTile.Position.X < 0
+                    || mapTile.Position.Y < 0)
+                {
+                    throw new InvalidOperationException(
+                        $"MapTiles Position is invalid: " +
+                        $"{mapTile.Position}.");
+                }
+
+                Layer? layer =
+                    targetMap.GetLayer(
+                        mapTile.Layer);
+
+                if (layer == null)
+                {
+                    throw new InvalidOperationException(
+                        $"MapTiles Layer '{mapTile.Layer}' " +
+                        "was not found.");
+                }
+
+                if (mapTile.Position.X >= layer.LayerWidth
+                    || mapTile.Position.Y >= layer.LayerHeight)
+                {
+                    throw new InvalidOperationException(
+                        $"MapTiles Position {mapTile.Position} " +
+                        $"is outside Layer '{mapTile.Layer}'.");
+                }
+
+                Tile? tile =
+                    layer.Tiles[
+                        mapTile.Position.X,
+                        mapTile.Position.Y];
+
+                if (tile == null)
+                {
+                    throw new InvalidOperationException(
+                        $"MapTiles Tile was not found at " +
+                        $"'{mapTile.Layer}' {mapTile.Position}.");
+                }
+
+                foreach ((string key, string value)
+                    in mapTile.SetProperties)
+                {
+                    tile.Properties[key] =
+                        value;
                 }
             }
         }
