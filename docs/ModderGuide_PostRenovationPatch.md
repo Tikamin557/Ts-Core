@@ -48,6 +48,8 @@ No C# code is required.
 - [Data Asset](#data-asset)
 - [Properties](#properties)
 - [Patch Modes](#patch-modes)
+- [MapTiles](#maptiles)
+- [Multiple Targets](#multiple-targets)
 - [Basic Example](#basic-example)
 - [FromArea and ToArea](#fromarea-and-toarea)
 - [Map Size and Layers](#map-size-and-layers)
@@ -109,11 +111,14 @@ The source map can therefore be loaded into the game content pipeline with Conte
 | Property | Required | Description |
 |----------|----------|-------------|
 | Entry key | ✅ | Unique ID for this Post Renovation Patch entry. |
-| `Target` | ✅ | Game content asset name of the FarmHouse map this patch should apply to. |
-| `FromFile` | ✅ | Game content asset name of the source map used for the patch. |
+| `Target` | ✅ | Game content asset name of the FarmHouse map this patch should apply to. Multiple targets can be specified as a comma-separated list. |
+| `FromFile` | △ | Game content asset name of the source map used for the patch. Required when `MapTiles` is not specified. |
+| `MapTiles` | △ | Changes properties on existing map tiles after the FarmHouse layout update. Required when `FromFile` is not specified. |
 | `FromArea` | ❌ | Rectangle to copy from the source map. If omitted, the full source map is used. |
 | `ToArea` | ❌ | Destination rectangle in the target map. If omitted, the patch starts at `0, 0` using the size of `FromArea`. |
 | `PatchMode` | ❌ | Map patch mode. Defaults to `Overlay`. |
+
+`FromFile` and `MapTiles` can also be used together. At least one of them must contain a patch operation.
 
 `FromArea` and `ToArea` must have the same width and height.
 
@@ -130,6 +135,64 @@ The following SMAPI `PatchMapMode` values are supported:
 | `Replace` | Replaces the destination area across the map, including clearing tiles on target-only layers within that area. |
 
 If `PatchMode` is omitted, `Overlay` is used.
+
+---
+
+## MapTiles
+
+`MapTiles` can be used to set properties on existing tiles after the FarmHouse layout update. This is useful when a renovation may overwrite tile properties such as `Action` or `NoFurniture`.
+
+The following fields are supported:
+
+| Property | Required | Description |
+|----------|----------|-------------|
+| `Position` | ✅ | Tile coordinates in the target map. |
+| `Layer` | ✅ | Name of the layer containing the tile. |
+| `SetProperties` | ❌ | Properties to set on the existing tile. |
+
+Example:
+
+```json
+{
+  "Action": "EditData",
+  "Target": "TsCore/PostRenovationPatches",
+  "Entries": {
+    "{{ModId}}_KitchenFix": {
+      "Target": "Maps/FarmHouse2",
+      "MapTiles": [
+        {
+          "Position": { "X": 38, "Y": 23 },
+          "Layer": "Buildings",
+          "SetProperties": { "Action": "kitchen" }
+        },
+        {
+          "Position": { "X": 41, "Y": 24 },
+          "Layer": "Back",
+          "SetProperties": { "NoFurniture": "T" }
+        }
+      ]
+    }
+  }
+}
+```
+
+`MapTiles` does not create a tile. The specified layer and tile must already exist at the given position. Invalid layers, out-of-range positions, or empty tile positions are logged as patch errors.
+
+`MapTiles` can be used by itself without `FromFile`, or together with a normal `FromFile` map patch in the same entry.
+
+---
+
+## Multiple Targets
+
+`Target` can contain multiple FarmHouse map asset names separated by commas. The same Post Renovation Patch is applied when the FarmHouse's current map asset matches any of them.
+
+Example:
+
+```json
+"Target": "Maps/FarmHouse2, Maps/FarmHouse2_marriage"
+```
+
+Spaces around each comma-separated target are ignored. A single target continues to work as before.
 
 ---
 
@@ -228,8 +291,10 @@ During development, `tscore_cp_reload <ContentPackId>` can be used to reload a C
 ## Notes
 
 - Post Renovation Patch is specifically applied to `FarmHouse` instances.
-- `Target` is matched against the FarmHouse's current map asset.
+- `Target` is matched against the FarmHouse's current map asset. Multiple targets can be separated with commas.
+- At least one of `FromFile` or `MapTiles` must be specified. They can also be used together.
 - `FromFile` must reference a map available through the game content pipeline.
+- `MapTiles` currently supports `Position`, `Layer`, and `SetProperties`. The specified tile must already exist.
 - `FromArea` must stay within the source map bounds.
 - `FromArea` and `ToArea` must have the same dimensions.
 - `ToArea` cannot use negative coordinates.

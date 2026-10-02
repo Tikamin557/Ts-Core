@@ -50,6 +50,8 @@ C#コードは必要ありません。
 -   [Data Asset](#data-asset)
 -   [Properties](#properties)
 -   [Patch Modes](#patch-modes)
+-   [MapTiles](#maptiles)
+-   [Multiple Targets](#multiple-targets)
 -   [Basic Example](#basic-example)
 -   [FromArea and ToArea](#fromarea-and-toarea)
 -   [Map Size and Layers](#map-size-and-layers)
@@ -117,9 +119,11 @@ TsCore/PostRenovationPatches
   --------------------- --------------------- ---------------------------------------------------------------------------------------------------------------
   Entry key             ✅                    このPost Renovation Patch Entryの一意なID。
 
-  `Target`              ✅                    このPatchを適用するFarmHouse MapのGame Content Asset名。
+  `Target`              ✅                    このPatchを適用するFarmHouse MapのGame Content Asset名。カンマ区切りで複数指定できます。
 
-  `FromFile`            ✅                    Patchに使用するSource MapのGame Content Asset名。
+  `FromFile`            △                     Patchに使用するSource MapのGame Content Asset名。`MapTiles` を指定しない場合は必須です。
+
+  `MapTiles`            △                     FarmHouse Layout更新後の既存Map TileへPropertyを設定します。`FromFile` を指定しない場合は必須です。
 
   `FromArea`            ❌                    Source MapからコピーするRectangle。省略した場合はSource Map全体を使用します。
 
@@ -127,6 +131,8 @@ TsCore/PostRenovationPatches
 
   `PatchMode`           ❌                    Map Patch Mode。Defaultは `Overlay`。
   -----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+`FromFile` と `MapTiles` は併用することもできます。少なくともどちらか一方にPatch処理を指定する必要があります。
 
 `FromArea` と `ToArea` はWidthとHeightが同じである必要があります。
 
@@ -149,6 +155,72 @@ TsCore/PostRenovationPatches
   ---------------------------------------------------------------------------------------------------------------------------------
 
 `PatchMode` を省略した場合は `Overlay` が使用されます。
+
+------------------------------------------------------------------------
+
+<a id="maptiles"></a>
+
+## MapTiles
+
+`MapTiles` を使用すると、FarmHouse Layout更新後の既存TileへPropertyを設定できます。Renovationによって `Action` や `NoFurniture` などのTile Propertyが上書きされる場合に使用できます。
+
+現在、次のFieldに対応しています:
+
+  --------------------------------------------------------------------------
+  Property              必須                  説明
+  --------------------- --------------------- --------------------------------
+  `Position`            ✅                    Target Map内のTile座標。
+
+  `Layer`               ✅                    対象Tileが存在するLayer名。
+
+  `SetProperties`       ❌                    既存Tileへ設定するProperty。
+  --------------------------------------------------------------------------
+
+例:
+
+``` json
+{
+  "Action": "EditData",
+  "Target": "TsCore/PostRenovationPatches",
+  "Entries": {
+    "{{ModId}}_KitchenFix": {
+      "Target": "Maps/FarmHouse2",
+      "MapTiles": [
+        {
+          "Position": { "X": 38, "Y": 23 },
+          "Layer": "Buildings",
+          "SetProperties": { "Action": "kitchen" }
+        },
+        {
+          "Position": { "X": 41, "Y": 24 },
+          "Layer": "Back",
+          "SetProperties": { "NoFurniture": "T" }
+        }
+      ]
+    }
+  }
+}
+```
+
+`MapTiles` はTile自体を新しく作成しません。指定したLayerと座標にTileが既に存在している必要があります。存在しないLayer、Layer範囲外の座標、Tileが存在しない座標を指定した場合はPatch ErrorとしてSMAPI Consoleへ出力されます。
+
+`MapTiles` は `FromFile` なしで単独使用でき、同じEntry内で通常の `FromFile` Map Patchと併用することもできます。
+
+------------------------------------------------------------------------
+
+<a id="multiple-targets"></a>
+
+## 複数Target
+
+`Target` には、カンマ区切りで複数のFarmHouse Map Asset名を指定できます。FarmHouseの現在のMap Assetがいずれかに一致した場合、同じPost Renovation Patchが適用されます。
+
+例:
+
+``` json
+"Target": "Maps/FarmHouse2, Maps/FarmHouse2_marriage"
+```
+
+各Targetの前後にある空白は無視されます。従来どおり単一Targetを指定することもできます。
 
 ------------------------------------------------------------------------
 
@@ -257,8 +329,10 @@ Source Mapには存在するもののTarget Mapには存在しないLayerは、�
 ## 注意事項
 
 -   Post Renovation Patchは `FarmHouse` Instanceに対してのみ適用されます。
--   `Target` はFarmHouseの現在のMap Assetと照合されます。
+-   `Target` はFarmHouseの現在のMap Assetと照合されます。複数Targetはカンマ区切りで指定できます。
+-   `FromFile` または `MapTiles` の少なくとも一方を指定する必要があります。両方を併用することもできます。
 -   `FromFile` はGame Content Pipelineから利用可能なMapを参照する必要があります。
+-   `MapTiles` は現在 `Position`、`Layer`、`SetProperties` に対応しています。指定するTileは既に存在している必要があります。
 -   `FromArea` はSource Mapの範囲内に収まっている必要があります。
 -   `FromArea` と `ToArea` は同じDimensionである必要があります。
 -   `ToArea` に負の座標は使用できません。
