@@ -311,7 +311,8 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 if (field.ContainsKey(
                         ShowIfModKey)
                     || field.ContainsKey(
-                        ShowIfAllModsKey))
+                        ShowIfAllModsKey)
+)
                 {
                     return true;
                 }

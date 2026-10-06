@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
@@ -39,6 +40,10 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         /// スクリーンショット撮影中だけ一時的に非表示にするか。
         /// </summary>
         private static bool screenshotHidden;
+
+        // PCでGMCM個別設定を開く時は、ショートカットを押した左クリックが
+        // 開いた直後のGMCMへ貫通しないよう、実際にボタンが離されるまで待ちます。
+        private static string? pendingGmcmModId;
 
         // Androidのタッチ操作を管理します。スロットのタップは指を離した時に確定し、
         // ショートカットを先に実行せず、通常タップと長押しを判別できるようにします。
@@ -205,6 +210,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
             helper.Events.Input.ButtonReleased
                 += OnButtonReleased;
+
+            helper.Events.GameLoop.UpdateTicked
+                += OnUpdateTicked;
 
         }
 
@@ -1427,11 +1435,12 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 if (slot.Type
                     == ShortcutPanelSlotType.Gmcm)
                 {
-                    ShortcutPanelGmcmService
-                        .TryOpenModMenu(
-                            helper,
-                            monitor,
-                            slot.GmcmModId);
+                    // GMCMのDropdownはマウスの実状態を直接参照するため、
+                    // この場で開くとショートカットを押した左クリックが
+                    // 新しい設定画面へ貫通する場合があります。
+                    // Mod IDだけ保持し、左ボタンが実際に離されてから開きます。
+                    pendingGmcmModId =
+                        slot.GmcmModId;
 
                     return;
                 }
@@ -1580,6 +1589,33 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
             if (slot.Type == ShortcutPanelSlotType.Keybind)
                 slot.ExecuteKeybind(helper.Input);
+        }
+
+        /// <summary>
+        /// GMCM個別設定を開く待機中なら、左クリックが実際に離された後で開きます。
+        /// </summary>
+        private static void OnUpdateTicked(
+            object? sender,
+            UpdateTickedEventArgs e)
+        {
+            if (pendingGmcmModId == null)
+                return;
+
+            if (Mouse.GetState().LeftButton
+                != ButtonState.Released)
+            {
+                return;
+            }
+
+            string modId =
+                pendingGmcmModId;
+
+            pendingGmcmModId = null;
+
+            ShortcutPanelGmcmService.TryOpenModMenu(
+                helper,
+                monitor,
+                modId);
         }
 
         /// <summary>

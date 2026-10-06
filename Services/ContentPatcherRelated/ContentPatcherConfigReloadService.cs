@@ -820,16 +820,50 @@ namespace Ts_Core.Services.ContentPatcherRelated
             }
 
             //----------------------------------------
+            // Position Picker登録準備
+            //----------------------------------------
+
+            ContentPatcherPositionPickerService.BeginConfigMenuRegistration(
+                rawContentPack,
+                currentConfig,
+                helper,
+                monitor,
+                saveAndApplyAction,
+                contentPackMenu);
+
+            ContentPatcherPsrRoomPresetButtonService.BeginConfigMenuRegistration(
+                rawContentPack,
+                helper,
+                monitor);
+
+            //----------------------------------------
             // GMCM再登録
             //----------------------------------------
 
-            registerMethod.Invoke(
-                contentPackMenu,
-                new object[]
-                {
-                    genericMenu,
-                    monitor
-                });
+            try
+            {
+                registerMethod.Invoke(
+                    contentPackMenu,
+                    new object[]
+                    {
+                        genericMenu,
+                        monitor
+                    });
+            }
+            finally
+            {
+                //----------------------------------------
+                // Position Picker登録完了
+                //----------------------------------------
+
+                ContentPatcherPositionPickerService.CompleteConfigMenuRegistration(
+                    helper,
+                    monitor);
+
+                ContentPatcherPsrRoomPresetButtonService.CompleteConfigMenuRegistration(
+                    helper,
+                    monitor);
+            }
 
             monitor.Log(
                 "Content Patcher GMCM configuration re-registered.",

@@ -30,6 +30,7 @@ namespace Ts_Core.Services.FarmhouseFixes
 
             helper.Events.GameLoop.DayStarted += OnDayStarted;
             helper.Events.Player.Warped += OnWarped;
+            helper.Events.Content.AssetsInvalidated += OnAssetsInvalidated;
             helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
         }
 
@@ -79,6 +80,47 @@ namespace Ts_Core.Services.FarmhouseFixes
                 return;
 
             RefreshCellarMapState(farmHouse);
+        }
+
+        //----------------------------------------
+        // AssetsInvalidated
+        //----------------------------------------
+
+        /// <summary>
+        /// 現在表示中のFarmHouseのMap Assetが更新された場合、
+        /// SMAPIによるMap伝播完了後にセラー入口を再適用する。
+        /// </summary>
+        private static void OnAssetsInvalidated(
+            object? sender,
+            AssetsInvalidatedEventArgs e)
+        {
+            if (!Context.IsWorldReady)
+                return;
+
+            FarmHouse farmHouse =
+                Utility.getHomeOfFarmer(Game1.player);
+
+            // 現在FarmHouse内にいる場合のみ。
+            if (Game1.currentLocation != farmHouse)
+                return;
+
+            string? mapPath =
+                farmHouse.mapPath.Value;
+
+            if (string.IsNullOrWhiteSpace(mapPath))
+                return;
+
+            // 現在のFarmHouseが使用しているMap Assetが
+            // Invalidatedされた場合のみ再適用を予約する。
+            bool mapInvalidated =
+                e.NamesWithoutLocale.Any(
+                    name =>
+                        name.IsEquivalentTo(mapPath));
+
+            if (!mapInvalidated)
+                return;
+
+            RequestRefresh();
         }
 
         //----------------------------------------

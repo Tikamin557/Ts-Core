@@ -409,16 +409,37 @@ namespace Ts_Core.Services.ContentPatcherRelated
                     // T's Core独自表示条件確認
                     //----------------------------------------
 
-                    if (!ContentPatcherConfigMenuFilterService
+                    bool hasFilteredConfig =
+                        ContentPatcherConfigMenuFilterService
                             .TryCreateFilteredConfig(
                                 currentConfig,
                                 rawContentPack,
                                 helper,
                                 monitor,
-                                out object? gmcmConfig))
+                                out object? gmcmConfig);
+
+                    bool hasPositionPickers =
+                        ContentPatcherPositionPickerService
+                            .HasDefinitionsForContentPack(
+                                uniqueId,
+                                helper,
+                                monitor);
+
+                    bool hasPsrRoomPresetButtons =
+                        ContentPatcherPsrRoomPresetButtonService
+                            .HasDefinitionsForContentPack(
+                                uniqueId,
+                                helper,
+                                monitor);
+
+                    if (!hasFilteredConfig
+                        && !hasPositionPickers
+                        && !hasPsrRoomPresetButtons)
                     {
                         continue;
                     }
+
+                    gmcmConfig ??= currentConfig;
 
                     //----------------------------------------
                     // GMCM再登録
