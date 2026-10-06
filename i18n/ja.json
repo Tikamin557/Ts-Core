@@ -111,5 +111,11 @@
   "psrPreset.complete.title": "設定を保存しました",
   "psrPreset.complete.message": "配偶者部屋の設定を保存しました。\n\n注意: 変更を反映するにはゲームを再起動してください。\n　　　設定を保存した後、ゲームを再起動せずに次の日へ進むと\n　　　配偶者の部屋が表示されなくなる場合があります。\n　　　設定保存後は必ずゲームを再起動してください。",
   "psrPreset.error.contentPackMissing": "指定された PSR ContentPack が見つかりません: {{ModId}}",
-  "psrPreset.error.save": "PSR ContentPack の保存に失敗しました。 {{Error}}"
+  "psrPreset.error.save": "PSR ContentPack の保存に失敗しました。 {{Error}}",
+  "positionPicker.name": "マップ位置選択",
+  "positionPicker.description": "設定する座標をマップ上で直接選択します。",
+  "positionPicker.button": "マップ上で位置を選択",
+  "positionPicker.worldRequired": "この機能を使用するにはセーブデータを読み込んでください。",
+  "positionPicker.locationRequired": "この機能は {{Location}} にいる時だけ使用できます。",
+  "positionPicker.guide": "X: {{X}}  Y: {{Y}}\n左クリック：決定　　右クリック / Esc：キャンセル"
 }

@@ -111,5 +111,11 @@
   "psrPreset.complete.title": "Settings saved",
   "psrPreset.complete.message": "The spouse room settings were saved.\nPlease restart the game to apply the changes.\nIf you continue to the next day without restarting\nthe game after saving these settings,\nspouse rooms may no longer be displayed.\nPlease make sure to restart the game after saving.",
   "psrPreset.error.contentPackMissing": "The specified PSR Content Pack was not found: {{ModId}}",
-  "psrPreset.error.save": "Failed to save the PSR Content Pack. {{Error}}"
+  "psrPreset.error.save": "Failed to save the PSR Content Pack. {{Error}}",
+  "positionPicker.name": "Map Position Picker",
+  "positionPicker.description": "Select the configured coordinates directly on the map.",
+  "positionPicker.button": "Select Position on Map",
+  "positionPicker.worldRequired": "Load a save before using this feature.",
+  "positionPicker.locationRequired": "This feature can only be used while you are in {{Location}}.",
+  "positionPicker.guide": "X: {{X}}  Y: {{Y}}\nLeft-click: Confirm    Right-click / Esc: Cancel"
 }

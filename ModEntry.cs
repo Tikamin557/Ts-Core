@@ -22,6 +22,8 @@ using Ts_Core.Services.Location;
 using Ts_Core.Services.LocationFixes;
 using Ts_Core.Services.MapRelated.PostRenovation;
 using Ts_Core.Services.MapRelated.TimedExit;
+using Ts_Core.Services.MapRelated.TsCoreAmbientLight;
+using Ts_Core.Services.MapRelated.TsCoreGreenhouse;
 using Ts_Core.Services.Migration;
 using Ts_Core.Services.Notification;
 using Ts_Core.Services.PolyamorySweetRoomsRelated;
@@ -81,6 +83,11 @@ namespace Ts_Core
         /// </summary>
         private bool refreshContentPatcherConfigMenus;
 
+        /// <summary>
+        /// Content Patcherの起動直後のToken/i18n初期化完了を待つためのtick数。
+        /// </summary>
+        private int refreshContentPatcherConfigMenusDelayTicks;
+
         //----------------------------------------
         // エントリーポイント
         //----------------------------------------
@@ -131,6 +138,16 @@ namespace Ts_Core
             // FarmHouseのRenovation適用後に
             // Map Patchを適用
             PostRenovationPatch.Apply(
+                harmony);
+
+            // TsCoreGreenhouse Map Propertyを
+            // Stardew Valley本体の温室処理へ適用
+            TsCoreGreenhousePatch.Apply(
+                harmony);
+
+            // TsCoreAmbientLight = Farmhouse のLocationへ
+            // Vanilla FarmHouseと同じAmbient Light処理を適用
+            TsCoreAmbientLightPatch.Apply(
                 harmony);
 
             // FarmHouse配偶者部屋の特殊表示物を
@@ -495,6 +512,21 @@ namespace Ts_Core
                 helper);
 
             //----------------------------------------
+            // Content Patcher Position Picker
+            //----------------------------------------
+
+            ContentPatcherPositionPickerService.Initialize(
+                helper,
+                Monitor);
+
+            //----------------------------------------
+            // Content Patcher PSR Room Presets Button
+            //----------------------------------------
+
+            ContentPatcherPsrRoomPresetButtonService.Initialize(
+                helper);
+
+            //----------------------------------------
             // FarmHouseセラー入口修正
             //----------------------------------------
 
@@ -611,6 +643,18 @@ namespace Ts_Core
             helper.Events.Content.AssetRequested
                 += PsrRoomPresetDataService.OnAssetRequested;
 
+            // Position Picker
+            // Content PatcherからPosition Picker定義を登録する
+            // TsCore/PositionPickers Data Assetを提供
+            helper.Events.Content.AssetRequested
+                += PositionPickerDataService.OnAssetRequested;
+
+            // PSR Room Presets GMCM Button
+            // Content PatcherからGMCMボタン定義を登録する
+            // TsCore/PsrRoomPresetButtons Data Assetを提供
+            helper.Events.Content.AssetRequested
+                += PsrRoomPresetButtonDataService.OnAssetRequested;
+
             helper.Events.Content.AssetReady
                 += BigCraftableExtensionDataService.OnAssetReady;
 
@@ -668,6 +712,11 @@ namespace Ts_Core
 
             refreshContentPatcherConfigMenus =
                 true;
+
+            // Content Patcher側のToken/i18n更新が起動直後のtickで完了するため、
+            // Position Picker Data Assetの初回取得を1tick遅らせます。
+            refreshContentPatcherConfigMenusDelayTicks =
+                1;
         }
 
         //----------------------------------------
@@ -689,8 +738,26 @@ namespace Ts_Core
             if (!refreshContentPatcherConfigMenus)
                 return;
 
+            if (refreshContentPatcherConfigMenusDelayTicks > 0)
+            {
+                refreshContentPatcherConfigMenusDelayTicks--;
+                return;
+            }
+
             refreshContentPatcherConfigMenus =
                 false;
+
+            //----------------------------------------
+            // Position Picker Data Asset更新
+            //----------------------------------------
+
+            // Content PatcherのToken/i18n初期化後に再生成することで、
+            // CP側の {{i18n:...}} を解決した状態でGMCMへ登録します。
+            Helper.GameContent.InvalidateCache(
+                PositionPickerDataService.AssetName);
+
+            Helper.GameContent.InvalidateCache(
+                PsrRoomPresetButtonDataService.AssetName);
 
             //----------------------------------------
             // T's Core GMCM表示条件反映
