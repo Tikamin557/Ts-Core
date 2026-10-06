@@ -18,6 +18,7 @@
 -   📄 [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
 -   ✅ **Post Renovation Patch** *(現在のページ)*
 -   📄 [Polyamory Sweet Rooms Integration](ModderGuide_PolyamorySweetRoomsIntegration.md)
+-   📄 [Position Picker](ModderGuide_PositionPicker.md)
 -   📄 [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [READMEに戻る](../../README.md)

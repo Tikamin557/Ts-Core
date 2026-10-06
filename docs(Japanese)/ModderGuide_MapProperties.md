@@ -18,6 +18,7 @@ Patcher向けに提供している公開機能の使用方法を説明します�
 -   📄 [Notification System](ModderGuide_NotificationSystem.md)
 -   📄 [Content Patcher
     Integration](ModderGuide_ContentPatcherIntegration.md)
+-   📄 [Position Picker](ModderGuide_PositionPicker.md)
 -   📄 [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
 -   📄 [Polyamory Sweet Rooms
     Integration](ModderGuide_PolyamorySweetRoomsIntegration.md)
@@ -46,6 +47,8 @@ Propertyについて説明します。
 ## 目次
 
 -   [Timed Exit](#timed-exit)
+-   [TsCoreGreenhouse](#tscoregreenhouse)
+-   [TsCoreAmbientLight](#tscoreambientlight)
 -   [TsCoreTimedExit](#tscoretimedexit)
 -   [TsCoreTimedExitMessage](#tscoretimedexitmessage)
 -   [TsCoreTimedExitSound](#tscoretimedexitsound)
@@ -723,6 +726,92 @@ Perform Warp Action
 ------------------------------------------------------------------------
 
 <a id="notes"></a>
+
+## TsCoreGreenhouse
+
+`TsCoreGreenhouse` を設定すると、カスタムLocationをGreenhouseとして扱い、Fruit Treeを植えられるTileをBack Layerの `Type` で制限できます。
+
+### 構文
+
+``` text
+TsCoreGreenhouse = <許可するType>[, <許可するType>...]
+```
+
+例:
+
+``` text
+TsCoreGreenhouse = Dirt
+```
+
+複数指定する場合:
+
+``` text
+TsCoreGreenhouse = Dirt, Grass
+```
+
+このMap Propertyが存在するLocationは、T's CoreによってGreenhouseとして扱われます。これにより、Stardew Valley本体のGreenhouseと同様の植え付け動作を利用できます。
+
+Fruit Treeについては、`TsCoreGreenhouse` の値がBack Layerの `Type` Tile Propertyに対する許可リストとしても使用されます。Fruit Treeを実際に設置できるのは、Back Layerに指定した `Type` が設定されているTileだけです。
+
+たとえば:
+
+``` text
+TsCoreGreenhouse = Dirt
+```
+
+の場合、Fruit Treeを植えられるTileのBack Layerには次を設定します。
+
+``` text
+Type = Dirt
+```
+
+複数のTypeはカンマ区切りで指定できます。Typeの比較では大文字・小文字を区別します。
+
+この制限はFruit Treeを実際に設置する判定時だけ適用されます。設置プレビューについてはStardew Valley本体のGreenhouse判定を維持します。
+
+また、`Type` が設定されていないTileで直前のTileの足音が残らないよう、これらのLocationでは足音判定前にFootstepの状態をリセットします。
+
+### Content Patcherでの例
+
+``` json
+{
+  "Action": "EditMap",
+  "Target": "Maps/Custom_MyGreenhouse",
+  "MapProperties": {
+    "TsCoreGreenhouse": "Dirt"
+  }
+}
+```
+
+------------------------------------------------------------------------
+
+## TsCoreAmbientLight
+
+`TsCoreAmbientLight` を使用すると、カスタムLocationでVanillaのFarmHouseと同じAmbient Light計算を使用できます。
+
+現在対応している値:
+
+``` text
+TsCoreAmbientLight = Farmhouse
+```
+
+`Farmhouse` は大文字・小文字を区別しません。
+
+有効なLocationでは、夜へ向かう明るさの変化や雨天時のLightingを含め、Vanilla FarmHouseと同じ方式でAmbient Lightを計算します。FarmHouseと同じ昼夜の明るさ変化を使用したいカスタム屋内Mapなどに利用できます。
+
+### Content Patcherでの例
+
+``` json
+{
+  "Action": "EditMap",
+  "Target": "Maps/Custom_MyHouse",
+  "MapProperties": {
+    "TsCoreAmbientLight": "Farmhouse"
+  }
+}
+```
+
+------------------------------------------------------------------------
 
 ## 注意事項
 

@@ -74,6 +74,7 @@ T's Core currently provides the following systems.
 | Migration System | Provides migration support for IDs stored in existing save data. |
 | Notification System | Provides customizable on-screen notifications and Notification Themes. |
 | Content Patcher Integration | Provides additional Content Patcher development and configuration features. |
+| Position Picker | Lets Content Packs add GMCM buttons for selecting X/Y coordinates directly on a map. |
 | Post Renovation Patch | Applies data-driven map patches after FarmHouse renovations and other runtime FarmHouse layout changes. |
 | Polyamory Sweet Rooms Integration | Allows supported Farmhouse mods to provide configurable spouse room presets for Polyamory Sweet Rooms. |
 | Other Features | Provides additional Tile Actions and Game State Queries, including custom sleeping actions and location category checks. |
@@ -101,6 +102,8 @@ Custom definitions can be registered for:
 - Dialogues
 - Post Renovation Patches
 - Polyamory Sweet Rooms spouse room presets
+- Position Picker definitions
+- Polyamory Sweet Rooms GMCM buttons
 
 BigCraftable Extensions registered through `TsCore/BigCraftableExtension` can add configurable interactions, collision sizes, textures, animations, effects, lights, and other optional behavior to BigCraftables.
 
@@ -108,7 +111,7 @@ Dialogues registered through `TsCore/Dialogues` can be displayed from map Tile A
 
 T's Core also provides custom Tile Actions and Game State Queries for additional gameplay behavior and conditions. These smaller features are documented in the **[Other Features Guide](ModderGuide_OtherFeatures.md)**.
 
-T's Core also provides additional Content Patcher features such as custom tokens, extended Content Pack reloading for development, and conditional GMCM field visibility based on installed mods.
+T's Core also provides additional Content Patcher features such as custom tokens, extended Content Pack reloading for development, conditional GMCM field visibility based on installed mods, and visual Position Picker buttons for X/Y settings.
 
 Each system has its own setup and available options. See the corresponding guide in the [Detailed Documentation](#-detailed-documentation) section for details and examples.
 
@@ -183,6 +186,7 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Migration System](ModderGuide_MigrationSystem.md)
 - [Notification System](ModderGuide_NotificationSystem.md)
 - [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
+- [Position Picker](ModderGuide_PositionPicker.md)
 - [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
 - [Polyamory Sweet Rooms Integration](ModderGuide_PolyamorySweetRoomsIntegration.md)
 - [Other Features](ModderGuide_OtherFeatures.md)

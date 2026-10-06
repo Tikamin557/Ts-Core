@@ -16,6 +16,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Migration System](ModderGuide_MigrationSystem.md)
 - 📄 [Notification System](ModderGuide_NotificationSystem.md)
 - 📄 [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
+- 📄 [Position Picker](ModderGuide_PositionPicker.md)
 - ✅ **Other Features** *(Current Page)*
 
 ← [Back to README](../README.md)
@@ -259,7 +260,7 @@ T's Core corrects cases where a non-default target context would otherwise not r
 
 In some cases, rebuilding or reloading a FarmHouse map can remove the cellar entrance or its warp state.
 
-For upgraded FarmHouses with a cellar, T's Core reapplies Stardew Valley's normal cellar tiles, cellar warps, and related floor state when needed.
+For upgraded FarmHouses with a cellar, T's Core reapplies Stardew Valley's normal cellar tiles, cellar warps, and related floor state when needed. In v1.9.1, this refresh is also requested when the FarmHouse map asset is invalidated, so the cellar entrance can be restored after Content Patcher or other map reloads rebuild the FarmHouse map.
 
 ## Spouse Room Tile Fix
 

@@ -16,6 +16,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Migration System](ModderGuide_MigrationSystem.md)
 - 📄 [Notification System](ModderGuide_NotificationSystem.md)
 - 📄 [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
+- 📄 [Position Picker](ModderGuide_PositionPicker.md)
 - 📄 [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
 - ✅ **Polyamory Sweet Rooms Integration** *(Current Page)*
 - 📄 [Other Features](ModderGuide_OtherFeatures.md)
@@ -52,6 +53,7 @@ No custom C# code is required for the Farmhouse mod.
 - [Complete Example](#complete-example)
 - [How Assignments Are Saved](#how-assignments-are-saved)
 - [Player Access](#player-access)
+- [Adding a Setup Button to a Content Pack GMCM](#adding-a-setup-button-to-a-content-pack-gmcm)
 - [Important Notes](#important-notes)
 
 ---
@@ -260,9 +262,61 @@ When the required mods and a compatible preset are available, players can open t
 It is available from:
 
 - T's Core's Generic Mod Config Menu settings;
-- the built-in T's Core function in the Shortcut Panel.
+- the built-in T's Core function in the Shortcut Panel;
+- a supported Content Pack's own GMCM when it registers `TsCore/PsrRoomPresetButtons`.
 
 A save must be loaded before the setup screen can be used.
+
+---
+
+## Adding a Setup Button to a Content Pack GMCM
+
+A Content Patcher Content Pack can add a button to its own Generic Mod Config Menu which opens T's Core's Spouse Room Setup screen. No C# code is required.
+
+Register the button through:
+
+```text
+TsCore/PsrRoomPresetButtons
+```
+
+Example:
+
+```json
+{
+  "Action": "EditData",
+  "Target": "TsCore/PsrRoomPresetButtons",
+  "Entries": {
+    "{{ModId}}_PsrRoomPresets": {
+      "ContentPackId": "{{ModId}}",
+      "GMCM_Name": "{{i18n:psr-preset.name}}",
+      "GMCM_Description": "{{i18n:psr-preset.description}}",
+      "GMCM_Button": "{{i18n:psr-preset.button}}",
+      "GMCM_WorldRequired": "{{i18n:psr-preset.world-required}}",
+      "GMCM_PsrRequired": "{{i18n:psr-preset.psr-required}}",
+      "GMCM_NoPreset": "{{i18n:psr-preset.no-preset}}",
+      "AfterField": "ExampleConfigField"
+    }
+  }
+}
+```
+
+### Button Properties
+
+| Property | Required | Description |
+|----------|----------|-------------|
+| Entry key | ✅ | Unique ID for this button definition. |
+| `ContentPackId` | ✅ | UniqueID of the Content Pack whose GMCM should receive the button. `{{ModId}}` is normally recommended. |
+| `GMCM_Name` | ❌ | Name shown for the GMCM option. Uses T's Core's default text when omitted. |
+| `GMCM_Description` | ❌ | Normal description/hover text. Uses T's Core's default text when omitted. |
+| `GMCM_Button` | ❌ | Text displayed inside the button. Uses T's Core's default text when omitted. |
+| `GMCM_WorldRequired` | ❌ | Hover text shown when no save is loaded. Uses T's Core's default text when omitted. |
+| `GMCM_PsrRequired` | ❌ | Hover text shown when Polyamory Sweet Rooms isn't installed. Uses T's Core's default text when omitted. |
+| `GMCM_NoPreset` | ❌ | Hover text shown when no usable room preset is available. Uses T's Core's default text when omitted. |
+| `AfterField` | ❌ | ConfigSchema field key after which the button should be inserted. If the field isn't found, the button is added at the end of the GMCM page. |
+
+The button is disabled when the setup screen can't currently be used. Hovering the disabled button still shows the corresponding reason.
+
+The same Spouse Room Setup screen is used regardless of whether it was opened from T's Core's GMCM, the Shortcut Panel, or a Content Pack's own GMCM button.
 
 ---
 

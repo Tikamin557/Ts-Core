@@ -16,6 +16,7 @@
 -   📄 [Migration System](ModderGuide_MigrationSystem.md)
 -   📄 [Notification System](ModderGuide_NotificationSystem.md)
 -   ✅ **Content Patcher Integration** *(現在のページ)*
+-   📄 [Position Picker](ModderGuide_PositionPicker.md)
 -   📄 [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [READMEに戻る](../../README.md)
@@ -472,6 +473,8 @@ TsCore/Migrations
 TsCore/MachineInteraction
 TsCore/PostRenovationPatches
 TsCore/PsrRoomPresets
+TsCore/PositionPickers
+TsCore/PsrRoomPresetButtons
 ```
 
 これらのAssetを編集するContent Patcher Content Packを開発する場合は、変更後に次を使用します:
@@ -593,7 +596,7 @@ T's CoreのカスタムData Assetを編集するContent Packでも、同じ `tsc
 
 -   ← [Notification System](ModderGuide_NotificationSystem.md)
 -   ↑ [Guide Index](#top)
--   → [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
+-   → [Position Picker](ModderGuide_PositionPicker.md)
 
 ← [READMEに戻る](../../README.md)
 

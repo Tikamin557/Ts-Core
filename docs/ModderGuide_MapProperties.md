@@ -16,6 +16,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Migration System](ModderGuide_MigrationSystem.md)
 - 📄 [Notification System](ModderGuide_NotificationSystem.md)
 - 📄 [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
+- 📄 [Position Picker](ModderGuide_PositionPicker.md)
 - 📄 [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
 - 📄 [Polyamory Sweet Rooms Integration](ModderGuide_PolyamorySweetRoomsIntegration.md)
 - 📄 [Other Features](ModderGuide_OtherFeatures.md)
@@ -39,6 +40,8 @@ This guide explains the custom map properties currently supported by T's Core.
 ## Contents
 
 - [Timed Exit](#timed-exit)
+- [TsCoreGreenhouse](#tscoregreenhouse)
+- [TsCoreAmbientLight](#tscoreambientlight)
 - [TsCoreTimedExit](#tscoretimedexit)
 - [TsCoreTimedExitMessage](#tscoretimedexitmessage)
 - [TsCoreTimedExitSound](#tscoretimedexitsound)
@@ -675,6 +678,92 @@ This prevents an optional sound configuration error from blocking the actual exi
 
 ---
 
+## TsCoreGreenhouse
+
+`TsCoreGreenhouse` makes a custom location behave as a greenhouse and optionally restricts fruit tree planting to specified Back-layer `Type` values.
+
+### Syntax
+
+```text
+TsCoreGreenhouse = <AllowedType>[, <AllowedType>...]
+```
+
+For example:
+
+```text
+TsCoreGreenhouse = Dirt
+```
+
+or:
+
+```text
+TsCoreGreenhouse = Dirt, Grass
+```
+
+When this map property is present, T's Core marks the location as a greenhouse. This enables the normal greenhouse behavior used by Stardew Valley, including greenhouse-compatible planting behavior.
+
+For fruit trees, the value of `TsCoreGreenhouse` is also used as an allow-list for the Back-layer `Type` tile property. A fruit tree can only be placed on a tile whose Back layer has one of the listed `Type` values.
+
+For example, with:
+
+```text
+TsCoreGreenhouse = Dirt
+```
+
+the intended planting tiles should have:
+
+```text
+Type = Dirt
+```
+
+on the Back layer. Multiple allowed values can be separated by commas. Matching is case-sensitive.
+
+The restriction is applied during the actual fruit tree placement check. T's Core keeps Stardew Valley's normal greenhouse placement-preview behavior, so the preview itself is not replaced with a separate custom rule.
+
+T's Core also resets the footstep state before checking footsteps in these locations so tiles without a `Type` property don't incorrectly keep the previous tile's footstep sound.
+
+### Content Patcher Example
+
+```json
+{
+  "Action": "EditMap",
+  "Target": "Maps/Custom_MyGreenhouse",
+  "MapProperties": {
+    "TsCoreGreenhouse": "Dirt"
+  }
+}
+```
+
+---
+
+## TsCoreAmbientLight
+
+`TsCoreAmbientLight` lets a custom location use the same ambient-light calculation as the vanilla FarmHouse.
+
+Currently supported value:
+
+```text
+TsCoreAmbientLight = Farmhouse
+```
+
+The `Farmhouse` value is case-insensitive.
+
+When enabled, T's Core uses the vanilla FarmHouse-style ambient lighting behavior for that location, including the normal transition toward night lighting and rainy-day lighting behavior. This is useful for custom indoor maps which should visually follow the FarmHouse's day/night lighting instead of the location's default ambient-light behavior.
+
+### Content Patcher Example
+
+```json
+{
+  "Action": "EditMap",
+  "Target": "Maps/Custom_MyHouse",
+  "MapProperties": {
+    "TsCoreAmbientLight": "Farmhouse"
+  }
+}
+```
+
+---
+
 ## Notes
 
 Map Properties are designed for map-based mods and Content Patcher Content Packs and require no custom C# code.
@@ -695,7 +784,7 @@ When possible, Warp Providers are recommended instead of hardcoded coordinates b
 
 For detailed Warp Action syntax and available Warp Providers, see the [Warp Services](ModderGuide_WarpServices.md) guide.
 
-Additional custom map properties may be added in future versions of T's Core.
+Other supported map properties are documented above. Additional custom map properties may be added in future versions of T's Core.
 
 ---
 

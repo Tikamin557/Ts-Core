@@ -30,6 +30,8 @@ T's Core also includes optional convenience features for players, including a cu
 - Post Renovation Patch system for applying map patches after FarmHouse renovations and other runtime map changes
 - Custom Map Properties for additional location behavior
   - Timed exits with optional dialogue and sound
+  - Greenhouse-compatible custom locations with configurable fruit tree floor types
+  - FarmHouse-style ambient lighting for custom locations
 - Building Services for adding custom settings and visual features to buildings
 - BigCraftable Extension for adding custom interactions, collision sizes, placement conditions, textures, animations, effects, lights, and other optional behavior to BigCraftables
 - Additional Tile Actions and Game State Queries for custom gameplay behavior and conditions
@@ -39,8 +41,10 @@ T's Core also includes optional convenience features for players, including a cu
 - Content Patcher tokens and integration
   - Extended Content Pack reload tools for development
   - Conditional GMCM field visibility based on installed mods
+  - Visual Position Picker buttons for Content Pack GMCM settings
 - Custom Data Assets for registering definitions through Content Patcher
 - Polyamory Sweet Rooms integration with configurable spouse room presets for supported mods
+  - Supported Content Packs can add a button to their own GMCM which opens the Spouse Room Setup screen
 - Compatibility and game-behavior fixes for FarmHouse warps, cellar restoration, Rain Totem location contexts, and custom spouse rooms
 - Common utilities shared between T's Mods
 
@@ -76,6 +80,7 @@ The Modder Guide covers:
 - Migration System and custom migration definitions
 - Notification System and custom Notification Themes
 - Content Patcher Integration and Tokens
+- Position Picker for visual coordinate selection from Content Pack GMCM settings
 - Polyamory Sweet Rooms spouse room presets
 - Other Features, including custom Tile Actions and Game State Queries
 - Debug and reload commands
@@ -90,7 +95,7 @@ The Dialogue System can create custom map dialogues with conditions, player resp
 
 See the **[Dialogue System Guide](docs/ModderGuide_DialogueSystem.md)** for details.
 
-Custom Map Properties can also add location-specific behavior without C# code, including Timed Exit properties which can automatically warp the player out of a location at or after a specified in-game time, with optional dialogue and sound.
+Custom Map Properties can also add location-specific behavior without C# code, including Timed Exit properties, greenhouse-compatible custom locations through `TsCoreGreenhouse`, and FarmHouse-style ambient lighting through `TsCoreAmbientLight`.
 
 See the **[Map Properties Guide](docs/ModderGuide_MapProperties.md)** for details.
 
@@ -98,11 +103,15 @@ Warp Services also support tile property-based destinations using `TsCoreWarpPoi
 
 The Post Renovation Patch system allows map patches to be applied after FarmHouse renovations and other runtime map changes, for cases where normal Content Patcher map edits would otherwise be overwritten.
 
-Supported mods can also provide spouse room presets for Polyamory Sweet Rooms, allowing players to configure character assignments through T's Core.
+Supported mods can also provide spouse room presets for Polyamory Sweet Rooms, allowing players to configure character assignments through T's Core. Content Packs can optionally add a button to their own GMCM through `TsCore/PsrRoomPresetButtons` to open the same setup screen.
 
 Additional Content Patcher integration features include extended Content Pack reloading for development and conditional GMCM field visibility based on installed mods.
 
 See the **[Content Patcher Integration Guide](docs/ModderGuide_ContentPatcherIntegration.md)** for details.
+
+Content Packs can also register visual coordinate pickers through `TsCore/PositionPickers`. These add a GMCM button which lets the player choose X/Y coordinates directly on the target map.
+
+See the **[Position Picker Guide](docs/ModderGuide_PositionPicker.md)** for details.
 
 T's Core also provides additional Tile Actions and Game State Queries, including custom sleeping actions and location category checks.
 

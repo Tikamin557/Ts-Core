@@ -89,6 +89,8 @@ Panelへ独自のActionを登録し、プレイヤーがゲーム内パネルか
 
   Content Patcher Integration                Content Patcherでの開発や設定に関する追加機能を提供します。
 
+  Position Picker                            Content PackのGMCMからMap上でX/Y座標を直接選択できる機能を提供します。
+
   Post Renovation Patch                      FarmHouseのRenovationやその他の実行時のFarmHouseレイアウト変更後に、データ駆動型のMap Patchを適用します。
 
   Polyamory Sweet Rooms Integration          対応するFarmhouse Modから、Polyamory Sweet Rooms用の設定可能なSpouse Room Presetを提供できるようにします。
@@ -124,6 +126,8 @@ Query、Map Property、各種連携機能、カスタムData Assetを使用で�
 -   Dialogue
 -   Post Renovation Patch
 -   Polyamory Sweet RoomsのSpouse Room Preset
+-   Position Picker定義
+-   Polyamory Sweet Rooms設定画面を開くGMCMボタン
 
 `TsCore/BigCraftableExtension` を通して登録したBigCraftable
 Extensionでは、BigCraftableへ設定可能なインタラクション、当たり判定サイズ、テクスチャ、アニメーション、エフェクト、ライトなどの任意機能を追加できます。
@@ -137,7 +141,7 @@ Queryも提供しています。これらの比較的小規模な機能につい
 Features Guide](ModderGuide_OtherFeatures.md)** を参照してください。
 
 さらに、カスタムToken、開発時に使用できる拡張Content
-Packリロード機能、導入済みModに応じてGMCM項目の表示を切り替える機能など、Content
+Packリロード機能、導入済みModに応じてGMCM項目の表示を切り替える機能、Map上でX/Y座標を直接選択できるPosition Pickerなど、Content
 Patcher向けの追加機能も提供しています。
 
 各システムには、それぞれ設定方法と利用可能なオプションがあります。詳細や使用例については、[詳細ドキュメント](#-詳細ドキュメント)内の対応するガイドを参照してください。
@@ -229,6 +233,7 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 -   [Notification System](ModderGuide_NotificationSystem.md)
 -   [Content Patcher
     Integration](ModderGuide_ContentPatcherIntegration.md)
+-   [Position Picker](ModderGuide_PositionPicker.md)
 -   [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
 -   [Polyamory Sweet Rooms
     Integration](ModderGuide_PolyamorySweetRoomsIntegration.md)

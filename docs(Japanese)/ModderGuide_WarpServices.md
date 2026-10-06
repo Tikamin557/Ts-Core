@@ -18,6 +18,7 @@ Patcher向けに提供している公開機能の使用方法を説明します�
 -   📄 [Notification System](ModderGuide_NotificationSystem.md)
 -   📄 [Content Patcher
     Integration](ModderGuide_ContentPatcherIntegration.md)
+-   📄 [Position Picker](ModderGuide_PositionPicker.md)
 -   📄 [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
 -   📄 [Polyamory Sweet Rooms
     Integration](ModderGuide_PolyamorySweetRoomsIntegration.md)

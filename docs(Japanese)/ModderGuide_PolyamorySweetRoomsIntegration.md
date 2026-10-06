@@ -16,6 +16,7 @@
 -   📄 [Migration System](ModderGuide_MigrationSystem.md)
 -   📄 [Notification System](ModderGuide_NotificationSystem.md)
 -   📄 [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
+-   📄 [Position Picker](ModderGuide_PositionPicker.md)
 -   📄 [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
 -   ✅ **Polyamory Sweet Rooms Integration** *(現在のページ)*
 -   📄 [Other Features](ModderGuide_OtherFeatures.md)
@@ -54,6 +55,7 @@ Farmhouse Mod側に独自のC#コードは必要ありません。
 -   [Complete Example](#complete-example)
 -   [How Assignments Are Saved](#how-assignments-are-saved)
 -   [Player Access](#player-access)
+-   [Content PackのGMCMへ設定ボタンを追加する](#adding-a-setup-button-to-a-content-pack-gmcm)
 -   [Important Notes](#important-notes)
 
 ------------------------------------------------------------------------
@@ -287,8 +289,62 @@ Slotを未割り当てのままにした場合、そのSlotの `Id` がPSRの `n
 
 -   T's CoreのGeneric Mod Config Menu設定
 -   Shortcut Panelに組み込まれているT's Core機能
+-   `TsCore/PsrRoomPresetButtons` を登録した対応Content Pack自身のGMCM
 
 Setup画面を使用するには、Saveを読み込んでいる必要があります。
+
+------------------------------------------------------------------------
+
+<a id="adding-a-setup-button-to-a-content-pack-gmcm"></a>
+
+## Content PackのGMCMへ設定ボタンを追加する
+
+Content PatcherのContent Packから、そのMod自身のGeneric Mod Config MenuへT's Coreの配偶者部屋設定画面を開くボタンを追加できます。C#コードは必要ありません。
+
+次のData Assetへボタン定義を登録します。
+
+``` text
+TsCore/PsrRoomPresetButtons
+```
+
+例:
+
+``` json
+{
+  "Action": "EditData",
+  "Target": "TsCore/PsrRoomPresetButtons",
+  "Entries": {
+    "{{ModId}}_PsrRoomPresets": {
+      "ContentPackId": "{{ModId}}",
+      "GMCM_Name": "{{i18n:psr-preset.name}}",
+      "GMCM_Description": "{{i18n:psr-preset.description}}",
+      "GMCM_Button": "{{i18n:psr-preset.button}}",
+      "GMCM_WorldRequired": "{{i18n:psr-preset.world-required}}",
+      "GMCM_PsrRequired": "{{i18n:psr-preset.psr-required}}",
+      "GMCM_NoPreset": "{{i18n:psr-preset.no-preset}}",
+      "AfterField": "ExampleConfigField"
+    }
+  }
+}
+```
+
+### ボタンのProperty
+
+| Property | 必須 | 説明 |
+|----------|------|------|
+| Entry key | ✅ | ボタン定義の一意なIDです。 |
+| `ContentPackId` | ✅ | ボタンを追加するContent PackのUniqueIDです。通常は `{{ModId}}` を推奨します。 |
+| `GMCM_Name` | 任意 | GMCMに表示する項目名です。未指定時はT's Core標準の翻訳を使用します。 |
+| `GMCM_Description` | 任意 | 通常時の説明・Hover Textです。未指定時はT's Core標準の翻訳を使用します。 |
+| `GMCM_Button` | 任意 | ボタン内に表示する文字列です。未指定時はT's Core標準の翻訳を使用します。 |
+| `GMCM_WorldRequired` | 任意 | セーブ未読込時にボタン上へ表示するHover Textです。 |
+| `GMCM_PsrRequired` | 任意 | Polyamory Sweet Rooms未導入時にボタン上へ表示するHover Textです。 |
+| `GMCM_NoPreset` | 任意 | 利用可能なRoom Presetが無い時にボタン上へ表示するHover Textです。 |
+| `AfterField` | 任意 | このConfigSchema項目の直後へボタンを挿入します。対象が見つからない場合はGMCMの末尾へ追加されます。 |
+
+設定画面を利用できない状態ではボタンは無効になりますが、無効状態でもボタンへマウスを乗せると利用できない理由が表示されます。
+
+T's Core自身のGMCM、Shortcut Panel、Content Pack側のGMCMボタンのどこから開いても、同じ配偶者部屋設定画面を使用します。
 
 ------------------------------------------------------------------------
 

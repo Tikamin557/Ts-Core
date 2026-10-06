@@ -16,6 +16,7 @@
 -   📄 [Migration System](ModderGuide_MigrationSystem.md)
 -   📄 [Notification System](ModderGuide_NotificationSystem.md)
 -   📄 [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
+-   📄 [Position Picker](ModderGuide_PositionPicker.md)
 -   ✅ **Other Features** *(現在のページ)*
 
 ← [READMEに戻る](../../README.md)
@@ -270,7 +271,7 @@ T's Coreは、Default以外のContextが指定された場合に、翌日の雨�
 
 FarmHouse Mapの再構築や再読み込み後に、Cellarへの入口やWarp状態が消える場合があります。
 
-T's CoreはCellarが開放済みのFarmHouseで必要に応じてStardew Valley標準のCellarタイル、Cellar Warp、関連する床状態を再適用します。
+T's CoreはCellarが開放済みのFarmHouseで必要に応じてStardew Valley標準のCellarタイル、Cellar Warp、関連する床状態を再適用します。 v1.9.1ではFarmHouseのMap Assetが無効化された場合にも再適用を予約し、Content PatcherなどによるMap再読み込み後にFarmHouse Mapが再構築された場合でもCellar入口を復元できるようになりました。
 
 ## Spouse Room Tile Fix
 
