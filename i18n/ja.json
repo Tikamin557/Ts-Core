@@ -126,5 +126,9 @@
   "positionPicker.button": "マップ上で位置を選択",
   "positionPicker.worldRequired": "この機能を使用するにはセーブデータを読み込んでください。",
   "positionPicker.locationRequired": "この機能は {{Location}} にいる時だけ使用できます。",
-  "positionPicker.guide": "X: {{X}}  Y: {{Y}}\n左クリック：決定　　右クリック / Esc：キャンセル"
+  "positionPicker.guide": "X: {{X}}  Y: {{Y}}\n左クリック：決定　　右クリック / Esc：キャンセル",
+  "modConflict.title": "Modの重複インストールを検出しました",
+  "modConflict.defaultMessage": "次のModが同時にインストールされています。\n{{mods}}\nいずれか一方のみをインストールしてください。\n現在の状態のままプレイすると、いずれかのModが正常に機能しない可能性があります。",
+  "modConflict.logHeader": "MODの競合",
+  "modConflict.logMessage": "以下のMODが同時にインストールされています"
 }

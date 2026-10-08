@@ -670,6 +670,10 @@ namespace Ts_Core
             helper.Events.Content.AssetRequested
                 += PositionPickerDataService.OnAssetRequested;
 
+            // Mod Conflict Warnings
+            helper.Events.Content.AssetRequested
+                += ModConflictWarningDataService.OnAssetRequested;
+
             // PSR Room Presets GMCM Button
             // Content PatcherからGMCMボタン定義を登録する
             // TsCore/PsrRoomPresetButtons Data Assetを提供
@@ -714,6 +718,9 @@ namespace Ts_Core
                 provider);
 
             RegisterContentPatcherTokens();
+
+            // タイトル画面でModの重複インストールを警告
+            ModConflictWarningService.Initialize(Helper, Monitor);
 
             //----------------------------------------
             // T's Core GMCM登録

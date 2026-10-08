@@ -126,5 +126,9 @@
   "positionPicker.button": "Select Position on Map",
   "positionPicker.worldRequired": "Load a save before using this feature.",
   "positionPicker.locationRequired": "This feature can only be used while you are in {{Location}}.",
-  "positionPicker.guide": "X: {{X}}  Y: {{Y}}\nLeft-click: Confirm    Right-click / Esc: Cancel"
+  "positionPicker.guide": "X: {{X}}  Y: {{Y}}\nLeft-click: Confirm    Right-click / Esc: Cancel",
+  "modConflict.title": "Mod Conflict Detected",
+  "modConflict.defaultMessage": "The following mods are installed together.\n{{mods}}\nPlease install only one version.\nPlaying with these mods installed together may cause some features to malfunction.",
+  "modConflict.logHeader": "Mod conflict",
+  "modConflict.logMessage": "The following mods are installed together"
 }
