@@ -75,6 +75,7 @@ T's Core currently provides the following systems.
 | Notification System | Provides customizable on-screen notifications and Notification Themes. |
 | Content Patcher Integration | Provides additional Content Patcher development and configuration features. |
 | Position Picker | Lets Content Packs add GMCM buttons for selecting X/Y coordinates directly on a map. |
+| Mod Conflict Warnings | Detects incompatible combinations of loaded mods and displays startup warnings. |
 | Post Renovation Patch | Applies data-driven map patches after FarmHouse renovations and other runtime FarmHouse layout changes. |
 | Polyamory Sweet Rooms Integration | Allows supported Farmhouse mods to provide configurable spouse room presets for Polyamory Sweet Rooms. |
 | Other Features | Provides additional Tile Actions and Game State Queries, including custom sleeping actions and location category checks. |
@@ -103,6 +104,7 @@ Custom definitions can be registered for:
 - Post Renovation Patches
 - Polyamory Sweet Rooms spouse room presets
 - Position Picker definitions
+- Mod Conflict Warning definitions
 - Polyamory Sweet Rooms GMCM buttons
 
 BigCraftable Extensions registered through `TsCore/BigCraftableExtension` can add configurable interactions, collision sizes, textures, animations, effects, lights, and other optional behavior to BigCraftables.
@@ -187,6 +189,7 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Notification System](ModderGuide_NotificationSystem.md)
 - [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
 - [Position Picker](ModderGuide_PositionPicker.md)
+- [Mod Conflict Warnings](ModderGuide_ModConflictWarnings.md)
 - [Shortcut Panel](ModderGuide_ShortcutPanel.md)
 - [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
 - [Polyamory Sweet Rooms Integration](ModderGuide_PolyamorySweetRoomsIntegration.md)

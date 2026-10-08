@@ -45,6 +45,7 @@ T's Core also includes optional convenience features for players, including a cu
   - Visual Position Picker buttons for Content Pack GMCM settings, with `BeforeField` and `AfterField` placement
   - GMCM translations refreshed when the game language changes
 - Custom Data Assets for registering definitions through Content Patcher
+- Mod Conflict Warnings for detecting incompatible installed mod combinations at startup
 - Polyamory Sweet Rooms integration with configurable spouse room presets for supported mods
   - Supported Content Packs can add a button to their own GMCM which opens the Spouse Room Setup screen
 - Compatibility and game-behavior fixes for FarmHouse warps, cellar restoration, Rain Totem location contexts, and custom spouse rooms
@@ -83,12 +84,13 @@ The Modder Guide covers:
 - Notification System and custom Notification Themes
 - Content Patcher Integration and Tokens
 - Position Picker for visual coordinate selection from Content Pack GMCM settings
+- Mod Conflict Warnings for detecting incompatible mod combinations
 - Shortcut Panel configuration and CJB Cheats Menu warp shortcuts
 - Polyamory Sweet Rooms spouse room presets
 - Other Features, including custom Tile Actions and Game State Queries
 - Debug and reload commands
 
-T's Core provides custom Data Assets which allow Content Patcher packs to register Warp Providers, Building Providers, BigCraftable Extensions, Dialogues, Notification Themes, migration definitions, Post Renovation Patches, and Polyamory Sweet Rooms spouse room presets without writing C# code.
+T's Core provides custom Data Assets which allow Content Patcher packs to register Warp Providers, Building Providers, BigCraftable Extensions, Dialogues, Notification Themes, migration definitions, Post Renovation Patches, and Polyamory Sweet Rooms spouse room presets, as well as Mod Conflict Warnings, without writing C# code.
 
 The BigCraftable Extension system can add configurable interactions, collision sizes, placement conditions, custom textures and animations, effects, lights, wobble effects, interaction conditions, required items, and other optional behavior to BigCraftables.
 
@@ -115,6 +117,10 @@ See the **[Content Patcher Integration Guide](docs/ModderGuide_ContentPatcherInt
 Content Packs can also register visual coordinate pickers through `TsCore/PositionPickers`. These add a GMCM button which lets the player choose X/Y coordinates directly on the target map.
 
 See the **[Position Picker Guide](docs/ModderGuide_PositionPicker.md)** for details.
+
+Content Packs can register incompatible mod groups using `TsCore/ModConflictWarnings`, with warnings in the SMAPI console and on the title screen.
+
+See the **[Mod Conflict Warnings Guide](docs/ModderGuide_ModConflictWarnings.md)** for details.
 
 For the movable Shortcut Panel and CJB Cheats Menu warp shortcuts, see the **[Shortcut Panel Guide](docs/ModderGuide_ShortcutPanel.md)**.
 

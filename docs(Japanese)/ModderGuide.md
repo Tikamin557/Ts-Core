@@ -91,6 +91,8 @@ Panelへ独自のActionを登録し、プレイヤーがゲーム内パネルか
 
   Position Picker                            Content PackのGMCMからMap上でX/Y座標を直接選択できる機能を提供します。
 
+  Mod Conflict Warnings                      同時導入されたModの競合を検出し、起動時に警告を表示します。
+
   Post Renovation Patch                      FarmHouseのRenovationやその他の実行時のFarmHouseレイアウト変更後に、データ駆動型のMap Patchを適用します。
 
   Polyamory Sweet Rooms Integration          対応するFarmhouse Modから、Polyamory Sweet Rooms用の設定可能なSpouse Room Presetを提供できるようにします。
@@ -127,6 +129,7 @@ Query、Map Property、各種連携機能、カスタムData Assetを使用で�
 -   Post Renovation Patch
 -   Polyamory Sweet RoomsのSpouse Room Preset
 -   Position Picker定義
+-   Mod Conflict Warnings定義
 -   Polyamory Sweet Rooms設定画面を開くGMCMボタン
 
 `TsCore/BigCraftableExtension` を通して登録したBigCraftable
@@ -234,6 +237,7 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 -   [Content Patcher
     Integration](ModderGuide_ContentPatcherIntegration.md)
 -   [Position Picker](ModderGuide_PositionPicker.md)
+-   [Mod Conflict Warnings](ModderGuide_ModConflictWarnings.md)
 -   [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
 -   [Polyamory Sweet Rooms
     Integration](ModderGuide_PolyamorySweetRoomsIntegration.md)
