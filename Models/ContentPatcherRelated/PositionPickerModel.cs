@@ -29,6 +29,9 @@
         /// <summary>Y座標を書き込むConfig項目名です。</summary>
         public string YField { get; set; } = "";
 
+        /// <summary>GMCMでPosition PickerボタンをこのConfig項目の直前へ表示します。</summary>
+        public string BeforeField { get; set; } = "";
+
         /// <summary>GMCMでPosition PickerボタンをこのConfig項目の直後へ表示します。</summary>
         public string AfterField { get; set; } = "";
 

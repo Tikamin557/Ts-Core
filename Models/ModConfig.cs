@@ -46,6 +46,34 @@ namespace Ts_Core.Models
         } = false;
 
         /// <summary>
+        /// ショートカットパネルの表示位置です。
+        /// Fixedは所持金UI基準、Freeは保存したオフセットを使用します。
+        /// </summary>
+        public string ShortcutPanelPositionMode
+        {
+            get;
+            set;
+        } = "Fixed";
+
+        /// <summary>
+        /// 自由配置時の既定位置からのX方向オフセットです。
+        /// </summary>
+        public int ShortcutPanelPositionX
+        {
+            get;
+            set;
+        } = 0;
+
+        /// <summary>
+        /// 自由配置時の既定位置からのY方向オフセットです。
+        /// </summary>
+        public int ShortcutPanelPositionY
+        {
+            get;
+            set;
+        } = 0;
+
+        /// <summary>
         /// ショートカットパネルの開閉タブの
         /// 表示倍率です。
         /// 100～200で指定します。

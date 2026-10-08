@@ -22,8 +22,10 @@ using Ts_Core.Services.Location;
 using Ts_Core.Services.LocationFixes;
 using Ts_Core.Services.MapRelated.PostRenovation;
 using Ts_Core.Services.MapRelated.TimedExit;
+using Ts_Core.Services.MapRelated.TsCoreAlwaysFront;
 using Ts_Core.Services.MapRelated.TsCoreAmbientLight;
 using Ts_Core.Services.MapRelated.TsCoreGreenhouse;
+using Ts_Core.Services.MapRelated.TsCoreOutOfBoundsMask;
 using Ts_Core.Services.Migration;
 using Ts_Core.Services.Notification;
 using Ts_Core.Services.PolyamorySweetRoomsRelated;
@@ -468,6 +470,20 @@ namespace Ts_Core
                 Monitor);
 
             //----------------------------------------
+            // TsCoreAlwaysFrontレイヤー初期化
+            //----------------------------------------
+
+            TsCoreAlwaysFrontService.Initialize(
+                helper);
+
+            //----------------------------------------
+            // Map範囲外マスク初期化
+            //----------------------------------------
+
+            TsCoreOutOfBoundsMaskService.Initialize(
+                helper);
+
+            //----------------------------------------
             // Post Renovation Patch初期化
             //----------------------------------------
 
@@ -568,6 +584,11 @@ namespace Ts_Core
             // GMCM初期更新用
             helper.Events.GameLoop.UpdateTicked
                 += OnUpdateTicked;
+
+            // ゲーム内言語変更時にContent Patcher由来の
+            // GMCM追加項目を現在の言語で再登録
+            helper.Events.Content.LocaleChanged
+                += OnLocaleChanged;
 
             // BigCraftable Extension - Light
             helper.Events.GameLoop.UpdateTicked
@@ -777,6 +798,38 @@ namespace Ts_Core
         }
 
         //----------------------------------------
+        // LocaleChanged
+        //----------------------------------------
+
+        /// <summary>
+        /// ゲーム内言語変更時にContent Patcher由来の
+        /// T's Core GMCM追加項目を現在の言語で再登録します。
+        /// </summary>
+        private void OnLocaleChanged(
+            object? sender,
+            LocaleChangedEventArgs e)
+        {
+            // Position Picker / PSR Room Preset ButtonのData Assetには
+            // Content Patcherで解決済みのi18n文字列が入るため、
+            // 言語変更後に再生成してからGMCMを再登録します。
+            Helper.GameContent.InvalidateCache(
+                PositionPickerDataService.AssetName);
+
+            Helper.GameContent.InvalidateCache(
+                PsrRoomPresetButtonDataService.AssetName);
+
+            ContentPatcherReloadService
+                .RefreshConfigMenus(
+                    Helper,
+                    Monitor);
+
+            // 言語変更後のCJBワープ表示名でRegistryを更新します。
+            CjbCheatsMenuWarpService.RegisterWarpShortcuts(
+                Helper,
+                Monitor);
+        }
+
+        //----------------------------------------
         // SaveLoaded
         //----------------------------------------
 
@@ -790,6 +843,13 @@ namespace Ts_Core
             // SaveLoaded時点で現在の言語が確定しているため、
             // TsCore内蔵Shortcutの表示名を現在のi18nで更新します。
             ShortcutPanelService.RegisterBuiltInShortcuts();
+
+            // CJBのWarpアセットは現在の言語が確定してから読み込みます。
+            // 起動直後に読み込むとCJB本体側の表示まで英語でキャッシュされるため、
+            // 保存済みCJB Warp Shortcutの復元登録はSaveLoaded後に行います。
+            CjbCheatsMenuWarpService.RegisterWarpShortcuts(
+                Helper,
+                Monitor);
 
             //----------------------------------------
             // BigCraftable Extension
