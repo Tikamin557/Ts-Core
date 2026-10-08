@@ -146,7 +146,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
         }
 
         /// <summary>
-        /// Content PatcherのGMCM登録完了後、AfterFieldを見つけられなかったPickerを
+        /// Content PatcherのGMCM登録完了後、BeforeField / AfterFieldを見つけられなかったPickerを
         /// 従来どおりメニュー末尾へ追加します。
         /// </summary>
         internal static void CompleteConfigMenuRegistration(
@@ -160,10 +160,14 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 {
                     AddGmcmOption(id, definition, helper);
 
-                    if (!string.IsNullOrWhiteSpace(definition.AfterField))
+                    string targetField = !string.IsNullOrWhiteSpace(definition.BeforeField)
+                        ? definition.BeforeField
+                        : definition.AfterField;
+
+                    if (!string.IsNullOrWhiteSpace(targetField))
                     {
                         monitor.Log(
-                            $"Could not find GMCM field '{definition.AfterField}' for Position Picker '{id}'. " +
+                            $"Could not find GMCM field '{targetField}' for Position Picker '{id}'. " +
                             "The button was added at the end of the menu.",
                             LogLevel.Trace);
                     }
@@ -210,6 +214,14 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 return;
             }
 
+            MethodInfo prefix =
+                typeof(ContentPatcherPositionPickerService)
+                    .GetMethod(
+                        nameof(BeforeContentPatcherFieldAdded),
+                        BindingFlags.Static | BindingFlags.NonPublic)
+                ?? throw new InvalidOperationException(
+                    "Could not access Position Picker Content Patcher AddField prefix.");
+
             MethodInfo postfix =
                 typeof(ContentPatcherPositionPickerService)
                     .GetMethod(
@@ -223,9 +235,37 @@ namespace Ts_Core.Services.ContentPatcherRelated
 
             harmony.Patch(
                 addFieldMethod,
+                prefix: new HarmonyMethod(prefix),
                 postfix: new HarmonyMethod(postfix));
 
             ContentPatcherAddFieldPatched = true;
+        }
+
+        /// <summary>Content PatcherがConfigSchemaの1項目をGMCMへ追加する直前に呼ばれます。</summary>
+        private static void BeforeContentPatcherFieldAdded(string __1)
+        {
+            if (IsAddingPickerOption
+                || RegisteringManifest == null
+                || PendingGmcmDefinitions.Count == 0
+                || Helper == null)
+            {
+                return;
+            }
+
+            foreach ((string id, PositionPickerDefinition definition)
+                in PendingGmcmDefinitions.ToArray())
+            {
+                if (!string.Equals(
+                        definition.BeforeField,
+                        __1,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                AddGmcmOption(id, definition, Helper);
+                PendingGmcmDefinitions.Remove((id, definition));
+            }
         }
 
         /// <summary>Content PatcherがConfigSchemaの1項目をGMCMへ追加した直後に呼ばれます。</summary>
@@ -244,7 +284,8 @@ namespace Ts_Core.Services.ContentPatcherRelated
             foreach ((string id, PositionPickerDefinition definition)
                 in PendingGmcmDefinitions.ToArray())
             {
-                if (!string.Equals(
+                if (!string.IsNullOrWhiteSpace(definition.BeforeField)
+                    || !string.Equals(
                         definition.AfterField,
                         __1,
                         StringComparison.OrdinalIgnoreCase))
@@ -1583,6 +1624,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 GmcmLocationRequired = model.GMCM_LocationRequired,
                 XField = model.XField,
                 YField = model.YField,
+                BeforeField = model.BeforeField,
                 AfterField = model.AfterField,
                 Location = model.Location,
                 PreviewMap = previewMap,
@@ -1631,6 +1673,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
             public string GmcmLocationRequired { get; init; } = "";
             public string XField { get; init; } = "";
             public string YField { get; init; } = "";
+            public string BeforeField { get; init; } = "";
             public string AfterField { get; init; } = "";
             public string Location { get; init; } = "";
             public string PreviewMap { get; init; } = "";

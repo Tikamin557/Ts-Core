@@ -34,7 +34,15 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         private readonly List<Rectangle>
             entryBounds = new();
 
+        private Rectangle upBounds;
+
+        private Rectangle downBounds;
+
         private Rectangle cancelBounds;
+
+        private int scrollIndex;
+
+        private int visibleEntries;
 
         //----------------------------------------
         // Callback
@@ -78,6 +86,10 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
         private const int CancelHeight = 64;
 
+        private const int ScrollButtonWidth = 64;
+
+        private const int ScrollButtonGap = 12;
+
         //----------------------------------------
         // Constructor
         //----------------------------------------
@@ -102,6 +114,16 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             foreach (ShortcutPanelEntry entry
                      in ShortcutPanelRegistry.GetAll())
             {
+                // CJB Warpの個別Entryは保存済みSlotの復元・実行用です。
+                // Mod機能一覧にはSelectorだけを表示し、
+                // 宛先は専用の選択メニューで選びます。
+                if (entry.Id.StartsWith(
+                    "TsCore/CjbWarp/",
+                    StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
                 entries.Add(
                     entry);
             }
@@ -152,24 +174,42 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             // メニューサイズ
             //----------------------------------------
 
+            int fixedHeight =
+                Padding
+                + TitleHeight
+                + Padding
+                + CancelHeight
+                + Padding;
+
+            int maxListHeight =
+                Math.Max(
+                    EntryHeight,
+                    Game1.uiViewport.Height
+                    - ScreenMargin * 2
+                    - fixedHeight);
+
+            visibleEntries =
+                Math.Max(
+                    1,
+                    Math.Min(
+                        entries.Count,
+                        (maxListHeight + EntrySpacing)
+                        / (EntryHeight + EntrySpacing)));
+
             int entriesHeight =
-                entries.Count
+                visibleEntries
                 * EntryHeight;
 
-            if (entries.Count > 1)
+            if (visibleEntries > 1)
             {
                 entriesHeight +=
-                    (entries.Count - 1)
+                    (visibleEntries - 1)
                     * EntrySpacing;
             }
 
             int menuHeight =
-                Padding
-                + TitleHeight
-                + entriesHeight
-                + Padding
-                + CancelHeight
-                + Padding;
+                fixedHeight
+                + entriesHeight;
 
             //----------------------------------------
             // 画面中央
@@ -202,12 +242,18 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 + Padding
                 + TitleHeight;
 
+            bool needsScroll =
+                entries.Count > visibleEntries;
+
             int entryWidth =
                 width
-                - Padding * 2;
+                - Padding * 2
+                - (needsScroll
+                    ? ScrollButtonWidth + ScrollButtonGap
+                    : 0);
 
             for (int i = 0;
-                 i < entries.Count;
+                 i < visibleEntries;
                  i++)
             {
                 entryBounds.Add(
@@ -220,6 +266,33 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 entryY +=
                     EntryHeight
                     + EntrySpacing;
+            }
+
+            //----------------------------------------
+            // Scroll
+            //----------------------------------------
+
+            if (needsScroll)
+            {
+                int scrollX =
+                    entryX
+                    + entryWidth
+                    + ScrollButtonGap;
+
+                upBounds =
+                    new Rectangle(
+                        scrollX,
+                        entryBounds[0].Y,
+                        ScrollButtonWidth,
+                        EntryHeight);
+
+                downBounds =
+                    new Rectangle(
+                        scrollX,
+                        entryBounds[^1].Bottom
+                        - EntryHeight,
+                        ScrollButtonWidth,
+                        EntryHeight);
             }
 
             //----------------------------------------
@@ -252,6 +325,24 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             bool playSound = true)
         {
             //----------------------------------------
+            // Scroll
+            //----------------------------------------
+
+            if (entries.Count > visibleEntries
+                && upBounds.Contains(x, y))
+            {
+                Scroll(-1);
+                return;
+            }
+
+            if (entries.Count > visibleEntries
+                && downBounds.Contains(x, y))
+            {
+                Scroll(1);
+                return;
+            }
+
+            //----------------------------------------
             // Shortcut
             //----------------------------------------
 
@@ -266,8 +357,16 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     continue;
                 }
 
+                int entryIndex =
+                    scrollIndex + i;
+
+                if (entryIndex >= entries.Count)
+                {
+                    break;
+                }
+
                 ShortcutPanelEntry entry =
-                    entries[i];
+                    entries[entryIndex];
 
                 if (!entry.IsAvailable())
                 {
@@ -292,10 +391,15 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     entry.Id);
 
                 //----------------------------------------
-                // メニューを閉じる
+                // 通常の選択ではこのメニューを閉じます。
+                // Callback側で次の選択メニューへ切り替えた場合は、
+                // 新しく開いたメニューを閉じないようにします。
                 //----------------------------------------
 
-                exitThisMenu();
+                if (Game1.activeClickableMenu == this)
+                {
+                    exitThisMenu();
+                }
 
                 return;
             }
@@ -313,6 +417,54 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
                 exitThisMenu();
             }
+        }
+
+        //----------------------------------------
+        // Scroll
+        //----------------------------------------
+
+        /// <summary>
+        /// マウスホイールによるMod機能一覧のスクロールを処理します。
+        /// </summary>
+        public override void receiveScrollWheelAction(
+            int direction)
+        {
+            base.receiveScrollWheelAction(
+                direction);
+
+            Scroll(
+                direction > 0
+                    ? -1
+                    : 1);
+        }
+
+        /// <summary>
+        /// Mod機能一覧の表示開始位置を指定量だけ移動します。
+        /// </summary>
+        private void Scroll(
+            int amount)
+        {
+            int maxScroll =
+                Math.Max(
+                    0,
+                    entries.Count
+                    - visibleEntries);
+
+            int next =
+                Math.Clamp(
+                    scrollIndex + amount,
+                    0,
+                    maxScroll);
+
+            if (next == scrollIndex)
+            {
+                return;
+            }
+
+            scrollIndex = next;
+
+            Game1.playSound(
+                "shiny4");
         }
 
         //----------------------------------------
@@ -389,14 +541,22 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             //----------------------------------------
 
             for (int i = 0;
-                 i < entries.Count;
+                 i < entryBounds.Count;
                  i++)
             {
+                int entryIndex =
+                    scrollIndex + i;
+
+                if (entryIndex >= entries.Count)
+                {
+                    break;
+                }
+
                 Rectangle bounds =
                     entryBounds[i];
 
                 ShortcutPanelEntry entry =
-                    entries[i];
+                    entries[entryIndex];
 
                 float entryAlpha =
                     entry.IsAvailable()
@@ -499,6 +659,25 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             }
 
             //----------------------------------------
+            // Scroll
+            //----------------------------------------
+
+            if (entries.Count > visibleEntries)
+            {
+                DrawScrollButton(
+                    b,
+                    upBounds,
+                    pointsUp: true,
+                    enabled: scrollIndex > 0);
+
+                DrawScrollButton(
+                    b,
+                    downBounds,
+                    pointsUp: false,
+                    enabled: scrollIndex < entries.Count - visibleEntries);
+            }
+
+            //----------------------------------------
             // Cancel
             //----------------------------------------
 
@@ -547,11 +726,19 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 Game1.getMousePosition();
 
             for (int i = 0;
-                 i < entries.Count;
+                 i < entryBounds.Count;
                  i++)
             {
+                int entryIndex =
+                    scrollIndex + i;
+
+                if (entryIndex >= entries.Count)
+                {
+                    break;
+                }
+
                 ShortcutPanelEntry entry =
-                    entries[i];
+                    entries[entryIndex];
 
                 if (entry.IsAvailable()
                     || !entryBounds[i].Contains(mousePosition))
@@ -580,5 +767,62 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             drawMouse(
                 b);
         }
+        /// <summary>
+        /// Mod機能一覧の上下スクロールボタンを描画します。
+        /// </summary>
+        private static void DrawScrollButton(
+            SpriteBatch b,
+            Rectangle bounds,
+            bool pointsUp,
+            bool enabled)
+        {
+            IClickableMenu.drawTextureBox(
+                b,
+                Game1.menuTexture,
+                new Rectangle(0, 256, 60, 60),
+                bounds.X,
+                bounds.Y,
+                bounds.Width,
+                bounds.Height,
+                enabled
+                    ? Color.White
+                    : Color.White * 0.45f,
+                1f,
+                drawShadow: false);
+
+            const int arrowWidth = 20;
+            const int arrowHeight = 12;
+
+            int centerX = bounds.Center.X;
+            int centerY = bounds.Center.Y;
+
+            Color arrowColor =
+                enabled
+                    ? Game1.textColor
+                    : Game1.textColor * 0.45f;
+
+            for (int y = 0;
+                 y < arrowHeight;
+                 y++)
+            {
+                float progress =
+                    y / (float)(arrowHeight - 1);
+
+                int lineWidth =
+                    pointsUp
+                        ? Math.Max(1, (int)(arrowWidth * progress))
+                        : Math.Max(1, (int)(arrowWidth * (1f - progress)));
+
+                b.Draw(
+                    Game1.staminaRect,
+                    new Rectangle(
+                        centerX - lineWidth / 2,
+                        centerY - arrowHeight / 2 + y,
+                        lineWidth,
+                        1),
+                    arrowColor);
+            }
+        }
+
     }
 }

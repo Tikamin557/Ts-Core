@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Locations;
 using xTile.Layers;
 using xTile.Tiles;
 
@@ -62,8 +63,56 @@ namespace Ts_Core.Services.WarpRelated
                 return false;
 
             //----------------------------------------
-            // Tile検索
+            // 現在のMapから検索
             //----------------------------------------
+
+            if (TryResolveFromMap(
+                    location,
+                    uniqueKey,
+                    out point))
+            {
+                return true;
+            }
+
+            //----------------------------------------
+            // FarmHouse初期Map対策
+            //----------------------------------------
+
+            // FarmHouse以外のLocationからセーブを再開した直後は、
+            // FarmHouseが現在のUpgrade/Renovation状態へ更新される前の
+            // Mapを保持している場合がある。
+            // 通常の入室時にも呼ばれるupdateFarmLayoutでMap構成を
+            // 更新してから、同じPropertyをもう一度検索する。
+            if (location is FarmHouse farmHouse)
+            {
+                farmHouse.updateFarmLayout();
+
+                if (farmHouse.Map != null
+                    && TryResolveFromMap(
+                        farmHouse,
+                        uniqueKey,
+                        out point))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 現在Locationに読み込まれているMapから
+        /// TsCoreWarpPointを検索します。
+        /// </summary>
+        private static bool TryResolveFromMap(
+            GameLocation location,
+            string uniqueKey,
+            out Point point)
+        {
+            point = default;
+
+            if (location.Map == null)
+                return false;
 
             Point? foundPoint = null;
 
@@ -119,7 +168,7 @@ namespace Ts_Core.Services.WarpRelated
                                 out offsetX))
                         {
                             Monitor?.Log(
-                                $"Tile Property Warp: '{PropertyName}={value}' in location '{locationName}' has an invalid OffsetX. The property will be ignored.",
+                                $"Tile Property Warp: '{PropertyName}={value}' in location '{location.NameOrUniqueName}' has an invalid OffsetX. The property will be ignored.",
                                 LogLevel.Warn);
 
                             continue;
@@ -131,7 +180,7 @@ namespace Ts_Core.Services.WarpRelated
                                 out offsetY))
                         {
                             Monitor?.Log(
-                                $"Tile Property Warp: '{PropertyName}={value}' in location '{locationName}' has an invalid OffsetY. The property will be ignored.",
+                                $"Tile Property Warp: '{PropertyName}={value}' in location '{location.NameOrUniqueName}' has an invalid OffsetY. The property will be ignored.",
                                 LogLevel.Warn);
 
                             continue;
@@ -140,7 +189,7 @@ namespace Ts_Core.Services.WarpRelated
                         if (parts.Length > 3)
                         {
                             Monitor?.Log(
-                                $"Tile Property Warp: '{PropertyName}={value}' in location '{locationName}' has too many values. The property will be ignored.",
+                                $"Tile Property Warp: '{PropertyName}={value}' in location '{location.NameOrUniqueName}' has too many values. The property will be ignored.",
                                 LogLevel.Warn);
 
                             continue;
@@ -158,7 +207,7 @@ namespace Ts_Core.Services.WarpRelated
                         if (foundPoint.HasValue)
                         {
                             Monitor?.Log(
-                                $"Tile Property Warp: '{PropertyName}={uniqueKey}' is duplicated in location '{locationName}'. The first matching tile will be used.",
+                                $"Tile Property Warp: '{PropertyName}={uniqueKey}' is duplicated in location '{location.NameOrUniqueName}'. The first matching tile will be used.",
                                 LogLevel.Warn);
 
                             point =
@@ -181,5 +230,6 @@ namespace Ts_Core.Services.WarpRelated
 
             return true;
         }
+
     }
 }

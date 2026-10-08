@@ -903,6 +903,37 @@ namespace Ts_Core.Services.GenericModConfigMenuRelated
                     "ShortcutPanelCloseOnOutsideClick");
 
             //----------------------------------------
+            // Shortcut Panel - 表示位置
+            //----------------------------------------
+
+            api.AddTextOption(
+                manifest,
+                getValue: () =>
+                    getConfig()
+                        .ShortcutPanelPositionMode,
+                setValue: value =>
+                    getConfig()
+                        .ShortcutPanelPositionMode =
+                            value,
+                name: () =>
+                    helper.Translation.Get(
+                        "config.ShortcutPanelPositionMode.name"),
+                tooltip: () =>
+                    helper.Translation.Get(
+                        "config.ShortcutPanelPositionMode.description"),
+                allowedValues:
+                    new[]
+                    {
+                        "Fixed",
+                        "Free"
+                    },
+                formatAllowedValue: value =>
+                    helper.Translation.Get(
+                        $"config.ShortcutPanelPositionMode.values.{value}"),
+                fieldId:
+                    "ShortcutPanelPositionMode");
+
+            //----------------------------------------
             // Shortcut Panel - 開閉タブサイズ
             //----------------------------------------
 

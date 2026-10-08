@@ -74,6 +74,16 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
         private static Rectangle panelBounds;
 
+        /// <summary>自由配置時の移動ハンドル範囲。</summary>
+        private static Rectangle moveHandleBounds;
+        private static bool isDraggingPanel;
+        private static Point dragStartCursor;
+        private static int dragStartOffsetX;
+        private static int dragStartOffsetY;
+
+        // 自由配置ドラッグ診断用。ドラッグ中のログを出しすぎないためのカウンターです。
+        private static int panelDragTickCount;
+
         private static readonly Rectangle[] slotBounds =
             new Rectangle[SlotCount];
 
@@ -128,6 +138,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         /// 所持金表示の背景と同じ高さ。
         /// </summary>
         private const int TabHeight = 60;
+
+        /// <summary>自由配置時の移動ハンドルの基本サイズ。</summary>
+        private const int MoveHandleGap = 4;
 
         /// <summary>
         /// パネルの幅。
@@ -308,6 +321,32 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     playUnavailableSound: false));
 
             //----------------------------------------
+            // CJB Cheats Menu Warp
+            //----------------------------------------
+
+            ShortcutPanelRegistry.Register(
+                new ShortcutPanelEntry(
+                    "TsCore/CjbWarpSelector",
+                    helper.Translation.Get(
+                        "shortcutPanel.CjbWarp"),
+                    () => helper.ModContent.Load<Texture2D>(
+                        "assets/ShortcutPanel/CjbCheatsMenu.png"),
+                    iconSourceRect: null,
+                    action: () => { },
+                    isAvailable: () =>
+                        CjbCheatsMenuWarpService.IsInstalled(
+                            helper),
+                    unavailableAction: null,
+                    unavailableHoverTextProvider: () =>
+                        helper.Translation.Get(
+                            "shortcutPanel.CjbWarp.notInstalled")));
+
+            // CJBのワープ一覧はここでは読み込みません。
+            // ゲーム起動直後はロケール確定前のため、この時点でCJBの
+            // Warpアセットを生成させると英語表示がキャッシュされる場合があります。
+            // 各ワープのRegistry登録はSaveLoaded後、または選択画面を開いた時に行います。
+
+            //----------------------------------------
             // PSR配偶者部屋設定
             // PSR未導入・Preset無しでは登録自体は保持したまま
             // 利用不可にし、再導入時に保存済みSlotを復帰できるようにする。
@@ -371,6 +410,48 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     {
                         ScreenshotService.RequestCurrentScreenScreenshot();
                     }));
+        }
+
+        //----------------------------------------
+        // CJB Cheats Menu Warp Selection
+        //----------------------------------------
+
+        /// <summary>
+        /// CJB Cheats Menuの現在利用可能なワープ先一覧を開き、
+        /// 選択した1件を指定スロットへ登録します。
+        /// </summary>
+        private static void OpenCjbWarpSelection(
+            int slotIndex)
+        {
+            bool isInstalled =
+                CjbCheatsMenuWarpService.IsInstalled(
+                    helper);
+
+            IReadOnlyList<CjbWarpEntry> warps =
+                isInstalled
+                    ? CjbCheatsMenuWarpService.GetWarps(
+                        helper,
+                        monitor)
+                    : Array.Empty<CjbWarpEntry>();
+
+            Game1.activeClickableMenu =
+                new ShortcutPanelCjbWarpSelectionMenu(
+                    helper.Translation,
+                    warps,
+                    warpId =>
+                    {
+                        // 選択時点のCJBワープをRegistryへ反映してから保存します。
+                        CjbCheatsMenuWarpService.RegisterWarpShortcuts(
+                            helper,
+                            monitor);
+
+                        slots[slotIndex].SetModAction(
+                            CjbCheatsMenuWarpService.GetShortcutId(
+                                warpId));
+
+                        SaveSlots();
+                    },
+                    isInstalled);
         }
 
         //----------------------------------------
@@ -717,6 +798,39 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     centerY - logicalPanelHeight / 2,
                     logicalPanelWidth,
                     logicalPanelHeight);
+
+            //----------------------------------------
+            // 自由配置
+            //----------------------------------------
+
+            if (IsFreePositionMode())
+            {
+                int offsetX = ModEntry.Config.ShortcutPanelPositionX;
+                int offsetY = ModEntry.Config.ShortcutPanelPositionY;
+
+                tabBounds.Offset(offsetX, offsetY);
+                panelBounds.Offset(offsetX, offsetY);
+
+                // 開閉タブの真上に配置し、パネル上端より上にはみ出さない高さに収めます。
+                // サイズは開閉タブを基準とし、既存のタブやパネルのBoundsは変更しません。
+                int logicalHandleGap = Math.Max(1,
+                    (int)MathF.Round(ScaleLayoutValue(MoveHandleGap, panelScale) * inverse));
+                int logicalHandleHeight = Math.Max(1,
+                    Math.Min(tabBounds.Height, tabBounds.Top - panelBounds.Top - logicalHandleGap));
+
+                moveHandleBounds = new Rectangle(
+                    tabBounds.Center.X - tabBounds.Width / 2,
+                    tabBounds.Top - logicalHandleGap - logicalHandleHeight,
+                    tabBounds.Width,
+                    logicalHandleHeight);
+
+                ClampFreePositionToViewport(inverse);
+            }
+            else
+            {
+                moveHandleBounds = Rectangle.Empty;
+                isDraggingPanel = false;
+            }
 
             int logicalPadding =
                 Math.Max(1,
@@ -1091,6 +1205,50 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                         value * scale));
         }
 
+        /// <summary>ショートカットパネルが自由配置モードかどうか。</summary>
+        private static bool IsFreePositionMode()
+        {
+            return string.Equals(
+                ModEntry.Config.ShortcutPanelPositionMode,
+                "Free",
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>自由配置したパネル一式が画面外へ出ないよう補正します。</summary>
+        private static void ClampFreePositionToViewport(float inverse)
+        {
+            int viewportWidth = Math.Max(1, (int)MathF.Round(Game1.uiViewport.Width * inverse));
+            int viewportHeight = Math.Max(1, (int)MathF.Round(Game1.uiViewport.Height * inverse));
+
+            int left = Math.Min(panelBounds.Left, tabBounds.Left);
+            int right = Math.Max(panelBounds.Right, tabBounds.Right);
+            int top = Math.Min(panelBounds.Top, moveHandleBounds.Top);
+            int bottom = Math.Max(panelBounds.Bottom, tabBounds.Bottom);
+
+            int correctionX = left < 0 ? -left : right > viewportWidth ? viewportWidth - right : 0;
+            int correctionY = top < 0 ? -top : bottom > viewportHeight ? viewportHeight - bottom : 0;
+
+            if (correctionX == 0 && correctionY == 0)
+                return;
+
+            panelBounds.Offset(correctionX, correctionY);
+            tabBounds.Offset(correctionX, correctionY);
+            moveHandleBounds.Offset(correctionX, correctionY);
+            ModEntry.Config.ShortcutPanelPositionX += correctionX;
+            ModEntry.Config.ShortcutPanelPositionY += correctionY;
+        }
+
+        /// <summary>自由配置のドラッグを終了し、現在位置をconfig.jsonへ保存します。</summary>
+        private static void FinishPanelDrag()
+        {
+            if (!isDraggingPanel)
+                return;
+
+            isDraggingPanel = false;
+            UpdateBounds();
+            helper.WriteConfig(ModEntry.Config);
+        }
+
         //----------------------------------------
         // 入力
         //----------------------------------------
@@ -1191,6 +1349,24 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
             Point cursor =
                 cursorPosition.ToPoint();
+
+            //----------------------------------------
+            // 自由配置用の移動ハンドル
+            //----------------------------------------
+
+            if (e.Button == SButton.MouseLeft
+                && isOpen
+                && IsFreePositionMode()
+                && moveHandleBounds.Contains(cursor))
+            {
+                helper.Input.Suppress(e.Button);
+                isDraggingPanel = true;
+                panelDragTickCount = 0;
+                dragStartCursor = cursor;
+                dragStartOffsetX = ModEntry.Config.ShortcutPanelPositionX;
+                dragStartOffsetY = ModEntry.Config.ShortcutPanelPositionY;
+                return;
+            }
 
             //----------------------------------------
             // 開閉タブ
@@ -1357,6 +1533,14 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                                         helper.Translation,
                                         shortcutId =>
                                         {
+                                            if (shortcutId
+                                                == "TsCore/CjbWarpSelector")
+                                            {
+                                                OpenCjbWarpSelection(
+                                                    slotIndex);
+                                                return;
+                                            }
+
                                             slots[slotIndex]
                                                 .SetModAction(
                                                     shortcutId);
@@ -1534,6 +1718,14 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                                     helper.Translation,
                                     shortcutId =>
                                     {
+                                        if (shortcutId
+                                            == "TsCore/CjbWarpSelector")
+                                        {
+                                            OpenCjbWarpSelection(
+                                                slotIndex);
+                                            return;
+                                        }
+
                                         slots[slotIndex].SetModAction(shortcutId);
                                         SaveSlots();
                                     });
@@ -1598,6 +1790,30 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             object? sender,
             UpdateTickedEventArgs e)
         {
+            if (isDraggingPanel)
+            {
+                // ドラッグの移動座標はSMAPIから取得し、終了はXNAの押下状態で判定します。
+                Vector2 cursorPosition = Utility.ModifyCoordinatesForUIScale(
+                    helper.Input.GetCursorPosition().ScreenPixels);
+
+                float inputDateTimeScale = GetDateTimeScale();
+                if (!IsAndroidFurniturePlacementMode() && inputDateTimeScale > 0f)
+                    cursorPosition /= inputDateTimeScale;
+
+                Point cursor = cursorPosition.ToPoint();
+                ModEntry.Config.ShortcutPanelPositionX = dragStartOffsetX + cursor.X - dragStartCursor.X;
+                ModEntry.Config.ShortcutPanelPositionY = dragStartOffsetY + cursor.Y - dragStartCursor.Y;
+                UpdateBounds();
+
+                panelDragTickCount++;
+                // 押下直後の状態反映の遅れを避け、2回目以降のtickで判定します。
+                if (panelDragTickCount > 1 && Mouse.GetState().LeftButton == ButtonState.Released)
+                {
+                    FinishPanelDrag();
+                    return;
+                }
+            }
+
             if (pendingGmcmModId == null)
                 return;
 
@@ -1626,6 +1842,12 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             object? sender,
             ButtonReleasedEventArgs e)
         {
+            if (e.Button == SButton.MouseLeft && isDraggingPanel)
+            {
+                // ドラッグ中の終了判定はOnUpdateTickedに任せます。
+                return;
+            }
+
             //----------------------------------------
             // キー設定入力待機中のみ処理
             //----------------------------------------
@@ -2046,6 +2268,26 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                         {
                             text = unavailableHoverText;
                         }
+                        else if (entry.Id.StartsWith(
+                                     CjbCheatsMenuWarpService.ShortcutIdPrefix,
+                                     StringComparison.OrdinalIgnoreCase))
+                        {
+                            text =
+                                helper.Translation.Get(
+                                    "shortcutPanel.CjbWarp")
+                                + Environment.NewLine
+                                + helper.Translation.Get(
+                                    "shortcutPanel.CjbWarp.hover.destination",
+                                    new { destination = entry.DisplayName })
+                                + Environment.NewLine
+                                + helper.Translation.Get(
+                                    "shortcutPanel.Hover.modFunction")
+                                + Environment.NewLine
+                                + helper.Translation.Get(
+                                    IsAndroidEnvironment()
+                                        ? "shortcutPanel.Hover.remove.android"
+                                        : "shortcutPanel.Hover.remove");
+                        }
                         else
                         {
                             text =
@@ -2235,6 +2477,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             {
                 DrawPanel(spriteBatch);
                 DrawSlots(spriteBatch);
+
+                if (IsFreePositionMode())
+                    DrawMoveHandle(spriteBatch);
             }
 
             DrawTab(spriteBatch);
@@ -2244,6 +2489,57 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         //----------------------------------------
         // パネル
         //----------------------------------------
+
+        /// <summary>
+        /// 自由配置時の移動ハンドルを描画します。
+        /// </summary>
+        private static void DrawMoveHandle(SpriteBatch spriteBatch)
+        {
+            float drawDateTimeScale = GetShortcutPanelDrawDateTimeScale();
+            float inverse = drawDateTimeScale > 0f ? 1f / drawDateTimeScale : 1f;
+
+            // 高さが狭いときは枠の描画スケールも縮小し、上下の縁がBoundsからはみ出すのを防ぎます。
+            // 通常サイズでは従来のスケールを維持します。
+            float handleScale = Math.Min(inverse,
+                Math.Min(moveHandleBounds.Width, moveHandleBounds.Height) / 40f);
+
+            IClickableMenu.drawTextureBox(
+                spriteBatch,
+                Game1.menuTexture,
+                new Rectangle(0, 256, 60, 60),
+                moveHandleBounds.X,
+                moveHandleBounds.Y,
+                moveHandleBounds.Width,
+                moveHandleBounds.Height,
+                Color.White,
+                handleScale,
+                drawShadow: false);
+
+            int lineThickness = Math.Max(1, (int)MathF.Round(2f * handleScale));
+            int armLength = Math.Max(1, Math.Min(
+                (int)MathF.Round(8f * handleScale),
+                (moveHandleBounds.Height - 2) / 4));
+            int centerX = moveHandleBounds.Center.X;
+            int centerY = moveHandleBounds.Center.Y;
+
+            spriteBatch.Draw(Game1.staminaRect,
+                new Rectangle(centerX - armLength, centerY - lineThickness / 2, armLength * 2 + 1, lineThickness),
+                Game1.textColor);
+            spriteBatch.Draw(Game1.staminaRect,
+                new Rectangle(centerX - lineThickness / 2, centerY - armLength, lineThickness, armLength * 2 + 1),
+                Game1.textColor);
+
+            int head = Math.Max(1, Math.Min((int)MathF.Round(3f * handleScale),
+                Math.Max(1, moveHandleBounds.Height / 2 - armLength - 1)));
+            for (int i = 0; i < head; i++)
+            {
+                int span = i * 2 + 1;
+                spriteBatch.Draw(Game1.staminaRect, new Rectangle(centerX - span / 2, centerY - armLength - i, span, 1), Game1.textColor);
+                spriteBatch.Draw(Game1.staminaRect, new Rectangle(centerX - span / 2, centerY + armLength + i, span, 1), Game1.textColor);
+                spriteBatch.Draw(Game1.staminaRect, new Rectangle(centerX - armLength - i, centerY - span / 2, 1, span), Game1.textColor);
+                spriteBatch.Draw(Game1.staminaRect, new Rectangle(centerX + armLength + i, centerY - span / 2, 1, span), Game1.textColor);
+            }
+        }
 
         /// <summary>
         /// パネル背景を描画します。

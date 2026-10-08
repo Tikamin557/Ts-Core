@@ -17,6 +17,8 @@ namespace Ts_Core.Services.FarmhouseFixes
             public int WarpY { get; init; }
         }
 
+        private static State? PendingWarpState;
+
         //----------------------------------------
         // Patch登録
         //----------------------------------------
@@ -36,6 +38,17 @@ namespace Ts_Core.Services.FarmhouseFixes
                 postfix: new HarmonyMethod(
                     typeof(FarmHouseWarpFixPatch),
                     nameof(Postfix)
+                )
+            );
+
+            harmony.Patch(
+                original: AccessTools.Method(
+                    typeof(DecoratableLocation),
+                    nameof(DecoratableLocation.MakeMapModifications)
+                ),
+                postfix: new HarmonyMethod(
+                    typeof(FarmHouseWarpFixPatch),
+                    nameof(AfterMakeMapModifications)
                 )
             );
         }
@@ -141,6 +154,85 @@ namespace Ts_Core.Services.FarmhouseFixes
 
             Game1.yLocationAfterWarp =
                 __state.WarpY;
+
+            // DecoratableLocation.MakeMapModificationsでは、
+            // Buildingsタイル上にいるプレイヤーを無条件で
+            // 1タイル下へ移動するため、後段の補正用に保存
+            PendingWarpState = __state;
+        }
+
+        //----------------------------------------
+        // MakeMapModifications後処理
+        //----------------------------------------
+
+        private static void AfterMakeMapModifications(
+            DecoratableLocation __instance)
+        {
+            State? state = PendingWarpState;
+
+            if (state == null)
+                return;
+
+            // FarmHouseへの対象Warpに対して一度だけ判定する
+            PendingWarpState = null;
+
+            if (__instance is not FarmHouse
+                || !ReferenceEquals(
+                    Game1.player.currentLocation,
+                    __instance))
+            {
+                return;
+            }
+
+            //----------------------------------------
+            // VanillaのBuildingsタイル退避確認
+            //----------------------------------------
+
+            Vector2 shiftedPosition =
+                state.Position + new Vector2(0f, 64f);
+
+            if (Game1.player.Position != shiftedPosition)
+                return;
+
+            //----------------------------------------
+            // 本来のWarp地点で実際に衝突するか確認
+            //----------------------------------------
+
+            Rectangle targetBounds =
+                Game1.player.GetBoundingBox();
+
+            targetBounds.Offset(
+                (int)(state.Position.X - Game1.player.Position.X),
+                (int)(state.Position.Y - Game1.player.Position.Y));
+
+            bool isBlocked =
+                __instance.isCollidingPosition(
+                    targetBounds,
+                    Game1.viewport,
+                    isFarmer: true,
+                    damagesFarmer: 0,
+                    glider: false,
+                    character: Game1.player,
+                    pathfinding: false,
+                    projectile: false,
+                    ignoreCharacterRequirement: false,
+                    skipCollisionEffects: true);
+
+            if (isBlocked)
+                return;
+
+            //----------------------------------------
+            // 通行可能ならVanillaの1タイル退避を取消
+            //----------------------------------------
+
+            Game1.player.Position =
+                state.Position;
+
+            Game1.xLocationAfterWarp =
+                state.WarpX;
+
+            Game1.yLocationAfterWarp =
+                state.WarpY;
         }
     }
 }
