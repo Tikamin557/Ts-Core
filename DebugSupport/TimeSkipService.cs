@@ -1,0 +1,817 @@
+﻿using StardewModdingAPI;
+using StardewModdingAPI.Events;
+using StardewValley;
+using Ts_Core.Models;
+using Ts_Core.Services.Notification;
+
+namespace Ts_Core.Services.DebugSupport
+{
+    /// <summary>
+    /// 指定したゲーム内時刻まで時間を進めます。
+    /// </summary>
+    internal static class TimeSkipService
+    {
+        private static IModHelper helper = null!;
+
+        private static bool isSkipping;
+
+        private static int targetTime;
+
+        private static bool waitingForSchedule;
+
+        //----------------------------------------
+        // 初期化
+        //----------------------------------------
+
+        /// <summary>
+        /// Time Skipサービスを初期化します。
+        /// </summary>
+        internal static void Initialize(
+            IModHelper modHelper)
+        {
+            helper =
+                modHelper;
+
+            helper.Events.Input.ButtonPressed
+                += OnButtonPressed;
+
+            helper.Events.GameLoop.UpdateTicked
+                += OnUpdateTicked;
+        }
+
+        //----------------------------------------
+        // 実行可否
+        //----------------------------------------
+
+        /// <summary>
+        /// Time Skipを開始できる状態か確認します。
+        /// </summary>
+        private static bool CanStartTimeSkip()
+        {
+            //----------------------------------------
+            // セーブ未ロード時は対象外
+            //----------------------------------------
+
+            if (!Context.IsWorldReady)
+                return false;
+
+            //----------------------------------------
+            // ホスト以外は対象外
+            //----------------------------------------
+
+            if (!Context.IsMainPlayer)
+                return false;
+
+            //----------------------------------------
+            // イベント・メニュー中は対象外
+            //----------------------------------------
+
+            if (Game1.eventUp
+                || Game1.activeClickableMenu != null)
+            {
+                return false;
+            }
+
+            //----------------------------------------
+            // Time Skip実行中は対象外
+            //----------------------------------------
+
+            if (isSkipping)
+                return false;
+
+            return true;
+        }
+
+        //----------------------------------------
+        // Shortcut Panel
+        //----------------------------------------
+
+        /// <summary>
+        /// 設定されている時刻まで
+        /// Time Skipを開始します。
+        /// </summary>
+        internal static void TryStartTimeSkip()
+        {
+            if (!CanStartTimeSkip())
+                return;
+
+            StartSkip(
+                ModEntry.Config.TimeSkipTime);
+        }
+
+        /// <summary>
+        /// 設定されている時間分だけ
+        /// Time Skipを開始します。
+        /// </summary>
+        internal static void TryStartDurationTimeSkip()
+        {
+            if (!CanStartTimeSkip())
+                return;
+
+            StartDurationSkip(
+                ModEntry.Config.TimeSkipDuration);
+        }
+
+        //----------------------------------------
+        // Input
+        //----------------------------------------
+
+        /// <summary>
+        /// Time Skipキーが押された時の処理です。
+        /// </summary>
+        private static void OnButtonPressed(
+            object? sender,
+            ButtonPressedEventArgs e)
+        {
+            //----------------------------------------
+            // 実行できない状態
+            //----------------------------------------
+
+            if (!CanStartTimeSkip())
+                return;
+
+            //----------------------------------------
+            // 設定取得
+            //----------------------------------------
+
+            ModConfig config =
+                ModEntry.Config;
+
+            //----------------------------------------
+            // Time Skip
+            //----------------------------------------
+
+            if (config.TimeSkipKey
+                .JustPressed())
+            {
+                //----------------------------------------
+                // キー入力を抑制
+                //----------------------------------------
+
+                helper.Input.SuppressActiveKeybinds(
+                    config.TimeSkipKey);
+
+                //----------------------------------------
+                // Time Skip開始
+                //----------------------------------------
+
+                TryStartTimeSkip();
+
+                return;
+            }
+
+            //----------------------------------------
+            // Time Skip (Duration)
+            //----------------------------------------
+
+            if (config.TimeSkipDurationKey
+                .JustPressed())
+            {
+                //----------------------------------------
+                // キー入力を抑制
+                //----------------------------------------
+
+                helper.Input.SuppressActiveKeybinds(
+                    config.TimeSkipDurationKey);
+
+                //----------------------------------------
+                // Time Skip (Duration)開始
+                //----------------------------------------
+
+                TryStartDurationTimeSkip();
+            }
+        }
+
+        //----------------------------------------
+        // Time Skip (Duration)
+        //----------------------------------------
+
+        /// <summary>
+        /// 指定した時間分だけTime Skipを実行します。
+        /// </summary>
+        private static void StartDurationSkip(
+            int duration)
+        {
+            //----------------------------------------
+            // 現在時刻を分へ変換
+            //----------------------------------------
+
+            int currentHour =
+                Game1.timeOfDay / 100;
+
+            int currentMinute =
+                Game1.timeOfDay % 100;
+
+            int currentTotalMinutes =
+                currentHour * 60
+                + currentMinute;
+
+            //----------------------------------------
+            // 移動先を計算
+            //----------------------------------------
+
+            int targetTotalMinutes =
+                currentTotalMinutes
+                + duration;
+
+            //----------------------------------------
+            // 26:00を超える場合は実行しない
+            //----------------------------------------
+
+            const int maximumTotalMinutes =
+                26 * 60;
+
+            if (targetTotalMinutes
+                > maximumTotalMinutes)
+            {
+                ShowDurationLimitNotification();
+                return;
+            }
+
+            //----------------------------------------
+            // ゲーム内時刻へ変換
+            //----------------------------------------
+
+            int targetHour =
+                targetTotalMinutes / 60;
+
+            int targetMinute =
+                targetTotalMinutes % 60;
+
+            int newTargetTime =
+                targetHour * 100
+                + targetMinute;
+
+            //----------------------------------------
+            // Time Skip開始
+            //----------------------------------------
+
+            StartSkip(
+                newTargetTime);
+        }
+
+        //----------------------------------------
+        // Time Skip開始
+        //----------------------------------------
+
+        /// <summary>
+        /// Time Skipを開始します。
+        /// </summary>
+        private static void StartSkip(
+            int newTargetTime)
+        {
+            //----------------------------------------
+            // 未来方向のみ
+            //----------------------------------------
+
+            if (Game1.timeOfDay >= newTargetTime)
+                return;
+
+            targetTime =
+                newTargetTime;
+
+            isSkipping =
+                true;
+
+            waitingForSchedule =
+                false;
+
+            //----------------------------------------
+            // 開始SE
+            //----------------------------------------
+
+            Game1.playSound(
+                "select");
+        }
+
+        //----------------------------------------
+        // Update
+        //----------------------------------------
+
+        /// <summary>
+        /// Time Skip実行中の処理です。
+        /// </summary>
+        private static void OnUpdateTicked(
+            object? sender,
+            UpdateTickedEventArgs e)
+        {
+            if (!isSkipping)
+                return;
+
+            //----------------------------------------
+            // セーブが閉じられた場合は中止
+            //----------------------------------------
+
+            if (!Context.IsWorldReady)
+            {
+                StopSkip();
+                return;
+            }
+
+            //----------------------------------------
+            // Schedule完了待ち
+            //----------------------------------------
+
+            if (waitingForSchedule)
+            {
+                bool hasActiveSchedule =
+                    false;
+
+                foreach (NPC npc
+                    in Utility.getAllVillagers())
+                {
+                    //----------------------------------------
+                    // Schedule遷移待ち
+                    //----------------------------------------
+
+                    if (IsScheduleTransitionPending(
+                        npc))
+                    {
+                        hasActiveSchedule =
+                            true;
+
+                        TryFinishScheduleTransition(
+                            npc);
+                    }
+
+                    //----------------------------------------
+                    // Schedule移動中
+                    //----------------------------------------
+
+                    if (IsScheduleMoving(
+                        npc))
+                    {
+                        hasActiveSchedule =
+                            true;
+
+                        TryHurryNpc(
+                            npc);
+                    }
+                }
+
+                if (hasActiveSchedule)
+                    return;
+
+                waitingForSchedule =
+                    false;
+            }
+
+            //----------------------------------------
+            // 目標時刻へ到達
+            //----------------------------------------
+
+            if (Game1.timeOfDay >= targetTime)
+            {
+                Game1.timeOfDay =
+                    targetTime;
+
+                CompleteSkip();
+                return;
+            }
+
+            //----------------------------------------
+            // 10分進める
+            //----------------------------------------
+
+            int nextTime =
+                AddTenMinutes(
+                    Game1.timeOfDay);
+
+            if (nextTime > targetTime)
+            {
+                nextTime =
+                    targetTime;
+            }
+
+            int previousTime =
+                Game1.timeOfDay;
+
+            Game1.timeOfDay =
+                nextTime;
+
+            //----------------------------------------
+            // 夜タイル切り替え
+            //----------------------------------------
+
+            ApplyNightTilesIfCrossed(
+                previousTime,
+                nextTime);
+
+            //----------------------------------------
+            // NPCのScheduleを更新
+            //----------------------------------------
+
+            bool startedSchedule =
+                false;
+
+            foreach (NPC npc
+                in Utility.getAllVillagers())
+            {
+                npc.checkSchedule(
+                    nextTime);
+
+                //----------------------------------------
+                // Schedule遷移待ち
+                //----------------------------------------
+
+                if (IsScheduleTransitionPending(
+                    npc))
+                {
+                    startedSchedule =
+                        true;
+
+                    TryFinishScheduleTransition(
+                        npc);
+                }
+
+                //----------------------------------------
+                // Schedule移動中
+                //----------------------------------------
+
+                if (IsScheduleMoving(
+                    npc))
+                {
+                    startedSchedule =
+                        true;
+
+                    TryHurryNpc(
+                        npc);
+                }
+            }
+
+            //----------------------------------------
+            // Schedule処理がある場合は完了を待つ
+            //----------------------------------------
+
+            if (startedSchedule)
+            {
+                waitingForSchedule =
+                    true;
+            }
+        }
+
+        //----------------------------------------
+        // 夜タイル切り替え
+        //----------------------------------------
+
+        /// <summary>
+        /// Time SkipでStardew Valley標準の夜タイル切り替え時刻を
+        /// 跨いだ場合、現在地のNightTilesを適用します。
+        /// </summary>
+        private static void ApplyNightTilesIfCrossed(
+            int previousTime,
+            int currentTime)
+        {
+            GameLocation location =
+                Game1.currentLocation;
+
+            int nightTilesTime =
+                Game1.getTrulyDarkTime(location) - 100;
+
+            //----------------------------------------
+            // 暗転時刻を跨いでいない場合は対象外
+            //----------------------------------------
+
+            if (previousTime >= nightTilesTime
+                || currentTime < nightTilesTime)
+            {
+                return;
+            }
+
+            //----------------------------------------
+            // Vanillaの夜タイル切り替えを適用
+            //----------------------------------------
+
+            location.switchOutNightTiles();
+        }
+
+        //----------------------------------------
+        // Schedule状態
+        //----------------------------------------
+
+        /// <summary>
+        /// NPCがScheduleによる移動中か判定します。
+        /// </summary>
+        private static bool IsScheduleMoving(
+            NPC npc)
+        {
+            if (npc.DirectionsToNewLocation == null)
+                return false;
+
+            if (npc.controller == null)
+                return false;
+
+            if (!npc.controller.NPCSchedule)
+                return false;
+
+            if (npc.controller.pathToEndPoint == null)
+                return false;
+
+            return
+                npc.controller.pathToEndPoint.Count > 0;
+        }
+
+        /// <summary>
+        /// NPCがSchedule遷移待ちか判定します。
+        /// </summary>
+        private static bool IsScheduleTransitionPending(
+            NPC npc)
+        {
+            if (npc.queuedSchedulePaths == null)
+                return false;
+
+            if (npc.queuedSchedulePaths.Count == 0)
+                return false;
+
+            return
+                npc.IsWalkingInSquare;
+        }
+
+        //----------------------------------------
+        // Schedule遷移
+        //----------------------------------------
+
+        /// <summary>
+        /// NPCのSchedule遷移待ちを高速処理します。
+        /// </summary>
+        private static void TryFinishScheduleTransition(
+            NPC npc)
+        {
+            //----------------------------------------
+            // 次のScheduleが待機していない場合は対象外
+            //----------------------------------------
+
+            if (npc.queuedSchedulePaths == null
+                || npc.queuedSchedulePaths.Count == 0)
+            {
+                return;
+            }
+
+            //----------------------------------------
+            // 四角歩行終了待ちのみ処理
+            //----------------------------------------
+
+            if (!npc.IsWalkingInSquare)
+                return;
+
+            //----------------------------------------
+            // 四角歩行の終了地点まで高速移動
+            //----------------------------------------
+
+            int maxUpdates =
+                GetMaxUpdates();
+
+            for (int i = 0;
+                i < maxUpdates;
+                i++)
+            {
+                if (!npc.IsWalkingInSquare)
+                    break;
+
+                npc.returnToEndPoint();
+
+                npc.MovePosition(
+                    Game1.currentGameTime,
+                    Game1.viewport,
+                    npc.currentLocation);
+            }
+
+            //----------------------------------------
+            // 四角歩行が終了したら
+            // 待機中のScheduleを開始
+            //----------------------------------------
+
+            if (!npc.IsWalkingInSquare)
+            {
+                npc.checkSchedule(
+                    Game1.timeOfDay);
+            }
+        }
+
+        //----------------------------------------
+        // NPC Hurry
+        //----------------------------------------
+
+        /// <summary>
+        /// NPCのSchedule移動を高速化します。
+        /// </summary>
+        private static void TryHurryNpc(
+            NPC npc)
+        {
+            //----------------------------------------
+            // VanillaのHurry処理
+            //----------------------------------------
+
+            try
+            {
+                npc.warpToPathControllerDestination();
+            }
+            catch (InvalidOperationException)
+            {
+                //----------------------------------------
+                // handleWarps()等によって
+                // 経路Stackが空になる場合がある
+                //----------------------------------------
+
+                if (npc.controller?.pathToEndPoint == null
+                    || npc.controller.pathToEndPoint.Count == 0)
+                {
+                    return;
+                }
+
+                //----------------------------------------
+                // Stackが残っている場合は
+                // 想定外なので再送出
+                //----------------------------------------
+
+                throw;
+            }
+
+            //----------------------------------------
+            // 残ったSchedule経路を高速消化
+            //----------------------------------------
+
+            int maxUpdates =
+                GetMaxUpdates();
+
+            for (int i = 0;
+                i < maxUpdates;
+                i++)
+            {
+                if (!IsScheduleMoving(
+                    npc))
+                {
+                    break;
+                }
+
+                try
+                {
+                    npc.controller!.update(
+                        Game1.currentGameTime);
+                }
+                catch (InvalidOperationException)
+                {
+                    //----------------------------------------
+                    // update中にScheduleが完了して
+                    // Stackが空になる場合がある
+                    //----------------------------------------
+
+                    if (npc.controller?.pathToEndPoint == null
+                        || npc.controller.pathToEndPoint.Count == 0)
+                    {
+                        break;
+                    }
+
+                    //----------------------------------------
+                    // Stackが残っている場合は
+                    // 想定外なので再送出
+                    //----------------------------------------
+
+                    throw;
+                }
+            }
+        }
+
+        //----------------------------------------
+        // Time Skip速度
+        //----------------------------------------
+
+        /// <summary>
+        /// Time Skip中のNPC Schedule更新回数を取得します。
+        /// </summary>
+        private static int GetMaxUpdates()
+        {
+            return ModEntry.Config.TimeSkipSpeed switch
+            {
+                TimeSkipSpeed.Slow =>
+                    32,
+
+                TimeSkipSpeed.Normal =>
+                    64,
+
+                TimeSkipSpeed.Fast =>
+                    128,
+
+                TimeSkipSpeed.VeryFast =>
+                    256,
+
+                _ =>
+                    64
+            };
+        }
+
+        //----------------------------------------
+        // Time Skip (Duration)通知
+        //----------------------------------------
+
+        /// <summary>
+        /// Time Skip (Duration)が
+        /// 26:00を超える場合の通知を表示します。
+        /// </summary>
+        private static void ShowDurationLimitNotification()
+        {
+            NotificationRequest.Theme(
+                nameof(NotificationThemes.Rose),
+                helper.Translation.Get(
+                    "notification.TimeSkipDurationLimit"),
+                120)
+                .Show();
+        }
+
+        //----------------------------------------
+        // Time Skip完了
+        //----------------------------------------
+
+        /// <summary>
+        /// Time Skipを正常完了します。
+        /// </summary>
+        private static void CompleteSkip()
+        {
+            isSkipping =
+                false;
+
+            waitingForSchedule =
+                false;
+
+            //----------------------------------------
+            // 完了通知
+            //----------------------------------------
+
+            if (!ModEntry.Config.TimeSkipNotification)
+                return;
+
+            NotificationRequest.Theme(
+                nameof(NotificationThemes.Lavender),
+                helper.Translation.Get(
+                    "notification.TimeSkipComplete",
+                    new
+                    {
+                        Time =
+                            FormatTime(
+                                targetTime)
+                    }),
+                120)
+                .Show();
+        }
+
+        //----------------------------------------
+        // Time Skip終了
+        //----------------------------------------
+
+        /// <summary>
+        /// Time Skipを終了します。
+        /// </summary>
+        private static void StopSkip()
+        {
+            isSkipping =
+                false;
+
+            waitingForSchedule =
+                false;
+        }
+
+        //----------------------------------------
+        // Time
+        //----------------------------------------
+
+        /// <summary>
+        /// ゲーム内時刻を表示用文字列へ変換します。
+        /// </summary>
+        private static string FormatTime(
+            int time)
+        {
+            int hour =
+                time / 100;
+
+            int minute =
+                time % 100;
+
+            return
+                $"{hour}:{minute:00}";
+        }
+
+        /// <summary>
+        /// ゲーム内時刻を10分進めます。
+        /// </summary>
+        private static int AddTenMinutes(
+            int time)
+        {
+            int hour =
+                time / 100;
+
+            int minute =
+                time % 100;
+
+            minute += 10;
+
+            if (minute >= 60)
+            {
+                minute -= 60;
+                hour++;
+            }
+
+            return
+                hour * 100 + minute;
+        }
+    }
+}
