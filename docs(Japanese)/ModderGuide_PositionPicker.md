@@ -89,12 +89,15 @@ Position Pickerはプレイヤーを対象Locationへ自動ワープしません
 | `GMCM_LocationRequired` | 任意 | 対象Location外にいる時にボタン上へ表示するHover Textです。 |
 | `XField` | ✅ | 選択したX座標を書き込むConfigSchema項目です。 |
 | `YField` | ✅ | 選択したY座標を書き込むConfigSchema項目です。 |
+| `BeforeField` | 任意 | 指定したConfigSchema項目の直前へPickerボタンを挿入します。`AfterField` と両方指定した場合はこちらが優先されます。 |
 | `AfterField` | 任意 | このConfigSchema項目の直後へPickerボタンを挿入します。対象が見つからない場合はGMCMの末尾へ追加されます。 |
 | `Location` | ✅ | Pickerを使用できるLocation名です。T's Coreでは `Name` と `NameOrUniqueName` の両方を判定します。 |
 | `PreviewMap` | ✅ | 配置プレビューとして描画するMap Assetです。この値の `{{ModId}}` はContent PackのUniqueIDへ置き換えられます。 |
 | `PreviewNote` | 任意 | 位置選択中、座標・操作ガイドの下へ表示する注意書きです。長い文章は自動で折り返されます。 |
 | `AnchorX` | 任意 | 選択座標へ合わせる `PreviewMap` 内のX Tile位置です。初期値は `0` です。 |
 | `AnchorY` | 任意 | 選択座標へ合わせる `PreviewMap` 内のY Tile位置です。初期値は `0` です。 |
+
+`BeforeField` は指定した項目の直前、`AfterField` は直後に配置します。対象項目が見つからない場合はGMCMページの末尾へ追加されます。
 
 `XField`、`YField`、`Location`、`PreviewMap` は必須です。不正な定義は無視され、SMAPIログへWarningが出力されます。
 

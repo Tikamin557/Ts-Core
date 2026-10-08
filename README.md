@@ -20,7 +20,7 @@ T's Core also includes optional convenience features for players, including a cu
 
 ## ✨ Features
 
-- Customizable Shortcut Panel for quick access to frequently used functions, key inputs, and mod settings
+- Customizable Shortcut Panel with optional free positioning and CJB Cheats Menu warp shortcuts for quick access to frequently used functions, key inputs, and mod settings
   - Supports mouse controls on PC and touch-friendly controls on Android
 - Android support, including Android-specific controls and an in-game SMAPI console
 - Relationship services and support for third-party marriage APIs
@@ -32,6 +32,7 @@ T's Core also includes optional convenience features for players, including a cu
   - Timed exits with optional dialogue and sound
   - Greenhouse-compatible custom locations with configurable fruit tree floor types
   - FarmHouse-style ambient lighting for custom locations
+  - Out-of-bounds foreground masking using `TsCoreOutOfBoundsMask`
 - Building Services for adding custom settings and visual features to buildings
 - BigCraftable Extension for adding custom interactions, collision sizes, placement conditions, textures, animations, effects, lights, and other optional behavior to BigCraftables
 - Additional Tile Actions and Game State Queries for custom gameplay behavior and conditions
@@ -41,7 +42,8 @@ T's Core also includes optional convenience features for players, including a cu
 - Content Patcher tokens and integration
   - Extended Content Pack reload tools for development
   - Conditional GMCM field visibility based on installed mods
-  - Visual Position Picker buttons for Content Pack GMCM settings
+  - Visual Position Picker buttons for Content Pack GMCM settings, with `BeforeField` and `AfterField` placement
+  - GMCM translations refreshed when the game language changes
 - Custom Data Assets for registering definitions through Content Patcher
 - Polyamory Sweet Rooms integration with configurable spouse room presets for supported mods
   - Supported Content Packs can add a button to their own GMCM which opens the Spouse Room Setup screen
@@ -81,6 +83,7 @@ The Modder Guide covers:
 - Notification System and custom Notification Themes
 - Content Patcher Integration and Tokens
 - Position Picker for visual coordinate selection from Content Pack GMCM settings
+- Shortcut Panel configuration and CJB Cheats Menu warp shortcuts
 - Polyamory Sweet Rooms spouse room presets
 - Other Features, including custom Tile Actions and Game State Queries
 - Debug and reload commands
@@ -95,7 +98,7 @@ The Dialogue System can create custom map dialogues with conditions, player resp
 
 See the **[Dialogue System Guide](docs/ModderGuide_DialogueSystem.md)** for details.
 
-Custom Map Properties can also add location-specific behavior without C# code, including Timed Exit properties, greenhouse-compatible custom locations through `TsCoreGreenhouse`, and FarmHouse-style ambient lighting through `TsCoreAmbientLight`.
+Custom Map Properties can also add location-specific behavior without C# code, including Timed Exit properties, greenhouse-compatible custom locations through `TsCoreGreenhouse`, FarmHouse-style ambient lighting through `TsCoreAmbientLight`, and the `TsCoreOutOfBoundsMask` foreground mask.
 
 See the **[Map Properties Guide](docs/ModderGuide_MapProperties.md)** for details.
 
@@ -113,9 +116,11 @@ Content Packs can also register visual coordinate pickers through `TsCore/Positi
 
 See the **[Position Picker Guide](docs/ModderGuide_PositionPicker.md)** for details.
 
+For the movable Shortcut Panel and CJB Cheats Menu warp shortcuts, see the **[Shortcut Panel Guide](docs/ModderGuide_ShortcutPanel.md)**.
+
 T's Core also provides additional Tile Actions and Game State Queries, including custom sleeping actions and location category checks.
 
-T's Core also includes several internal compatibility and game-behavior fixes used by T's Mods, including fixes for custom FarmHouse warp destinations, cellar restoration after map rebuilds, Rain Totem location contexts, custom tiles near spouse rooms, and day/night window behavior in custom spouse rooms.
+T's Core also includes several internal compatibility and game-behavior fixes used by T's Mods, including fixes for custom FarmHouse warp destinations (including passable Buildings-layer tiles and warp-point detection after loading saves from custom locations), cellar restoration after map rebuilds, Rain Totem location contexts, custom tiles near spouse rooms, and day/night window behavior in custom spouse rooms.
 
 See the **[Other Features Guide](docs/ModderGuide_OtherFeatures.md)** for details.
 

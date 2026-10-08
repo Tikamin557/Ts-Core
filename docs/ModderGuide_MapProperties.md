@@ -797,3 +797,18 @@ Other supported map properties are documented above. Additional custom map prope
 ← [Back to README](../README.md)
 
 ← [Back to Modder Guide](ModderGuide.md)
+
+
+## `TsCoreOutOfBoundsMask` (v1.9.2)
+
+Set the map-level property `TsCoreOutOfBoundsMask` to `true` to draw a black foreground mask over visible areas outside the map bounds. This is useful for custom entrances or stairs at the edge of a map. The mask is drawn after the sorted world rendering step and before the AlwaysFront layer.
+
+```json
+{
+  "Action": "EditMap",
+  "Target": "Maps/FarmHouse",
+  "MapProperties": { "TsCoreOutOfBoundsMask": "true" }
+}
+```
+
+Use `"false"` or remove the property to disable it. The value is parsed as a boolean (`true`/`false`, case-insensitive). This is a visual mask only; it does not change collisions or the playable map area.

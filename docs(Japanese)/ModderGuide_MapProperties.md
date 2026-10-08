@@ -851,3 +851,18 @@ Services](ModderGuide_WarpServices.md) ガイドを参照してください。
 ← [READMEに戻る](../../README.md)
 
 ← [Modder Guideに戻る](ModderGuide.md)
+
+
+## `TsCoreOutOfBoundsMask`（v1.9.2）
+
+Map Property `TsCoreOutOfBoundsMask` を `true` にすると、画面に見えているMap範囲外を黒い前景マスクで覆います。Map端に階段や出入口を配置する場合などに利用できます。World_Sorted描画後、AlwaysFrontレイヤーより前のタイミングでマスクを描画します。
+
+```json
+{
+  "Action": "EditMap",
+  "Target": "Maps/FarmHouse",
+  "MapProperties": { "TsCoreOutOfBoundsMask": "true" }
+}
+```
+
+無効にする場合は `"false"` にするかPropertyを削除してください。値は真偽値として判定され、大文字・小文字は区別しません。これは表示用マスクであり、当たり判定やMapの移動可能範囲は変更しません。

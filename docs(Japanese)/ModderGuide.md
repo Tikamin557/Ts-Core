@@ -240,3 +240,6 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 -   [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [READMEに戻る](../../README.md)
+
+
+ショートカットパネルの自由配置・CJB Cheats Menu連携については、[ショートカットパネルガイド](ModderGuide_ShortcutPanel.md)を参照してください。
