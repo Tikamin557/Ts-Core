@@ -1,4 +1,3 @@
-﻿using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 
 namespace Ts_Core.Models
@@ -158,10 +157,7 @@ namespace Ts_Core.Models
         {
             get;
             set;
-        } = new(
-            new Keybind(
-                SButton.LeftShift,
-                SButton.Q));
+        } = new KeybindList();
 
         /// <summary>
         /// Time Skipの移動先時刻です。
@@ -179,10 +175,7 @@ namespace Ts_Core.Models
         {
             get;
             set;
-        } = new(
-            new Keybind(
-                SButton.LeftShift,
-                SButton.W));
+        } = new KeybindList();
 
         /// <summary>
         /// Time Skip (Duration)で進める時間です。
