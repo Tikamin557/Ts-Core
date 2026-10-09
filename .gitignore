@@ -1,0 +1,8 @@
+# Visual Studio temporary files
+.vs/
+
+# Build intermediate files
+obj/
+
+# Build output files
+bin/
