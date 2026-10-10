@@ -27,6 +27,9 @@
         /// <summary>利用可能なPresetが無い時にボタン上へ表示する説明です。未指定時はTsCore標準の翻訳を使用します。</summary>
         public string GMCM_NoPreset { get; set; } = "";
 
+        /// <summary>GMCMでボタンをこのConfig項目の直前へ表示します。</summary>
+        public string BeforeField { get; set; } = "";
+
         /// <summary>GMCMでボタンをこのConfig項目の直後へ表示します。</summary>
         public string AfterField { get; set; } = "";
     }

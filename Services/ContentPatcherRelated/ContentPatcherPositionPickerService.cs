@@ -244,6 +244,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
         /// <summary>Content PatcherがConfigSchemaの1項目をGMCMへ追加する直前に呼ばれます。</summary>
         private static void BeforeContentPatcherFieldAdded(string __1)
         {
+            ContentPatcherPsrRoomPresetButtonService.BeforeContentPatcherFieldAdded(__1);
             if (IsAddingPickerOption
                 || RegisteringManifest == null
                 || PendingGmcmDefinitions.Count == 0
@@ -456,7 +457,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
 
             // 左側の項目名はGMCM標準Tooltipに任せ、
             // ボタン上だけ現在の状態に応じたHover Textを最前面へ表示します。
-            if (hover && Helper != null)
+            if (hover && Helper != null && !IsGmcmDropdownActiveOrRecentlyClosed())
             {
                 ButtonHoverText = GetButtonTooltip(
                     definition,
@@ -538,6 +539,11 @@ namespace Ts_Core.Services.ContentPatcherRelated
             {
                 return;
             }
+
+            // ドロップダウンの選択肢がボタンに重なっている間は、
+            // Position PickerのHover Textを表示しない。
+            if (IsGmcmDropdownActiveOrRecentlyClosed())
+                return;
 
             DrawButtonHoverText(
                 e.SpriteBatch,
@@ -672,6 +678,11 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 return;
             }
 
+            // GMCMのドロップダウンがボタンの上に展開されている場合、
+            // 選択肢のクリックをPosition Pickerの起動として扱わない。
+            if (IsGmcmDropdownActiveOrRecentlyClosed())
+                return;
+
             if (!Context.IsWorldReady
                 || !IsTargetLocation(ButtonDefinition))
             {
@@ -687,6 +698,32 @@ namespace Ts_Core.Services.ContentPatcherRelated
             PickerStartAfterTick = Game1.ticks + 2;
 
             Game1.activeClickableMenu?.exitThisMenu();
+        }
+
+        /// <summary>
+        /// GMCMがドロップダウンを閉じた直後でも、背後のボタンを押さないようにします。
+        /// GMCM内部の型が変更された場合は通常のボタン処理を維持します。
+        /// </summary>
+        private static bool IsGmcmDropdownActiveOrRecentlyClosed()
+        {
+            try
+            {
+                Assembly? assembly = AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(item => item.GetName().Name == "GenericModConfigMenu");
+                Type? dropdownType = assembly?.GetType("SpaceShared.UI.Dropdown");
+                if (dropdownType == null)
+                    return false;
+
+                const BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+                object? active = dropdownType.GetField("ActiveDropdown", flags)?.GetValue(null);
+                object? recent = dropdownType.GetField("SinceDropdownWasActive", flags)?.GetValue(null);
+
+                return active != null || (recent is int ticks && ticks > 0);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         private static void OnCursorMoved(

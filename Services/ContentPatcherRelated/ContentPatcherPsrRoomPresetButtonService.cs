@@ -5,6 +5,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
+using System.Reflection;
 using Ts_Core.Interfaces;
 using Ts_Core.Models.ContentPatcherRelated;
 using Ts_Core.Services.PolyamorySweetRoomsRelated;
@@ -86,7 +87,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 RegisteringManifest = contentPack.Manifest;
         }
 
-        /// <summary>AfterFieldを見つけられなかったボタンをGMCM末尾へ追加します。</summary>
+        /// <summary>BeforeField / AfterFieldを見つけられなかったボタンをGMCM末尾へ追加します。</summary>
         internal static void CompleteConfigMenuRegistration(IModHelper helper, IMonitor monitor)
         {
             try
@@ -95,10 +96,14 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 {
                     AddGmcmOption(id, model, helper);
 
-                    if (!string.IsNullOrWhiteSpace(model.AfterField))
+                    string targetField = !string.IsNullOrWhiteSpace(model.BeforeField)
+                        ? model.BeforeField
+                        : model.AfterField;
+
+                    if (!string.IsNullOrWhiteSpace(targetField))
                     {
                         monitor.Log(
-                            $"Could not find GMCM field '{model.AfterField}' for PSR Room Presets button '{id}'. " +
+                            $"Could not find GMCM field '{targetField}' for PSR Room Presets button '{id}'. " +
                             "The button was added at the end of the menu.",
                             LogLevel.Trace);
                     }
@@ -107,6 +112,27 @@ namespace Ts_Core.Services.ContentPatcherRelated
             finally
             {
                 ClearConfigMenuRegistration();
+            }
+        }
+
+        /// <summary>Content PatcherがConfig項目を追加する直前に、BeforeFieldで指定されたボタンを登録します。</summary>
+        internal static void BeforeContentPatcherFieldAdded(string fieldName)
+        {
+            if (IsAddingOption
+                || RegisteringManifest == null
+                || PendingDefinitions.Count == 0
+                || Helper == null)
+            {
+                return;
+            }
+
+            foreach ((string id, PsrRoomPresetButtonModel model) in PendingDefinitions.ToArray())
+            {
+                if (!string.Equals(model.BeforeField, fieldName, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                AddGmcmOption(id, model, Helper);
+                PendingDefinitions.Remove((id, model));
             }
         }
 
@@ -123,7 +149,8 @@ namespace Ts_Core.Services.ContentPatcherRelated
 
             foreach ((string id, PsrRoomPresetButtonModel model) in PendingDefinitions.ToArray())
             {
-                if (!string.Equals(model.AfterField, fieldName, StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(model.BeforeField)
+                    || !string.Equals(model.AfterField, fieldName, StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 AddGmcmOption(id, model, Helper);
@@ -202,7 +229,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
 
             // GMCM標準Tooltipとは別に、ボタン上では現在の利用不可理由を表示します。
             // 無効状態のComplexOptionでもホバー説明を確認できるよう、最前面描画を予約します。
-            if (hover && Helper != null)
+            if (hover && Helper != null && !IsGmcmDropdownActiveOrRecentlyClosed())
             {
                 ButtonHoverText = GetButtonTooltip(model, Helper);
                 ButtonHoverDrawTick = Game1.ticks;
@@ -268,6 +295,10 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 return;
             }
 
+            // GMCMのドロップダウン操作中はPSR画面を開かない。
+            if (IsGmcmDropdownActiveOrRecentlyClosed())
+                return;
+
             Game1.playSound("smallSelect");
             OpenPending = true;
         }
@@ -279,6 +310,9 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 return;
 
             OpenPending = false;
+
+            if (IsGmcmDropdownActiveOrRecentlyClosed())
+                return;
 
             if (Game1.activeClickableMenu == null
                 || GmcmApi == null
@@ -313,7 +347,36 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 return;
             }
 
+            if (IsGmcmDropdownActiveOrRecentlyClosed())
+                return;
+
             DrawButtonHoverText(e.SpriteBatch, text);
+        }
+
+        /// <summary>
+        /// GMCMのドロップダウンが開いている間と閉じた直後は、背後のボタンへの操作を防ぎます。
+        /// GMCMの内部構造が変更された場合は、通常のボタン処理を維持します。
+        /// </summary>
+        private static bool IsGmcmDropdownActiveOrRecentlyClosed()
+        {
+            try
+            {
+                Assembly? assembly = AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(item => item.GetName().Name == "GenericModConfigMenu");
+                Type? dropdownType = assembly?.GetType("SpaceShared.UI.Dropdown");
+                if (dropdownType == null)
+                    return false;
+
+                const BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+                object? active = dropdownType.GetField("ActiveDropdown", flags)?.GetValue(null);
+                object? recent = dropdownType.GetField("SinceDropdownWasActive", flags)?.GetValue(null);
+
+                return active != null || (recent is int ticks && ticks > 0);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         /// <summary>PSR Room Presetsボタン用Hover Textを画面内に収まる位置へ描画します。</summary>
