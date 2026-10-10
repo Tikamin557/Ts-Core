@@ -99,6 +99,8 @@ The picker doesn't automatically warp the player. The player must already be in 
 
 Use `BeforeField` to place the picker immediately before a ConfigSchema field, or `AfterField` to place it immediately after one. If the target field is not found, the picker is added at the end of the GMCM page.
 
+Since v1.9.4, clicking or holding an overlapping GMCM dropdown option does not accidentally activate the Position Picker button. Its hover tooltip is also suppressed while the dropdown is active.
+
 `XField`, `YField`, `Location`, and `PreviewMap` are required. Invalid definitions are ignored and a warning is written to the SMAPI log.
 
 ## Preview Map and Anchor

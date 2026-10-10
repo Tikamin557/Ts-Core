@@ -322,7 +322,7 @@ TsCore/PsrRoomPresetButtons
       "GMCM_WorldRequired": "{{i18n:psr-preset.world-required}}",
       "GMCM_PsrRequired": "{{i18n:psr-preset.psr-required}}",
       "GMCM_NoPreset": "{{i18n:psr-preset.no-preset}}",
-      "AfterField": "ExampleConfigField"
+      "BeforeField": "ExampleConfigField"
     }
   }
 }
@@ -340,7 +340,12 @@ TsCore/PsrRoomPresetButtons
 | `GMCM_WorldRequired` | 任意 | セーブ未読込時にボタン上へ表示するHover Textです。 |
 | `GMCM_PsrRequired` | 任意 | Polyamory Sweet Rooms未導入時にボタン上へ表示するHover Textです。 |
 | `GMCM_NoPreset` | 任意 | 利用可能なRoom Presetが無い時にボタン上へ表示するHover Textです。 |
+| `BeforeField` | 任意 | 指定したConfigSchema項目の直前へボタンを挿入します。`AfterField` と両方指定した場合はこちらが優先されます。 |
 | `AfterField` | 任意 | このConfigSchema項目の直後へボタンを挿入します。対象が見つからない場合はGMCMの末尾へ追加されます。 |
+
+`BeforeField` は指定した項目の直前、`AfterField` は直後に配置します。両方指定した場合は `BeforeField` が優先されます。どちらも指定しない場合、または対象項目が見つからない場合はGMCMページの末尾へ追加されます。
+
+v1.9.4から、ボタンに重なるドロップダウンの項目をクリック・長押ししてもボタンが誤作動しないようになりました。ドロップダウン表示中はボタンのHover Textも表示されません。
 
 設定画面を利用できない状態ではボタンは無効になりますが、無効状態でもボタンへマウスを乗せると利用できない理由が表示されます。
 

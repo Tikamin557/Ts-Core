@@ -47,7 +47,7 @@ T's Core also includes optional convenience features for players, including a cu
 - Custom Data Assets for registering definitions through Content Patcher
 - Mod Conflict Warnings for detecting incompatible installed mod combinations at startup
 - Polyamory Sweet Rooms integration with configurable spouse room presets for supported mods
-  - Supported Content Packs can add a button to their own GMCM which opens the Spouse Room Setup screen
+  - Supported Content Packs can add a button to their own GMCM which opens the Spouse Room Setup screen, with `BeforeField` and `AfterField` placement
 - Compatibility and game-behavior fixes for FarmHouse warps, cellar restoration, Rain Totem location contexts, and custom spouse rooms
 - Common utilities shared between T's Mods
 

@@ -294,7 +294,7 @@ Example:
       "GMCM_WorldRequired": "{{i18n:psr-preset.world-required}}",
       "GMCM_PsrRequired": "{{i18n:psr-preset.psr-required}}",
       "GMCM_NoPreset": "{{i18n:psr-preset.no-preset}}",
-      "AfterField": "ExampleConfigField"
+      "BeforeField": "ExampleConfigField"
     }
   }
 }
@@ -312,7 +312,12 @@ Example:
 | `GMCM_WorldRequired` | ❌ | Hover text shown when no save is loaded. Uses T's Core's default text when omitted. |
 | `GMCM_PsrRequired` | ❌ | Hover text shown when Polyamory Sweet Rooms isn't installed. Uses T's Core's default text when omitted. |
 | `GMCM_NoPreset` | ❌ | Hover text shown when no usable room preset is available. Uses T's Core's default text when omitted. |
+| `BeforeField` | ❌ | ConfigSchema field key before which the button should be inserted. Takes priority over `AfterField` when both are set. |
 | `AfterField` | ❌ | ConfigSchema field key after which the button should be inserted. If the field isn't found, the button is added at the end of the GMCM page. |
+
+Use `BeforeField` to insert the button immediately before a ConfigSchema field, or `AfterField` to insert it immediately after one. If both are specified, `BeforeField` takes priority. If neither is specified, or the target field is not found, the button is added at the end of the GMCM page.
+
+Since v1.9.4, dropdown menus overlapping this button no longer trigger the button when a dropdown option is clicked or held. The button hover tooltip is also suppressed while the dropdown is active.
 
 The button is disabled when the setup screen can't currently be used. Hovering the disabled button still shows the corresponding reason.
 

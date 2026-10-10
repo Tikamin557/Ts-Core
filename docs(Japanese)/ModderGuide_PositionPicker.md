@@ -99,6 +99,8 @@ Position Pickerはプレイヤーを対象Locationへ自動ワープしません
 
 `BeforeField` は指定した項目の直前、`AfterField` は直後に配置します。対象項目が見つからない場合はGMCMページの末尾へ追加されます。
 
+v1.9.4から、GMCMのドロップダウンがPickerボタンに重なっていても、項目のクリック・長押しでPickerが誤作動しないようになりました。ドロップダウン表示中はPickerボタンのHover Textも表示されません。
+
 `XField`、`YField`、`Location`、`PreviewMap` は必須です。不正な定義は無視され、SMAPIログへWarningが出力されます。
 
 ## Preview MapとAnchor
