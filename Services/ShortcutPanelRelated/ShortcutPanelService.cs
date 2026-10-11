@@ -10,6 +10,7 @@ using Ts_Core.Models.ShortcutPanelRelated;
 using Ts_Core.Services.DebugSupport;
 using Ts_Core.Services.PolyamorySweetRoomsRelated;
 using Ts_Core.Services.ScreenshotRelated;
+using Ts_Core.Services.TerrainFeaturesRelated;
 namespace Ts_Core.Services.ShortcutPanelRelated
 {
     /// <summary>
@@ -235,6 +236,15 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         /// </summary>
         internal static void RegisterBuiltInShortcuts()
         {
+            ShortcutPanelRegistry.Register(
+                new ShortcutPanelEntry(
+                    "TsCore/ResetTerrainFeatures",
+                    helper.Translation.Get("shortcutPanel.ResetTerrainFeatures"),
+                    () => helper.ModContent.Load<Texture2D>(
+                        "assets/ShortcutPanel/TerrainFeatures.png"),
+                    null,
+                    () => TerrainFeaturesMenuService.TryOpen()));
+
             ShortcutPanelRegistry.Register(
                 new ShortcutPanelEntry(
                     "TsCore/TimeSkip",

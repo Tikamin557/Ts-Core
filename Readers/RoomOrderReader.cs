@@ -127,10 +127,13 @@ namespace Ts_Core.Readers
                     .Where(s => s.Length > 0)
                     .ToList();
             }
+            #if DEBUG
             catch (Exception ex)
             {
-            #if DEBUG
                 System.Diagnostics.Debug.WriteLine(ex);
+            #else
+            catch (Exception)
+            {
             #endif
 
                 return null;

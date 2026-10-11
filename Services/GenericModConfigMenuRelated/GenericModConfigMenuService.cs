@@ -1226,6 +1226,14 @@ namespace Ts_Core.Services.GenericModConfigMenuRelated
             // Time Skip
             //----------------------------------------
 
+            api.AddKeybindList(
+                manifest,
+                getValue: () => getConfig().TerrainFeaturesMenuKey,
+                setValue: value => getConfig().TerrainFeaturesMenuKey = value,
+                name: () => helper.Translation.Get("config.TerrainFeaturesMenuKey.name"),
+                tooltip: () => helper.Translation.Get("config.TerrainFeaturesMenuKey.description"),
+                fieldId: "TerrainFeaturesMenuKey");
+
             api.AddSectionTitle(
                 manifest,
                 text: () =>

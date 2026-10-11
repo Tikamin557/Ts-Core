@@ -29,6 +29,16 @@ namespace Ts_Core.Services.ContentPatcherRelated
         private const int ButtonHeight = 60;
         private const float PreviewAlpha = 0.65f;
 
+        /// <summary>Android版固有のUIを有効にするか判定します。</summary>
+        private static bool IsAndroidEnvironment()
+        {
+            Type game1Type = typeof(Game1);
+            const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+            return game1Type.GetProperty("DateTimeScale", flags) != null
+                || game1Type.GetField("DateTimeScale", flags) != null;
+        }
+
+
         private static Rectangle ButtonBounds;
         private static long ButtonLastDrawTick;
         private static string? ButtonContentPackId;
@@ -49,6 +59,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
         private static bool PickerStartPending;
         private static long PickerStartAfterTick;
         private static PositionPickerDefinition? PendingDefinition;
+        private static IClickableMenu? ReturnGmcmMenu;
 
         private static PositionPickerDefinition? ActiveDefinition;
         private static Vector2 CursorTile;
@@ -693,11 +704,20 @@ namespace Ts_Core.Services.ContentPatcherRelated
             Helper.Input.Suppress(e.Button);
             Game1.playSound("smallSelect");
 
+            IClickableMenu? gmcmMenu = Game1.activeClickableMenu;
+            if (!GmcmMenuSaveService.TrySave(gmcmMenu, Monitor!))
+            {
+                Game1.playSound("cancel");
+                return;
+            }
+
+            ReturnGmcmMenu = gmcmMenu;
             PendingDefinition = ButtonDefinition;
             PickerStartPending = true;
             PickerStartAfterTick = Game1.ticks + 2;
 
-            Game1.activeClickableMenu?.exitThisMenu();
+            // GMCMのインスタンスを保持し、Picker終了後に同じページへ復帰します。
+            Game1.activeClickableMenu = null;
         }
 
         /// <summary>
@@ -733,6 +753,12 @@ namespace Ts_Core.Services.ContentPatcherRelated
             if (ActiveDefinition == null)
                 return;
 
+            if (Game1.activeClickableMenu is PositionPickerMenu picker && picker.IsAndroidMode)
+            {
+                picker.UpdateAndroidPosition(e.NewPosition.ScreenPixels);
+                return;
+            }
+
             CursorTile = e.NewPosition.GrabTile;
         }
 
@@ -761,6 +787,9 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 || !IsTargetLocation(PendingDefinition))
             {
                 PendingDefinition = null;
+                if (ReturnGmcmMenu != null && Context.IsWorldReady)
+                    Game1.activeClickableMenu = ReturnGmcmMenu;
+                ReturnGmcmMenu = null;
                 return;
             }
 
@@ -774,6 +803,9 @@ namespace Ts_Core.Services.ContentPatcherRelated
             if (Helper == null
                 || Monitor == null)
             {
+                if (ReturnGmcmMenu != null && Context.IsWorldReady)
+                    Game1.activeClickableMenu = ReturnGmcmMenu;
+                ReturnGmcmMenu = null;
                 return;
             }
 
@@ -802,6 +834,9 @@ namespace Ts_Core.Services.ContentPatcherRelated
                     LogLevel.Warn);
 
                 Game1.playSound("cancel");
+                if (ReturnGmcmMenu != null && Context.IsWorldReady)
+                    Game1.activeClickableMenu = ReturnGmcmMenu;
+                ReturnGmcmMenu = null;
             }
         }
 
@@ -820,7 +855,8 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 return;
             }
 
-            UpdateCursorTileFromMouse();
+            if (Game1.activeClickableMenu is not PositionPickerMenu { IsAndroidMode: true })
+                UpdateCursorTileFromMouse();
 
             int originX =
                 (int)CursorTile.X
@@ -1106,7 +1142,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
 
             string text =
                 Helper.Translation.Get(
-                    "positionPicker.guide",
+                    IsAndroidEnvironment() ? "positionPicker.guide.android" : "positionPicker.guide",
                     new
                     {
                         X = (int)CursorTile.X,
@@ -1255,6 +1291,10 @@ namespace Ts_Core.Services.ContentPatcherRelated
 
             ActiveDefinition = null;
             PreviewMap = null;
+
+            if (ReturnGmcmMenu != null && Context.IsWorldReady)
+                Game1.activeClickableMenu = ReturnGmcmMenu;
+            ReturnGmcmMenu = null;
         }
 
         private static void OnReturnedToTitle(
@@ -1263,6 +1303,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
         {
             PickerStartPending = false;
             PendingDefinition = null;
+            ReturnGmcmMenu = null;
             StopPicker();
         }
 
@@ -1284,10 +1325,62 @@ namespace Ts_Core.Services.ContentPatcherRelated
             private readonly bool PreviousDisplayHud;
             private readonly bool PreviousViewportFreeze;
             private bool StateRestored;
+            private readonly bool AndroidMode;
+            internal bool IsAndroidMode => AndroidMode;
+            private Rectangle ConfirmButtonBounds;
+            private Rectangle BackButtonBounds;
+
+            /// <summary>
+            /// Androidのタッチ位置を画面座標からMap座標へ変換します。
+            /// GrabTileはプレイヤーの操作範囲に制限されるため使用しません。
+            /// </summary>
+            internal void UpdateAndroidPosition(Vector2 screenPixels)
+            {
+                UpdateConfirmButtonBounds();
+                Vector2 uiPosition = Utility.ModifyCoordinatesForUIScale(screenPixels);
+                if (ConfirmButtonBounds.Contains((int)uiPosition.X, (int)uiPosition.Y)
+                    || BackButtonBounds.Contains((int)uiPosition.X, (int)uiPosition.Y))
+                    return;
+
+                // スライド時に正常に追従していた画面ピクセル座標を使用します。
+                UpdateCursorTileFromScreenPosition((int)screenPixels.X, (int)screenPixels.Y);
+            }
+
+            /// <summary>タップ時もスライドと同じSMAPI画面座標を使用します。</summary>
+            private void UpdateAndroidTapPosition(int x, int y)
+            {
+                UpdateConfirmButtonBounds();
+                if (ConfirmButtonBounds.Contains(x, y) || BackButtonBounds.Contains(x, y))
+                    return;
+
+                if (Helper != null)
+                    UpdateAndroidPosition(Helper.Input.GetCursorPosition().ScreenPixels);
+            }
+
+            /// <summary>画面サイズに合わせてAndroid専用決定ボタンを右下に配置します。</summary>
+            private void UpdateConfirmButtonBounds()
+            {
+                const int width = 240;
+                const int height = 72;
+                const int margin = 28;
+                ConfirmButtonBounds = new Rectangle(
+                    Math.Max(0, Game1.uiViewport.Width - width - margin),
+                    Math.Max(0, Game1.uiViewport.Height - height - margin),
+                    width,
+                    height);
+                BackButtonBounds = new Rectangle(
+                    Math.Min(margin, Math.Max(0, Game1.uiViewport.Width - width)),
+                    Math.Max(0, Game1.uiViewport.Height - height - margin),
+                    width,
+                    height);
+            }
+
 
             public PositionPickerMenu()
                 : base(0, 0, Game1.uiViewport.Width, Game1.uiViewport.Height)
             {
+                AndroidMode = IsAndroidEnvironment();
+                UpdateConfirmButtonBounds();
                 PreviousDisplayHud = Game1.displayHUD;
                 PreviousViewportFreeze = Game1.viewportFreeze;
 
@@ -1313,13 +1406,35 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 }
 
                 MoveViewport();
-                UpdateCursorTileFromMouse();
+                if (AndroidMode)
+                    UpdateConfirmButtonBounds();
+                else
+                    UpdateCursorTileFromMouse();
             }
 
             public override void receiveLeftClick(int x, int y, bool playSound = true)
             {
                 if (ActiveDefinition == null)
                     return;
+
+                if (AndroidMode)
+                {
+                    UpdateConfirmButtonBounds();
+                    if (ConfirmButtonBounds.Contains(x, y))
+                    {
+                        ConfirmPosition();
+                        return;
+                    }
+                    if (BackButtonBounds.Contains(x, y))
+                    {
+                        CancelPicker();
+                        return;
+                    }
+
+                    // Androidではタップによる位置選択のみ。確定は専用ボタンで行います。
+                    UpdateAndroidTapPosition(x, y);
+                    return;
+                }
 
                 UpdateCursorTileFromMouse();
                 ConfirmPosition();
@@ -1343,8 +1458,48 @@ namespace Ts_Core.Services.ContentPatcherRelated
 
             public override void draw(SpriteBatch b)
             {
-                UpdateCursorTileFromMouse();
+                if (!AndroidMode)
+                    UpdateCursorTileFromMouse();
                 DrawPickerPreview(b);
+                if (AndroidMode)
+                {
+                    UpdateConfirmButtonBounds();
+                    IClickableMenu.drawTextureBox(
+                        b,
+                        ConfirmButtonBounds.X,
+                        ConfirmButtonBounds.Y,
+                        ConfirmButtonBounds.Width,
+                        ConfirmButtonBounds.Height,
+                        Color.White);
+
+                    // 左下の戻るボタンは確定ボタンと同じ描画方法を使用します。
+                    IClickableMenu.drawTextureBox(
+                        b,
+                        BackButtonBounds.X,
+                        BackButtonBounds.Y,
+                        BackButtonBounds.Width,
+                        BackButtonBounds.Height,
+                        Color.White);
+                    string backLabel = Helper?.Translation.Get("positionPicker.back.android") ?? "Back";
+                    Vector2 backSize = Game1.smallFont.MeasureString(backLabel);
+                    b.DrawString(
+                        Game1.smallFont,
+                        backLabel,
+                        new Vector2(
+                            BackButtonBounds.Center.X - backSize.X / 2f,
+                            BackButtonBounds.Center.Y - backSize.Y / 2f),
+                        Game1.textColor);
+
+                    string label = Helper?.Translation.Get("positionPicker.confirm.android") ?? "Confirm";
+                    Vector2 size = Game1.smallFont.MeasureString(label);
+                    b.DrawString(
+                        Game1.smallFont,
+                        label,
+                        new Vector2(
+                            ConfirmButtonBounds.Center.X - size.X / 2f,
+                            ConfirmButtonBounds.Center.Y - size.Y / 2f),
+                        Game1.textColor);
+                }
 
                 // 配置プレビュー中はタイルとガイドを見やすくするため、
                 // ゲーム内マウスカーソルを描画しません。
@@ -1451,6 +1606,18 @@ namespace Ts_Core.Services.ContentPatcherRelated
             }
         }
 
+        /// <summary>SMAPIから取得したMapタイル座標を、現在のマップ範囲内へ制限します。</summary>
+        private static void SetCursorTileClamped(Vector2 tile)
+        {
+            xTile.Layers.Layer? layer = Game1.currentLocation?.Map?.Layers.FirstOrDefault();
+            if (layer == null)
+                return;
+
+            CursorTile = new Vector2(
+                Math.Clamp((int)tile.X, 0, Math.Max(0, layer.LayerWidth - 1)),
+                Math.Clamp((int)tile.Y, 0, Math.Max(0, layer.LayerHeight - 1)));
+        }
+
         /// <summary>
         /// 現在のマウス画面座標とviewportから、カーソル直下のMapタイルを更新します。
         /// </summary>
@@ -1459,8 +1626,14 @@ namespace Ts_Core.Services.ContentPatcherRelated
             if (!Context.IsWorldReady)
                 return;
 
-            int worldX = Game1.getMouseX() + Game1.viewport.X;
-            int worldY = Game1.getMouseY() + Game1.viewport.Y;
+            UpdateCursorTileFromScreenPosition(Game1.getMouseX(), Game1.getMouseY());
+        }
+
+        /// <summary>指定した画面座標をMap上のタイル座標へ変換します。</summary>
+        private static void UpdateCursorTileFromScreenPosition(int screenX, int screenY)
+        {
+            int worldX = screenX + Game1.viewport.X;
+            int worldY = screenY + Game1.viewport.Y;
 
             xTile.Layers.Layer? layer =
                 Game1.currentLocation?.Map?.Layers.FirstOrDefault();

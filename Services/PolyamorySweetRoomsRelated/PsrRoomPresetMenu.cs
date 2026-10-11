@@ -151,7 +151,7 @@ namespace Ts_Core.Services.PolyamorySweetRoomsRelated
                 if (GetModalOkBounds().Contains(x, y))
                 {
                     saveComplete = false;
-                    Game1.exitActiveMenu();
+                    exitThisMenu();
                 }
                 return;
             }
@@ -251,7 +251,7 @@ namespace Ts_Core.Services.PolyamorySweetRoomsRelated
 
             if (cancelBounds.Contains(x, y))
             {
-                Game1.exitActiveMenu();
+                exitThisMenu();
                 Game1.playSound("bigDeSelect");
             }
         }
@@ -314,10 +314,10 @@ namespace Ts_Core.Services.PolyamorySweetRoomsRelated
         {
             if (key == Microsoft.Xna.Framework.Input.Keys.Escape)
             {
-                if (saveComplete) { Game1.exitActiveMenu(); return; }
+                if (saveComplete) { exitThisMenu(); return; }
                 if (confirmSave) { confirmSave = false; return; }
                 if (candidateSlot.HasValue) { candidateSlot = null; return; }
-                Game1.exitActiveMenu();
+                exitThisMenu();
                 return;
             }
             base.receiveKeyPress(key);

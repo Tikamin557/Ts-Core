@@ -22,6 +22,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
         private const int ButtonHeight = 64;
 
         private static IModHelper? Helper;
+        private static IMonitor? Monitor;
         private static IGenericModConfigMenuApi? GmcmApi;
         private static bool Initialized;
 
@@ -45,6 +46,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
 
             Initialized = true;
             Helper = helper;
+            // MonitorはGMCM登録時に取得します。
 
             helper.Events.Input.ButtonPressed += OnButtonPressed;
             helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
@@ -58,6 +60,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
             IMonitor monitor)
         {
             ClearConfigMenuRegistration();
+            Monitor = monitor;
 
             if (rawContentPack is not IContentPack contentPack)
                 return;
@@ -320,6 +323,12 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 || !GmcmApi.TryGetCurrentMenu(out IManifest currentMod, out _)
                 || !string.Equals(currentMod.UniqueID, ButtonContentPackId, StringComparison.OrdinalIgnoreCase))
             {
+                return;
+            }
+
+            if (Monitor == null || !GmcmMenuSaveService.TrySave(Game1.activeClickableMenu, Monitor))
+            {
+                Game1.playSound("cancel");
                 return;
             }
 

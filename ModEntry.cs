@@ -32,6 +32,7 @@ using Ts_Core.Services.PolyamorySweetRoomsRelated;
 using Ts_Core.Services.Relationship;
 using Ts_Core.Services.ScreenshotRelated;
 using Ts_Core.Services.ShortcutPanelRelated;
+using Ts_Core.Services.TerrainFeaturesRelated;
 using Ts_Core.Services.WarpRelated;
 using Ts_Core.Tokens;
 
@@ -84,6 +85,11 @@ namespace Ts_Core
         /// 1回だけ反映するためのフラグ。
         /// </summary>
         private bool refreshContentPatcherConfigMenus;
+
+        /// <summary>
+        /// GameLaunched以前の言語変更でCPの未初期化データを参照しないためのフラグ。
+        /// </summary>
+        private bool hasGameLaunched;
 
         /// <summary>
         /// Content Patcherの起動直後のToken/i18n初期化完了を待つためのtick数。
@@ -411,6 +417,9 @@ namespace Ts_Core
             TimeSkipService.Initialize(
                 Helper);
 
+            TerrainFeaturesMenuService.Initialize(Helper, Monitor);
+            TerrainFeaturesMenuService.ApplyOriginalModCompatibility(harmony!, helper.ModRegistry);
+
             //----------------------------------------
             // Machine Texture / Animation初期化
             //----------------------------------------
@@ -712,6 +721,8 @@ namespace Ts_Core
             object? sender,
             GameLaunchedEventArgs e)
         {
+            hasGameLaunched = true;
+
             MarriageApiInitializer.Initialize(
                 Helper.ModRegistry,
                 Monitor,
@@ -825,10 +836,16 @@ namespace Ts_Core
             Helper.GameContent.InvalidateCache(
                 PsrRoomPresetButtonDataService.AssetName);
 
-            ContentPatcherReloadService
-                .RefreshConfigMenus(
-                    Helper,
-                    Monitor);
+            // GameLaunched以前はContent PatcherのContentPacksが
+            // 未初期化のため、起動後の既存遅延更新に任せます。
+            // ゲーム中の言語変更は従来どおり即時更新します。
+            if (hasGameLaunched && !refreshContentPatcherConfigMenus)
+            {
+                ContentPatcherReloadService
+                    .RefreshConfigMenus(
+                        Helper,
+                        Monitor);
+            }
 
             // 言語変更後のCJBワープ表示名でRegistryを更新します。
             CjbCheatsMenuWarpService.RegisterWarpShortcuts(

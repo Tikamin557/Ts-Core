@@ -1,4 +1,4 @@
-using StardewModdingAPI.Utilities;
+﻿using StardewModdingAPI.Utilities;
 
 namespace Ts_Core.Models
 {
@@ -153,6 +153,9 @@ namespace Ts_Core.Models
         /// <summary>
         /// Time Skipを実行するキーです。
         /// </summary>
+        /// <summary>Terrain Features管理メニューを開くキーです。</summary>
+        public KeybindList TerrainFeaturesMenuKey { get; set; } = new KeybindList(StardewModdingAPI.SButton.L);
+
         public KeybindList TimeSkipKey
         {
             get;
