@@ -237,6 +237,7 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 -   [Content Patcher
     Integration](ModderGuide_ContentPatcherIntegration.md)
 -   [Position Picker](ModderGuide_PositionPicker.md)
+-   [Terrain Features（地形要素管理）](ModderGuide_TerrainFeatures.md)
 -   [Mod Conflict Warnings](ModderGuide_ModConflictWarnings.md)
 -   [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
 -   [Polyamory Sweet Rooms

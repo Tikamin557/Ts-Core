@@ -23,6 +23,7 @@ T's Core also includes optional convenience features for players, including a cu
 - Customizable Shortcut Panel with optional free positioning and CJB Cheats Menu warp shortcuts for quick access to frequently used functions, key inputs, and mod settings
   - Supports mouse controls on PC and touch-friendly controls on Android
 - Android support, including Android-specific controls and an in-game SMAPI console
+- Terrain Features management menu (Reset, Clear, and Generate) with selectable targets and map scope
 - Relationship services and support for third-party marriage APIs
 - Location tracking and location-related services
 - Warp Actions and reusable Warp Providers
@@ -43,11 +44,13 @@ T's Core also includes optional convenience features for players, including a cu
   - Extended Content Pack reload tools for development
   - Conditional GMCM field visibility based on installed mods
   - Visual Position Picker buttons for Content Pack GMCM settings, with `BeforeField` and `AfterField` placement
+  - Position Picker touch controls on Android and return to the originating GMCM page after confirmation or cancellation
   - GMCM translations refreshed when the game language changes
 - Custom Data Assets for registering definitions through Content Patcher
 - Mod Conflict Warnings for detecting incompatible installed mod combinations at startup
 - Polyamory Sweet Rooms integration with configurable spouse room presets for supported mods
   - Supported Content Packs can add a button to their own GMCM which opens the Spouse Room Setup screen, with `BeforeField` and `AfterField` placement
+  - The Spouse Room Setup screen returns to the originating GMCM page after saving or cancellation
 - Compatibility and game-behavior fixes for FarmHouse warps, cellar restoration, Rain Totem location contexts, and custom spouse rooms
 - Common utilities shared between T's Mods
 
@@ -84,6 +87,7 @@ The Modder Guide covers:
 - Notification System and custom Notification Themes
 - Content Patcher Integration and Tokens
 - Position Picker for visual coordinate selection from Content Pack GMCM settings
+- Terrain Features management menu for players
 - Mod Conflict Warnings for detecting incompatible mod combinations
 - Shortcut Panel configuration and CJB Cheats Menu warp shortcuts
 - Polyamory Sweet Rooms spouse room presets
@@ -117,6 +121,10 @@ See the **[Content Patcher Integration Guide](docs/ModderGuide_ContentPatcherInt
 Content Packs can also register visual coordinate pickers through `TsCore/PositionPickers`. These add a GMCM button which lets the player choose X/Y coordinates directly on the target map.
 
 See the **[Position Picker Guide](docs/ModderGuide_PositionPicker.md)** for details.
+
+The **Terrain Features** menu provides Reset, Clear, and Generate operations for selected terrain features and objects. Open it using the configurable key (default `L`) or the Shortcut Panel.
+
+See the **[Terrain Features Guide](docs/ModderGuide_TerrainFeatures.md)** for details.
 
 Content Packs can register incompatible mod groups using `TsCore/ModConflictWarnings`, with warnings in the SMAPI console and on the title screen.
 

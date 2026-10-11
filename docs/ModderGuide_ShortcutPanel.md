@@ -14,6 +14,11 @@ When **CJB Cheats Menu** is installed, open an empty Shortcut Panel slot, choose
 
 This integration depends on CJB Cheats Menu's internal warp implementation rather than a public API, so future CJB updates may affect compatibility. If warp names appear incorrectly immediately after changing the game language, fully restarting the game may be necessary; the same issue can affect CJB's own warp page.
 
+
+## Terrain Features shortcut (v1.9.5)
+
+Under **Mod Features**, the Shortcut Panel can open T's Core's **Terrain Features** management menu. The same menu can be opened with the configurable key (default `L`). See the [Terrain Features Guide](ModderGuide_TerrainFeatures.md).
+
 ## For C# mod authors
 
 C# mods can register custom actions for the Shortcut Panel using T's Core's public `ITsCoreApi` shortcut registration API. See the API interface and existing Modder Guide for the registration contract.

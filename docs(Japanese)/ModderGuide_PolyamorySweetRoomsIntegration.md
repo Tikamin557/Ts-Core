@@ -368,6 +368,10 @@ T's Core自身のGMCM、Shortcut Panel、Content Pack側のGMCMボタンのど�
 
 ------------------------------------------------------------------------
 
+## GMCMへの復帰（v1.9.5）
+
+Content PackのGMCMボタンから配偶者部屋設定を開く場合、ほかのGMCM項目で変更した設定は画面遷移前に保存されます。配偶者部屋設定を保存・キャンセルすると、元のGMCMページへ戻ります。
+
 ## Modder Guide
 
 -   ← [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)

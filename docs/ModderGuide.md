@@ -189,6 +189,7 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Notification System](ModderGuide_NotificationSystem.md)
 - [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
 - [Position Picker](ModderGuide_PositionPicker.md)
+- [Terrain Features Management](ModderGuide_TerrainFeatures.md)
 - [Mod Conflict Warnings](ModderGuide_ModConflictWarnings.md)
 - [Shortcut Panel](ModderGuide_ShortcutPanel.md)
 - [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)

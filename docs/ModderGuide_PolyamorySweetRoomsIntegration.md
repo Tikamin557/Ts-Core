@@ -338,6 +338,10 @@ The same Spouse Room Setup screen is used regardless of whether it was opened fr
 
 ---
 
+## Returning to GMCM (v1.9.5)
+
+When the Spouse Room Setup screen is opened from a Content Pack's GMCM button, changes made to other GMCM options are saved before opening it. Saving or cancelling the spouse room setup returns to the originating GMCM page.
+
 ## Modder Guide
 
 - ← [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)

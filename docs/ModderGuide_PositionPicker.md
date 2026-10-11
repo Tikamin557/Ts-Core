@@ -141,6 +141,13 @@ When the picker is active:
 
 The selected coordinate is always clamped to the actual map bounds. The camera can scroll slightly beyond the map edges so the preview can be viewed without being hidden by the guide.
 
+
+## Android touch controls (v1.9.5)
+
+On Android, tap or drag on the map to move the preview. Tapping the map **does not confirm** the selection. Use the on-screen **Confirm** button to apply the selected coordinates, or **Back** to cancel.
+
+On both PC and Android, confirming or cancelling the picker returns to the GMCM page from which it was opened. Changes to other GMCM settings made before opening the picker are saved before the transition.
+
 ## Saving and Applying the Coordinates
 
 When the player confirms a tile, T's Core updates `XField` and `YField`, then invokes Content Patcher's normal save/apply handling for that Content Pack.
