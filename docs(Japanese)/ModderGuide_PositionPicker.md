@@ -91,7 +91,7 @@ Position Pickerはプレイヤーを対象Locationへ自動ワープしません
 | `YField` | ✅ | 選択したY座標を書き込むConfigSchema項目です。 |
 | `BeforeField` | 任意 | 指定したConfigSchema項目の直前へPickerボタンを挿入します。`AfterField` と両方指定した場合はこちらが優先されます。 |
 | `AfterField` | 任意 | このConfigSchema項目の直後へPickerボタンを挿入します。対象が見つからない場合はGMCMの末尾へ追加されます。 |
-| `Location` | ✅ | Pickerを使用できるLocation名です。T's Coreでは `Name` と `NameOrUniqueName` の両方を判定します。 |
+| `Location` | ✅ | Pickerを使用できるLocation名です。T's Coreでは `Name` と `NameOrUniqueName` の両方を判定します。PIF（Personal Indoor Farm / Personal Rooms）で作成されたマップの場合は、PIFに登録したID（例：`Sharogg.Backyard`）を指定できます。 |
 | `PreviewMap` | ✅ | 配置プレビューとして描画するMap Assetです。この値の `{{ModId}}` はContent PackのUniqueIDへ置き換えられます。 |
 | `PreviewNote` | 任意 | 位置選択中、座標・操作ガイドの下へ表示する注意書きです。長い文章は自動で折り返されます。 |
 | `AnchorX` | 任意 | 選択座標へ合わせる `PreviewMap` 内のX Tile位置です。初期値は `0` です。 |

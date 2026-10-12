@@ -1858,14 +1858,58 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 return false;
             }
 
-            return string.Equals(
-                    Game1.currentLocation.Name,
-                    definition.Location,
-                    StringComparison.OrdinalIgnoreCase)
-                || string.Equals(
-                    Game1.currentLocation.NameOrUniqueName,
-                    definition.Location,
-                    StringComparison.OrdinalIgnoreCase);
+            if (string.Equals(Game1.currentLocation.Name, definition.Location, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(Game1.currentLocation.NameOrUniqueName, definition.Location, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            // PIF creates a unique location name for each personal farm.
+            // Match its registered farm ID, not the per-player generated suffix.
+            return IsPersonalIndoorFarmLocation(Game1.currentLocation.Name, definition.Location)
+                || IsPersonalIndoorFarmLocation(Game1.currentLocation.NameOrUniqueName, definition.Location);
+        }
+
+        /// <summary>
+        /// PIFの生成したロケーション名から、登録されたFarm IDを照合します。
+        /// 他のロケーションや、似た名前のFarm IDを誤認しないようにします。
+        /// </summary>
+        private static bool IsPersonalIndoorFarmLocation(string? locationName, string? farmId)
+        {
+            if (string.IsNullOrWhiteSpace(locationName) || string.IsNullOrWhiteSpace(farmId))
+            {
+                return false;
+            }
+
+            const string prefix = "DLX.PIF_MINE_";
+            string expectedPrefix = prefix + farmId + "_";
+            if (!locationName.StartsWith(expectedPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            // The following segment is the player's numeric ID.
+            int suffixStart = expectedPrefix.Length;
+            int suffixEnd = locationName.IndexOf('_', suffixStart);
+            if (suffixEnd < 0)
+            {
+                suffixEnd = locationName.Length;
+            }
+
+            if (suffixEnd == suffixStart)
+            {
+                return false;
+            }
+
+            for (int i = suffixStart; i < suffixEnd; i++)
+            {
+                if (locationName[i] < '0' || locationName[i] > '9')
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         //----------------------------------------

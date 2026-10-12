@@ -91,7 +91,7 @@ The picker doesn't automatically warp the player. The player must already be in 
 | `YField` | ✅ | ConfigSchema field which receives the selected Y coordinate. |
 | `BeforeField` | ❌ | ConfigSchema field key before which the picker button should be inserted. Takes priority over `AfterField` when both are set. |
 | `AfterField` | ❌ | ConfigSchema field key after which the picker button should be inserted. If it isn't found, the picker is added at the end of the GMCM page. |
-| `Location` | ✅ | Location name in which the picker can be used. Both `Name` and `NameOrUniqueName` are accepted by T's Core. |
+| `Location` | ✅ | Location name in which the picker can be used. T's Core checks both `Name` and `NameOrUniqueName`. For maps created with PIF (Personal Indoor Farm / Personal Rooms), you can specify the ID registered with PIF (e.g. `Sharogg.Backyard`). |
 | `PreviewMap` | ✅ | Map asset drawn as the placement preview. `{{ModId}}` in this value is replaced with the Content Pack's UniqueID. |
 | `PreviewNote` | ❌ | Additional note displayed below the coordinate/control guide while selecting a position. Long text is automatically wrapped. |
 | `AnchorX` | ❌ | X tile inside `PreviewMap` which should align with the selected coordinate. Default `0`. |
