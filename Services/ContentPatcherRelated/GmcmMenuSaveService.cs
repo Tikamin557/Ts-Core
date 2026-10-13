@@ -11,13 +11,19 @@ namespace Ts_Core.Services.ContentPatcherRelated
     {
         internal static bool TrySave(IClickableMenu? menu, StardewModdingAPI.IMonitor monitor)
         {
-            if (menu == null || menu.GetType().FullName !=
+            // GMCMの一覧画面から開いた場合、設定画面は子メニューになります。
+            // 親メニューを保持したまま、保存対象だけ実際の設定画面へ進めます。
+            IClickableMenu? settingsMenu = menu;
+            while (settingsMenu != null && settingsMenu.GetChildMenu() != null)
+                settingsMenu = settingsMenu.GetChildMenu();
+
+            if (settingsMenu?.GetType().FullName !=
                 "GenericModConfigMenu.Framework.SpecificModConfigMenu")
                 return false;
 
             try
             {
-                MethodInfo? save = menu.GetType().GetMethod("SaveConfig",
+                MethodInfo? save = settingsMenu.GetType().GetMethod("SaveConfig",
                     BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
                     null, new[] { typeof(bool) }, null);
                 if (save == null)
@@ -27,7 +33,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
                     return false;
                 }
 
-                save.Invoke(menu, new object[] { false });
+                save.Invoke(settingsMenu, new object[] { false });
                 return true;
             }
             catch (Exception ex)
