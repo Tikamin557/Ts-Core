@@ -1,4 +1,4 @@
-using StardewModdingAPI;
+﻿using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Menus;
@@ -242,9 +242,7 @@ namespace Ts_Core.Services.DialogueRelated
             // 選択肢作成
             //----------------------------------------
 
-            Response[] responses =
-                new Response[
-                    dialogue.Responses.Count];
+            List<Response> visibleResponses = new();
 
             for (int i = 0;
                 i < dialogue.Responses.Count;
@@ -253,11 +251,35 @@ namespace Ts_Core.Services.DialogueRelated
                 DialogueResponseModel response =
                     dialogue.Responses[i];
 
-                responses[i] =
+                if (!CheckCondition(
+                        response.ShowCondition,
+                        location,
+                        Game1.player))
+                {
+                    continue;
+                }
+
+                // 元のIndexをキーにして、非表示項目による番号ずれを防ぎます。
+                visibleResponses.Add(
                     new Response(
                         i.ToString(),
-                        response.Text);
+                        response.Text));
             }
+
+            //----------------------------------------
+            // 表示可能な選択肢なし
+            //----------------------------------------
+
+            if (visibleResponses.Count == 0)
+            {
+                ShowText(
+                    dialogue.Text,
+                    dialogue.Duration);
+
+                return;
+            }
+
+            Response[] responses = visibleResponses.ToArray();
 
             //----------------------------------------
             // Question Dialogue表示

@@ -43,7 +43,7 @@ They can be opened from map Tile Actions and Touch Actions using:
 TsCoreDialogue <DialogueId>
 ```
 
-A Dialogue can display text, provide player responses, use single or multiple Game State Query conditions, execute Trigger Actions, continue to another Dialogue, limit usage per Building, run weighted random Actions, hide its messages when needed, automatically close after a specified duration, and play Audio Cues.
+A Dialogue can display text, provide player responses with GSQ-based visibility, use single or multiple Game State Query conditions, execute Trigger Actions, continue to another Dialogue, limit usage per Building, run weighted random Actions, hide its messages when needed, automatically close after a specified duration, and play Audio Cues.
 
 No C# code is required.
 
@@ -62,6 +62,7 @@ No C# code is required.
 - [UsageLimit](#usagelimit)
 - [Audio Cues](#audio-cues)
 - [Responses](#responses)
+- [Response Visibility (`ShowCondition`)](#response-visibility-showcondition)
 - [Response Conditions](#response-conditions)
 - [Response Actions](#response-actions)
 - [Next Dialogue](#next-dialogue)
@@ -130,6 +131,8 @@ Condition / Conditions
 UsageLimit
     ↓
 Dialogue Text / Responses
+    ↓
+Response ShowCondition
     ↓
 Response Condition / Conditions
     ↓
@@ -740,12 +743,51 @@ Each entry in `Responses` supports the following properties.
 | Property | Default | Description |
 |----------|---------|-------------|
 | `Text` | `""` | Text displayed for the response choice. |
+| `ShowCondition` | — | Game State Query that controls whether this choice is displayed (v1.9.7+). |
 | `Condition` | — | Single Game State Query checked when this response is selected. |
 | `FailText` | — | Text displayed when the Response `Condition` fails. |
 | `Conditions` | — | Multiple Game State Query conditions with individual failure behavior. |
 | `FailAudioCue` | — | Audio Cue played when the Response `Condition` fails. |
 | `Actions` | — | Trigger Actions executed when the response succeeds. |
 | `Next` | — | Dialogue ID opened after the response succeeds. |
+
+---
+
+## Response Visibility (`ShowCondition`)
+
+**Available in T's Core v1.9.7 and later.**
+
+Set `ShowCondition` on an individual entry in `Responses` to control whether that choice appears in the dialogue menu. It uses Stardew Valley's **Game State Query (GSQ)** syntax.
+
+```json
+{
+  "Text": "Where would you like to go?",
+  "Responses": [
+    {
+      "Text": "Walnut Room",
+      "ShowCondition": "PLAYER_VISITED_LOCATION Current QiNutRoom",
+      "Actions": [
+        "TsCoreMagicWarp IslandWest 20 23 0 wand"
+      ]
+    },
+    {
+      "Text": "Docks",
+      "Actions": [
+        "TsCoreMagicWarp IslandSouth 11 11 2 wand"
+      ]
+    }
+  ]
+}
+```
+
+- If `ShowCondition` is omitted or empty, the choice is always shown.
+- If the GSQ is true, the choice appears; if false, it is hidden.
+- GSQ expressions can use the standard comma-separated conditions, `ANY`, and `!` negation.
+- Hidden choices cannot be selected. If every choice is hidden, the dialogue is shown as plain text instead.
+- `ShowCondition` is checked **when the choices are displayed**. In contrast, the existing response `Condition` and `Conditions` are checked **after the player selects a choice**. They can be used together.
+- Hiding an earlier choice does not change which `Actions` or `Next` belong to later choices.
+
+For Content Packs that use `ShowCondition`, specify T's Core **1.9.7 or later** as the minimum required version in `manifest.json`.
 
 ---
 

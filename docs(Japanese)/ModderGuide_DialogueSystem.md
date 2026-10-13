@@ -48,7 +48,7 @@ Actionから開くことができます:
 TsCoreDialogue <DialogueId>
 ```
 
-Dialogueでは、テキスト表示、プレイヤーのResponse、単一または複数のGame
+Dialogueでは、テキスト表示、GSQによるResponse選択肢の表示制御、プレイヤーのResponse、単一または複数のGame
 State Query Condition、Trigger
 Actionの実行、別Dialogueへの継続、Buildingごとの使用回数制限、重み付きRandom
 Action、必要に応じたMessage非表示、指定時間後の自動終了、Audio
@@ -142,6 +142,8 @@ Condition / Conditions
 UsageLimit
     ↓
 Dialogue Text / Responses
+    ↓
+Response ShowCondition
     ↓
 Response Condition / Conditions
     ↓
@@ -335,6 +337,8 @@ Dialogue Entryでは次のPropertyを使用できます。
   `Text`                 `""`                Dialogueに表示するテキスト。
 
   `HideDialogue`         `false`             このDialogueが生成するすべてのMessageを非表示にしつつ、LogicとActionの処理は継続します。
+
+  `ShowCondition`        ---                 選択肢の表示時に判定するGame State Query（v1.9.7以降）。
 
   `Condition`            ---                 Dialogueを表示する前に満たす必要がある単一のGame State Query。
 
@@ -832,6 +836,46 @@ No
 
   `Next`                 ---                 Response成功後に開くDialogue ID。
   ---------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+<a id="response-showcondition"></a>
+
+## Responseの表示条件（`ShowCondition`）
+
+**T's Core v1.9.7以降で使用できます。**
+
+`Responses` の各項目に `ShowCondition` を指定すると、Stardew Valleyの **Game State Query（GSQ）** を使って選択肢の表示・非表示を切り替えられます。
+
+``` json
+{
+  "Text": "Where would you like to go?",
+  "Responses": [
+    {
+      "Text": "Walnut Room",
+      "ShowCondition": "PLAYER_VISITED_LOCATION Current QiNutRoom",
+      "Actions": [
+        "TsCoreMagicWarp IslandWest 20 23 0 wand"
+      ]
+    },
+    {
+      "Text": "Docks",
+      "Actions": [
+        "TsCoreMagicWarp IslandSouth 11 11 2 wand"
+      ]
+    }
+  ]
+}
+```
+
+- `ShowCondition` が未指定または空の場合は、常に選択肢を表示します。
+- GSQが成立すると表示し、不成立の場合は非表示にします。
+- GSQの通常のカンマ区切り条件、`ANY`、`!` による否定を使用できます。
+- 非表示の選択肢は選べません。すべての選択肢が非表示の場合は、選択肢のない通常のテキストDialogueとして表示します。
+- `ShowCondition` は **選択肢を表示する時点** で判定します。一方、既存の `Condition` / `Conditions` は **選択肢を選んだ後** に判定します。両方を併用できます。
+- 途中の選択肢を非表示にしても、後続の選択肢に設定した `Actions` や `Next` の対応は変わりません。
+
+`ShowCondition` を使用するContent Packでは、`manifest.json` のT's Core依存バージョンを **1.9.7以上** にしてください。
 
 ------------------------------------------------------------------------
 

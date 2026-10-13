@@ -25,6 +25,12 @@
         public string? Condition { get; set; }
 
         /// <summary>
+        /// 選択肢を表示するためのGame State Query条件です。
+        /// 未指定の場合は常に表示します。
+        /// </summary>
+        public string? ShowCondition { get; set; }
+
+        /// <summary>
         /// Conditionを満たさなかった場合に
         /// 表示するテキストです。
         /// </summary>
