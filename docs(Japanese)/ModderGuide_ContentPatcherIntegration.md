@@ -19,6 +19,10 @@
 -   📄 [Position Picker](ModderGuide_PositionPicker.md)
 -   📄 [Other Features](ModderGuide_OtherFeatures.md)
 
+- 📄 [Custom Flooring](ModderGuide_CustomFlooring.md)
+- 📄 [Custom Recipe Pages](ModderGuide_CustomRecipePages.md)
+- 📄 [Ingredient-Free Recipes](ModderGuide_IngredientFreeRecipes.md)
+
 ← [READMEに戻る](../../README.md)
 
 ← [Modder Guideに戻る](ModderGuide.md)

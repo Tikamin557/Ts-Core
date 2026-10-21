@@ -126,6 +126,7 @@ namespace Ts_Core
             NullRecipeIngredientsPatch.Apply(harmony, Monitor, helper.Translation);
 
             // PC版クラフト・料理レシピの専用ページ切り替え
+            CustomRecipePageCraftingPagePatch.Apply(harmony, Monitor, helper.Translation);
             CustomRecipePageBetterCraftingPatch.Apply(harmony, Monitor, helper.Translation, helper);
 
             // Stardew Valley標準のWarp警告を抑制

@@ -46,6 +46,9 @@ T's Core also includes optional convenience features for players, including a cu
   - Visual Position Picker buttons for Content Pack GMCM settings, with `BeforeField` and `AfterField` placement
   - Position Picker touch controls on Android and return to the originating GMCM page after confirmation or cancellation
   - GMCM translations refreshed when the game language changes
+- Custom Flooring (`TsCore/CustomFlooring`) with selectable texture variants, optional preview UI, random textures, animations, and sounds
+- Custom Recipe Pages (`TsCore/CustomRecipePages`) for crafting/cooking recipes, including Better Crafting integration
+- Ingredient-free crafting and cooking recipes with optional ingredient-section text or hiding
 - Custom Data Assets for registering definitions through Content Patcher
 - Mod Conflict Warnings for detecting incompatible installed mod combinations at startup
 - Polyamory Sweet Rooms integration with configurable spouse room presets for supported mods
@@ -82,6 +85,9 @@ The Modder Guide covers:
 - Map Properties
 - Building Services and custom Building Providers
 - BigCraftable Extension
+- Custom Flooring
+- Custom Recipe Pages
+- Ingredient-Free Recipes
 - Dialogue System
 - Migration System and custom migration definitions
 - Notification System and custom Notification Themes
@@ -99,6 +105,8 @@ T's Core provides custom Data Assets which allow Content Patcher packs to regist
 The BigCraftable Extension system can add configurable interactions, collision sizes, placement conditions, custom textures and animations, effects, lights, wobble effects, interaction conditions, required items, and other optional behavior to BigCraftables.
 
 See the **[BigCraftable Extension Guide](docs/ModderGuide_BigCraftableExtension.md)** for details.
+
+New in v1.9.9: [Custom Flooring](docs/ModderGuide_CustomFlooring.md), [Custom Recipe Pages](docs/ModderGuide_CustomRecipePages.md), and [Ingredient-Free Recipes](docs/ModderGuide_IngredientFreeRecipes.md). Each has a separate setup guide for Content Patcher authors.
 
 The Dialogue System can create custom map dialogues with conditions, player responses, Trigger Actions, dialogue chaining, automatic closing, and Audio Cues.
 

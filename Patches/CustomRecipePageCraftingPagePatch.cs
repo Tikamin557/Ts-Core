@@ -15,7 +15,7 @@ namespace Ts_Core.Patches
     /// PC版CraftingPage内で通常レシピとTsCore/CustomRecipePagesのレシピを切り替えます。
     /// インベントリ・作成操作はバニラのCraftingPageをそのまま使用します。
     /// </summary>
-    public static class RecipeLayoutCraftingPagePatch
+    public static class CustomRecipePageCraftingPagePatch
     {
         private sealed class PageState
         {
@@ -45,15 +45,15 @@ namespace Ts_Core.Patches
             MethodInfo? click = AccessTools.Method(typeof(CraftingPage), "receiveLeftClick", new[] { typeof(int), typeof(int), typeof(bool) });
             MethodInfo? draw = AccessTools.Method(typeof(CraftingPage), "draw", new[] { typeof(SpriteBatch) });
             if (getRecipes != null)
-                harmony.Patch(getRecipes, postfix: new HarmonyMethod(typeof(RecipeLayoutCraftingPagePatch), nameof(GetRecipesPostfix)));
+                harmony.Patch(getRecipes, postfix: new HarmonyMethod(typeof(CustomRecipePageCraftingPagePatch), nameof(GetRecipesPostfix)));
             if (layout != null)
-                harmony.Patch(layout, transpiler: new HarmonyMethod(typeof(RecipeLayoutCraftingPagePatch), nameof(LayoutTranspiler)));
+                harmony.Patch(layout, transpiler: new HarmonyMethod(typeof(CustomRecipePageCraftingPagePatch), nameof(LayoutTranspiler)));
             if (click != null)
-                harmony.Patch(click, prefix: new HarmonyMethod(typeof(RecipeLayoutCraftingPagePatch), nameof(ClickPrefix)));
+                harmony.Patch(click, prefix: new HarmonyMethod(typeof(CustomRecipePageCraftingPagePatch), nameof(ClickPrefix)));
             if (draw != null)
                 harmony.Patch(draw,
-                    prefix: new HarmonyMethod(typeof(RecipeLayoutCraftingPagePatch), nameof(DrawPrefix)),
-                    postfix: new HarmonyMethod(typeof(RecipeLayoutCraftingPagePatch), nameof(DrawPostfix)));
+                    prefix: new HarmonyMethod(typeof(CustomRecipePageCraftingPagePatch), nameof(DrawPrefix)),
+                    postfix: new HarmonyMethod(typeof(CustomRecipePageCraftingPagePatch), nameof(DrawPostfix)));
         }
 
         private static Rectangle ButtonBounds(CraftingPage page)
@@ -240,7 +240,7 @@ namespace Ts_Core.Patches
         private static IEnumerable<CodeInstruction> LayoutTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var codes = new List<CodeInstruction>(instructions);
-            MethodInfo? callback = AccessTools.Method(typeof(RecipeLayoutCraftingPagePatch), nameof(BeforeRecipe));
+            MethodInfo? callback = AccessTools.Method(typeof(CustomRecipePageCraftingPagePatch), nameof(BeforeRecipe));
             if (callback == null)
                 return codes;
             int storeIndex = -1;

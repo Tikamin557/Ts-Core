@@ -81,6 +81,12 @@ Panelへ独自のActionを登録し、プレイヤーがゲーム内パネルか
   BigCraftable Extension                     `TsCore/BigCraftableExtension` を通して登録したBigCraftable
                                              Extensionにより、BigCraftableへ設定可能なインタラクション、当たり判定サイズ、設置条件、テクスチャ、アニメーション、エフェクト、ライトなどの任意機能を追加できます。
 
+  Custom Flooring                           `TsCore/CustomFlooring` によるカスタム床材のテクスチャ・プレビュー・効果音・ランダム表示。
+
+  Custom Recipe Pages                       `TsCore/CustomRecipePages` によるクラフト・料理の専用レシピページとBetter Crafting対応。
+
+  Ingredient-Free Recipes                   クラフト・料理の必要素材を0にし、材料欄の表示を選択。
+
   Dialogue System                            条件、選択肢、Action、Dialogueの連結などの任意機能に対応した、データ駆動型のカスタムDialogueを追加します。
 
   Migration System                           既存のセーブデータに保存されているIDを移行するための機能を提供します。
@@ -125,6 +131,9 @@ Query、Map Property、各種連携機能、カスタムData Assetを使用で�
 -   Notification Theme
 -   Migration定義
 -   BigCraftable Extension
+-   Custom Flooring定義
+-   Custom Recipe Pages定義
+-   素材不要レシピのマーカー
 -   Dialogue
 -   Post Renovation Patch
 -   Polyamory Sweet RoomsのSpouse Room Preset
@@ -231,6 +240,9 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 -   [Map Properties](ModderGuide_MapProperties.md)
 -   [Building Services](ModderGuide_BuildingServices.md)
 -   [BigCraftable Extension](ModderGuide_BigCraftableExtension.md)
+-   [Custom Flooring](ModderGuide_CustomFlooring.md)
+-   [Custom Recipe Pages](ModderGuide_CustomRecipePages.md)
+-   [Ingredient-Free Recipes](ModderGuide_IngredientFreeRecipes.md)
 -   [Dialogue System](ModderGuide_DialogueSystem.md)
 -   [Migration System](ModderGuide_MigrationSystem.md)
 -   [Notification System](ModderGuide_NotificationSystem.md)

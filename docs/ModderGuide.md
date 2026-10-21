@@ -70,6 +70,9 @@ T's Core currently provides the following systems.
 | Map Properties | Adds custom map properties for additional location behavior. |
 | Building Services | Adds custom settings and visual features to buildings. |
 | BigCraftable Extension | BigCraftable Extensions registered through `TsCore/BigCraftableExtension` can add configurable interactions, collision sizes, placement conditions, textures, animations, effects, lights, and other optional behavior to BigCraftables. |
+| Custom Flooring | Configurable flooring variants, textures, previews, sounds, and randomization through `TsCore/CustomFlooring`. |
+| Custom Recipe Pages | Dedicated crafting/cooking recipe pages through `TsCore/CustomRecipePages`, with Better Crafting support. |
+| Ingredient-Free Recipes | Crafting/cooking recipes without ingredients, with configurable ingredient-area presentation. |
 | Dialogue System | Adds data-driven custom dialogues with conditions, responses, actions, dialogue chaining, and other optional behavior. |
 | Migration System | Provides migration support for IDs stored in existing save data. |
 | Notification System | Provides customizable on-screen notifications and Notification Themes. |
@@ -100,6 +103,9 @@ Custom definitions can be registered for:
 - Notification Themes
 - Migration definitions
 - BigCraftable Extensions
+- Custom Flooring definitions
+- Custom Recipe Pages definitions
+- Ingredient-free recipe markers in crafting/cooking data
 - Dialogues
 - Post Renovation Patches
 - Polyamory Sweet Rooms spouse room presets
@@ -184,6 +190,9 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Map Properties](ModderGuide_MapProperties.md)
 - [Building Services](ModderGuide_BuildingServices.md)
 - [BigCraftable Extension](ModderGuide_BigCraftableExtension.md)
+- [Custom Flooring](ModderGuide_CustomFlooring.md)
+- [Custom Recipe Pages](ModderGuide_CustomRecipePages.md)
+- [Ingredient-Free Recipes](ModderGuide_IngredientFreeRecipes.md)
 - [Dialogue System](ModderGuide_DialogueSystem.md)
 - [Migration System](ModderGuide_MigrationSystem.md)
 - [Notification System](ModderGuide_NotificationSystem.md)
