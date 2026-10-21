@@ -660,6 +660,12 @@ namespace Ts_Core.Services.ContentPatcherRelated
                     monitor);
 
                 //----------------------------------------
+                // カスタム床材アイテム画像の再生成
+                //----------------------------------------
+
+                CustomFlooringObjectTextureService.RefreshAfterContentPackReload();
+
+                //----------------------------------------
                 // FarmHouseセラー再適用要求
                 //----------------------------------------
 

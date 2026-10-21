@@ -74,6 +74,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 CreateFilteredConfigCore(
                     currentConfig,
                     content,
+                    contentPack.Manifest.UniqueID,
                     helper,
                     monitor);
 
@@ -119,6 +120,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
             return CreateFilteredConfigCore(
                 currentConfig,
                 content,
+                contentPack.Manifest.UniqueID,
                 helper,
                 monitor);
         }
@@ -134,6 +136,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
         private static object CreateFilteredConfigCore(
             object currentConfig,
             ContentFileModel? content,
+            string contentPackId,
             IModHelper helper,
             IMonitor monitor)
         {
@@ -180,6 +183,8 @@ namespace Ts_Core.Services.ContentPatcherRelated
                 throw new InvalidOperationException(
                     "Could not enumerate Content Patcher Config.");
             }
+
+            int hiddenFieldCount = 0;
 
             foreach (object? item in enumerable)
             {
@@ -231,10 +236,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
 
                     if (!anyModLoaded)
                     {
-                        monitor.Log(
-                            $"Hiding GMCM config field '{fieldName}' because none of the required mods are loaded: " +
-                            $"{string.Join(", ", modIds)}.",
-                            LogLevel.Trace);
+                        hiddenFieldCount++;
 
                         continue;
                     }
@@ -265,10 +267,7 @@ namespace Ts_Core.Services.ContentPatcherRelated
 
                     if (!allModsLoaded)
                     {
-                        monitor.Log(
-                            $"Hiding GMCM config field '{fieldName}' because not all required mods are loaded: " +
-                            $"{string.Join(", ", modIds)}.",
-                            LogLevel.Trace);
+                        hiddenFieldCount++;
 
                         continue;
                     }
@@ -285,6 +284,13 @@ namespace Ts_Core.Services.ContentPatcherRelated
                     {
                         key
                     });
+            }
+
+            if (hiddenFieldCount > 0)
+            {
+                monitor.Log(
+                    $"GMCM: Hid {hiddenFieldCount} config fields for '{contentPackId}'.",
+                    LogLevel.Trace);
             }
 
             return filteredConfig;

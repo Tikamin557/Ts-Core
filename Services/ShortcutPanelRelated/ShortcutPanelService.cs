@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
@@ -331,6 +331,22 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     playUnavailableSound: false));
 
             //----------------------------------------
+            // Game Menu
+            //----------------------------------------
+
+            ShortcutPanelRegistry.Register(
+                new ShortcutPanelEntry(
+                    "TsCore/GameMenuSelector",
+                    helper.Translation.Get("shortcutPanel.GameMenu"),
+                    () => helper.ModContent.Load<Texture2D>(
+                        "assets/ShortcutPanel/GameMenu.png"),
+                    iconSourceRect: null,
+                    () => { }));
+
+            ShortcutPanelGameMenuService.RegisterShortcuts(
+                helper.Translation, helper);
+
+            //----------------------------------------
             // CJB Cheats Menu Warp
             //----------------------------------------
 
@@ -420,6 +436,27 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     {
                         ScreenshotService.RequestCurrentScreenScreenshot();
                     }));
+        }
+
+        //----------------------------------------
+        // Game Menu Selection
+        //----------------------------------------
+
+        /// <summary>
+        /// バニラのゲームメニューで最初に開くタブを選択し、スロットに保存します。
+        /// </summary>
+        private static void OpenGameMenuSelection(int slotIndex)
+        {
+            Game1.activeClickableMenu =
+                new ShortcutPanelSelectionMenu(
+                    helper.Translation,
+                    shortcutId =>
+                    {
+                        slots[slotIndex].SetModAction(shortcutId);
+                        SaveSlots();
+                    },
+                    ShortcutPanelGameMenuService.GetEntries(),
+                    helper.Translation.Get("shortcutPanel.GameMenu.title"));
         }
 
         //----------------------------------------
@@ -1259,6 +1296,29 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             helper.WriteConfig(ModEntry.Config);
         }
 
+        /// <summary>
+        /// カスタム床材など、他の入力処理がショートカットパネル上のクリックを判定するための領域確認です。
+        /// 描画・クリック処理と同じ座標変換およびBoundsを使用します。
+        /// </summary>
+        internal static bool ContainsScreenPoint(Vector2 screenPixels)
+        {
+            if (!Context.IsWorldReady || screenshotHidden || !ModEntry.Config.ShortcutPanelEnabled
+                || Game1.eventUp || !Game1.displayHUD || Game1.freezeControls
+                || Game1.activeClickableMenu != null)
+                return false;
+
+            UpdateBounds();
+            Vector2 cursorPosition = Utility.ModifyCoordinatesForUIScale(screenPixels);
+            float inputDateTimeScale = GetDateTimeScale();
+            if (!IsAndroidFurniturePlacementMode() && inputDateTimeScale > 0f)
+                cursorPosition /= inputDateTimeScale;
+
+            Point cursor = cursorPosition.ToPoint();
+            return tabBounds.Contains(cursor)
+                || (isOpen && (panelBounds.Contains(cursor)
+                    || (IsFreePositionMode() && moveHandleBounds.Contains(cursor))));
+        }
+
         //----------------------------------------
         // 入力
         //----------------------------------------
@@ -1543,6 +1603,12 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                                         helper.Translation,
                                         shortcutId =>
                                         {
+                                            if (shortcutId == "TsCore/GameMenuSelector")
+                                            {
+                                                OpenGameMenuSelection(slotIndex);
+                                                return;
+                                            }
+
                                             if (shortcutId
                                                 == "TsCore/CjbWarpSelector")
                                             {
@@ -1728,6 +1794,12 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                                     helper.Translation,
                                     shortcutId =>
                                     {
+                                        if (shortcutId == "TsCore/GameMenuSelector")
+                                        {
+                                            OpenGameMenuSelection(slotIndex);
+                                            return;
+                                        }
+
                                         if (shortcutId
                                             == "TsCore/CjbWarpSelector")
                                         {

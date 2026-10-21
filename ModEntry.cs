@@ -10,6 +10,7 @@ using Ts_Core.Models;
 using Ts_Core.Patches;
 using Ts_Core.Patches.BigCraftableRelated;
 using Ts_Core.Providers;
+using Ts_Core.Services;
 using Ts_Core.Services.BigCraftableRelated;
 using Ts_Core.Services.BuildingRelated;
 using Ts_Core.Services.ContentPatcherRelated;
@@ -120,6 +121,12 @@ namespace Ts_Core
             //----------------------------------------
             // Harmonyパッチ
             //----------------------------------------
+
+            // クラフト・料理レシピの素材不要指定に対応
+            NullRecipeIngredientsPatch.Apply(harmony, Monitor, helper.Translation);
+
+            // PC版クラフト・料理レシピの専用ページ切り替え
+            CustomRecipePageBetterCraftingPatch.Apply(harmony, Monitor, helper.Translation, helper);
 
             // Stardew Valley標準のWarp警告を抑制
             WarpWarningPatch.Apply(
@@ -294,6 +301,10 @@ namespace Ts_Core
             BigCraftableUltraSmoothCompatibilityPatch.Apply(
                 harmony,
                 Monitor);
+
+            // Custom Flooring（バニラのFlooringを拡張）
+            CustomFlooringService.Initialize(helper, Monitor, harmony);
+            CustomFlooringObjectTextureService.Initialize(helper, Monitor);
 
             //----------------------------------------
             // 初期化
@@ -659,6 +670,10 @@ namespace Ts_Core
             helper.Events.Content.AssetRequested
                 += DialogueDataService.OnAssetRequested;
 
+            // Recipe Pages
+            helper.Events.Content.AssetRequested
+                += CustomRecipePageDataService.OnAssetRequested;
+
             // BigCraftable Extension
             helper.Events.Content.AssetRequested
                 += BigCraftableExtensionDataService.OnAssetRequested;
@@ -672,6 +687,10 @@ namespace Ts_Core
             // TsCore/PsrRoomPresets Data Assetを提供
             helper.Events.Content.AssetRequested
                 += PsrRoomPresetDataService.OnAssetRequested;
+
+            // Custom Flooring
+            helper.Events.Content.AssetRequested
+                += CustomFlooringDataService.OnAssetRequested;
 
             // Position Picker
             // Content PatcherからPosition Picker定義を登録する

@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
@@ -51,6 +51,8 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         private readonly Action<string>
             onSelected;
 
+        private readonly string? customTitle;
+
         //----------------------------------------
         // Layout
         //----------------------------------------
@@ -99,7 +101,9 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         /// </summary>
         internal ShortcutPanelSelectionMenu(
             ITranslationHelper translation,
-            Action<string> onSelected)
+            Action<string> onSelected,
+            IReadOnlyList<ShortcutPanelEntry>? customEntries = null,
+            string? customTitle = null)
         {
             this.translation =
                 translation;
@@ -107,19 +111,23 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             this.onSelected =
                 onSelected;
 
+            this.customTitle = customTitle;
+
             //----------------------------------------
             // 登録済みShortcutを取得
             //----------------------------------------
 
             foreach (ShortcutPanelEntry entry
-                     in ShortcutPanelRegistry.GetAll())
+                     in customEntries ?? ShortcutPanelRegistry.GetAll())
             {
                 // CJB Warpの個別Entryは保存済みSlotの復元・実行用です。
                 // Mod機能一覧にはSelectorだけを表示し、
                 // 宛先は専用の選択メニューで選びます。
-                if (entry.Id.StartsWith(
+                if (customEntries is null && (entry.Id.StartsWith(
                     "TsCore/CjbWarp/",
-                    StringComparison.Ordinal))
+                    StringComparison.Ordinal) || entry.Id.StartsWith(
+                    "TsCore/GameMenu/",
+                    StringComparison.Ordinal)))
                 {
                     continue;
                 }
@@ -514,7 +522,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             // Title
             //----------------------------------------
 
-            string title =
+            string title = customTitle ??
                 translation.Get(
                     "shortcutPanel.SelectModFunction.title");
 

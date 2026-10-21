@@ -156,6 +156,17 @@ namespace Ts_Core.Models
         /// <summary>Terrain Features管理メニューを開くキーです。</summary>
         public KeybindList TerrainFeaturesMenuKey { get; set; } = new KeybindList(StardewModdingAPI.SButton.L);
 
+        /// <summary>カスタム床材のバリアントを一つ前に戻すキーです。</summary>
+        public KeybindList CustomFlooringPreviousVariantKey { get; set; } = new KeybindList(
+            new Keybind(StardewModdingAPI.SButton.LeftShift, StardewModdingAPI.SButton.MouseLeft));
+
+        /// <summary>カスタム床材の掲げる／しまう状態を切り替えるキーです。</summary>
+        public KeybindList CustomFlooringStowKey { get; set; } = new KeybindList(
+            new Keybind(StardewModdingAPI.SButton.RightShift, StardewModdingAPI.SButton.MouseLeft));
+
+        /// <summary>設置済みのカスタム床材の位置を表示するキーです。</summary>
+        public KeybindList CustomFlooringIdentifyKey { get; set; } = new KeybindList(StardewModdingAPI.SButton.F8);
+
         public KeybindList TimeSkipKey
         {
             get;

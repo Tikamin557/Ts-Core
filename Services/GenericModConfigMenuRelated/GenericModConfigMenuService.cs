@@ -838,6 +838,51 @@ namespace Ts_Core.Services.GenericModConfigMenuRelated
                     "PsrRoomPresets");
 
             //----------------------------------------
+            // Custom Flooring
+            //----------------------------------------
+
+            // 改行追加
+            api.AddParagraph(
+                manifest,
+                text: () => " ");
+            api.AddParagraph(
+                manifest,
+                text: () => " ");
+
+            api.AddSectionTitle(
+                manifest,
+                text: () =>
+                    helper.Translation.Get(
+                        "config.CustomFlooring.name"),
+                tooltip: () =>
+                    helper.Translation.Get(
+                        "config.CustomFlooring.description"));
+
+            api.AddKeybindList(
+                manifest,
+                getValue: () => getConfig().CustomFlooringPreviousVariantKey,
+                setValue: value => getConfig().CustomFlooringPreviousVariantKey = value,
+                name: () => helper.Translation.Get("config.CustomFlooringPreviousVariantKey.name"),
+                tooltip: () => helper.Translation.Get("config.CustomFlooringPreviousVariantKey.description"),
+                fieldId: "CustomFlooringPreviousVariantKey");
+
+            api.AddKeybindList(
+                manifest,
+                getValue: () => getConfig().CustomFlooringStowKey,
+                setValue: value => getConfig().CustomFlooringStowKey = value,
+                name: () => helper.Translation.Get("config.CustomFlooringStowKey.name"),
+                tooltip: () => helper.Translation.Get("config.CustomFlooringStowKey.description"),
+                fieldId: "CustomFlooringStowKey");
+
+            api.AddKeybindList(
+                manifest,
+                getValue: () => getConfig().CustomFlooringIdentifyKey,
+                setValue: value => getConfig().CustomFlooringIdentifyKey = value,
+                name: () => helper.Translation.Get("config.CustomFlooringIdentifyKey.name"),
+                tooltip: () => helper.Translation.Get("config.CustomFlooringIdentifyKey.description"),
+                fieldId: "CustomFlooringIdentifyKey");
+
+            //----------------------------------------
             // Shortcut Panel
             //----------------------------------------
 
