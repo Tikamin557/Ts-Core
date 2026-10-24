@@ -112,6 +112,8 @@ Panelへ独自のActionを登録し、プレイヤーがゲーム内パネルか
   Shared Utilities                           T's Mods間で共有して使用する共通機能を提供します。
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+v2.0.0では、[Instant Touch Warp](ModderGuide_WarpServices.md)、[ModConfigトークン](ModderGuide_ContentPatcherIntegration.md)、[tsCoreChangeMapTile](ModderGuide_EventCommands.md)を追加しました。
+
 各機能の個別ガイドについては、[詳細ドキュメント](#-詳細ドキュメント)を参照してください。
 
 ------------------------------------------------------------------------
@@ -236,6 +238,7 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 
 -   [Relationship Services](ModderGuide_RelationshipServices.md)
 -   [Location Services](ModderGuide_LocationServices.md)
+-   [Event Commands（tsCoreChangeMapTile）](ModderGuide_EventCommands.md)
 -   [Warp Services](ModderGuide_WarpServices.md)
 -   [Map Properties](ModderGuide_MapProperties.md)
 -   [Building Services](ModderGuide_BuildingServices.md)

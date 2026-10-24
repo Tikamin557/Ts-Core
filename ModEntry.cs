@@ -16,6 +16,7 @@ using Ts_Core.Services.BuildingRelated;
 using Ts_Core.Services.ContentPatcherRelated;
 using Ts_Core.Services.DebugSupport;
 using Ts_Core.Services.DialogueRelated;
+using Ts_Core.Services.EventRelated;
 using Ts_Core.Services.FarmhouseFixes;
 using Ts_Core.Services.GameStateQueryRelated;
 using Ts_Core.Services.GenericModConfigMenuRelated;
@@ -118,6 +119,9 @@ namespace Ts_Core
                 new Harmony(
                     ModManifest.UniqueID);
 
+            // イベント中のみのタイル置き換え（AnimatedTile対応）
+            EventMapTileService.Initialize(helper, Monitor);
+
             //----------------------------------------
             // Harmonyパッチ
             //----------------------------------------
@@ -132,6 +136,9 @@ namespace Ts_Core
             // Stardew Valley標準のWarp警告を抑制
             WarpWarningPatch.Apply(
                 harmony);
+
+            // タイルのワープTouchActionを接触時に起動
+            InstantTouchWarpPatch.Apply(harmony);
 
             // Warp暗転オーバーレイを最終描画
             WarpBlackoutOverlayPatch.Apply(
@@ -1059,6 +1066,7 @@ namespace Ts_Core
             TokenRegistrar.Register(
                 api,
                 ModManifest,
+                Helper,
                 service,
                 GetOrderedPartners);
         }

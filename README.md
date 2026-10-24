@@ -28,6 +28,7 @@ T's Core also includes optional convenience features for players, including a cu
 - Location tracking and location-related services
 - Warp Actions and reusable Warp Providers
   - Tile property-based warp destinations using `TsCoreWarpPoint`
+  - Instant touch-triggered warp actions with the `TsCoreInstantTouchWarp` map property
 - Post Renovation Patch system for applying map patches after FarmHouse renovations and other runtime map changes
 - Custom Map Properties for additional location behavior
   - Timed exits with optional dialogue and sound
@@ -40,7 +41,9 @@ T's Core also includes optional convenience features for players, including a cu
 - Dialogue System for creating data-driven dialogues with conditions, responses, actions, and dialogue chaining
 - Migration System for updating IDs stored in existing save data
 - Customizable Notification System and Notification Themes
+- `tsCoreChangeMapTile` event command for temporary tile changes (including animated tiles), with automatic restoration after the event
 - Content Patcher tokens and integration
+  - `ModConfig` token to read other installed mods' configuration values (with Content Patcher ConfigSchema default fallback)
   - Extended Content Pack reload tools for development
   - Conditional GMCM field visibility based on installed mods
   - Visual Position Picker buttons for Content Pack GMCM settings, with `BeforeField` and `AfterField` placement
@@ -80,7 +83,8 @@ The Modder Guide covers:
 
 - Relationship Services
 - Location Services
-- Warp Services, custom Warp Providers, and tile property-based warp destinations
+- Warp Services, custom Warp Providers, tile property-based warp destinations, and Instant Touch Warp
+- [Event Commands](docs/ModderGuide_EventCommands.md), including `tsCoreChangeMapTile`
 - Post Renovation Patch system
 - Map Properties
 - Building Services and custom Building Providers
@@ -91,7 +95,7 @@ The Modder Guide covers:
 - Dialogue System
 - Migration System and custom migration definitions
 - Notification System and custom Notification Themes
-- Content Patcher Integration and Tokens
+- Content Patcher Integration and Tokens, including `ModConfig`
 - Position Picker for visual coordinate selection from Content Pack GMCM settings
 - Terrain Features management menu for players
 - Mod Conflict Warnings for detecting incompatible mod combinations
@@ -105,6 +109,8 @@ T's Core provides custom Data Assets which allow Content Patcher packs to regist
 The BigCraftable Extension system can add configurable interactions, collision sizes, placement conditions, custom textures and animations, effects, lights, wobble effects, interaction conditions, required items, and other optional behavior to BigCraftables.
 
 See the **[BigCraftable Extension Guide](docs/ModderGuide_BigCraftableExtension.md)** for details.
+
+New in v2.0.0: Instant Touch Warp ([Warp Services](docs/ModderGuide_WarpServices.md)), the [tsCoreChangeMapTile event command](docs/ModderGuide_EventCommands.md), and the [ModConfig token](docs/ModderGuide_ContentPatcherIntegration.md).
 
 New in v1.9.9: [Custom Flooring](docs/ModderGuide_CustomFlooring.md), [Custom Recipe Pages](docs/ModderGuide_CustomRecipePages.md), and [Ingredient-Free Recipes](docs/ModderGuide_IngredientFreeRecipes.md). Each has a separate setup guide for Content Patcher authors.
 

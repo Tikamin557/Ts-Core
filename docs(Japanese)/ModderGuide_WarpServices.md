@@ -67,6 +67,32 @@ Packへの組み込み方法を説明します。
 
 ------------------------------------------------------------------------
 
+## Instant Touch Warp（v2.0.0）
+
+マップに以下の **Map Property** を設定すると、対応するワープ用 `TouchAction` をプレイヤーの当たり判定が対象タイルに触れた時点で実行します。
+
+```text
+TsCoreInstantTouchWarp = true
+```
+
+これはタイル単位ではなく **マップ全体のプロパティ** です。省略または `false` なら通常の動作を維持します。
+
+対応する `TouchAction` は `Warp`、`TsCoreWarp`、`TsCoreMagicWarp`、`TsCoreMagicWarp_Simple` です。`Back` または `Buildings` レイヤーのタイルを参照します。ワープ先などの引数は変更不要です。ローカルプレイヤーにのみ適用され、イベント中は実行しません。
+
+Content Patcherでの設定例（対象マップ名は適宜変更してください）：
+
+```json
+{
+  "Action": "EditMap",
+  "Target": "Maps/YourCustomMap",
+  "MapProperties": {
+    "TsCoreInstantTouchWarp": "true"
+  }
+}
+```
+
+---
+
 ## Warp Actions
 
 T's Coreでは、3種類のカスタムWarp Actionを提供しています。

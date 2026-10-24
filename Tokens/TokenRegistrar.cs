@@ -16,9 +16,15 @@ namespace Ts_Core.Tokens
         public static void Register(
             IContentPatcherAPI api,
             IManifest manifest,
+            IModHelper helper,
             PartnerService partnerService,
             Func<IEnumerable<string>> getOrderedPartners)
         {
+            api.RegisterToken(
+                manifest,
+                "ModConfig",
+                new ModConfigToken(helper));
+
             //----------------------------------------
             // Location
             //----------------------------------------

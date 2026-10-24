@@ -19,6 +19,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Position Picker](ModderGuide_PositionPicker.md)
 - 📄 [Post Renovation Patch](ModderGuide_PostRenovationPatch.md)
 - 📄 [Polyamory Sweet Rooms Integration](ModderGuide_PolyamorySweetRoomsIntegration.md)
+- 📄 [Event Commands](ModderGuide_EventCommands.md)
 - 📄 [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [Back to README](../README.md)
@@ -56,6 +57,32 @@ This guide explains how to use Warp Actions, register custom Warp Providers, and
 - [Example](#example)
 - [Debugging](#debugging)
 - [Notes](#notes)
+
+---
+
+## Instant Touch Warp (v2.0.0)
+
+By default, a warp `TouchAction` is handled through the game's normal tile interaction. Set the following **map property** to trigger supported warp TouchActions as soon as the player's collision box reaches the warp tile:
+
+```text
+TsCoreInstantTouchWarp = true
+```
+
+This is a **map-level property**, not a tile property. It applies to the current map only. Omit it or set it to `false` to keep the normal behavior.
+
+Supported `TouchAction` names are `Warp`, `TsCoreWarp`, `TsCoreMagicWarp`, and `TsCoreMagicWarp_Simple`, placed on the `Back` or `Buildings` layer. Existing destination arguments are unchanged. It only triggers for the local player, and does not activate during an event.
+
+Example Content Patcher map property edit (replace the map asset name with your own):
+
+```json
+{
+  "Action": "EditMap",
+  "Target": "Maps/YourCustomMap",
+  "MapProperties": {
+    "TsCoreInstantTouchWarp": "true"
+  }
+}
+```
 
 ---
 

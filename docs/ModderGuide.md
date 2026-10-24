@@ -90,6 +90,8 @@ See the [Detailed Documentation](#-detailed-documentation) section for individua
 
 ---
 
+New in v2.0.0: [Instant Touch Warp](ModderGuide_WarpServices.md), the [ModConfig token](ModderGuide_ContentPatcherIntegration.md), and the [tsCoreChangeMapTile event command](ModderGuide_EventCommands.md).
+
 # 📦 Using T's Core with Content Patcher
 
 Many T's Core features can be used directly from Content Patcher without writing C# code.
@@ -186,6 +188,7 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 
 - [Relationship Services](ModderGuide_RelationshipServices.md)
 - [Location Services](ModderGuide_LocationServices.md)
+- [Event Commands (`tsCoreChangeMapTile`)](ModderGuide_EventCommands.md)
 - [Warp Services](ModderGuide_WarpServices.md)
 - [Map Properties](ModderGuide_MapProperties.md)
 - [Building Services](ModderGuide_BuildingServices.md)

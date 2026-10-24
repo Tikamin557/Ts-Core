@@ -60,6 +60,40 @@ T's Coreでは、Gameを再起動せずにContent Packの `content.json` と、�
 
 <a id="reloading-a-content-patcher-content-pack"></a>
 
+## ModConfigトークン（v2.0.0）
+
+`Tikamin557.TsCore/ModConfig` を使うと、**導入済みの別のContent Patcher Content PackやSMAPI Modの設定値** をContent Patcherから参照できます。
+
+### 書式
+
+```text
+{{Tikamin557.TsCore/ModConfig:<ModUniqueID>/<SettingPath>}}
+```
+
+- `<ModUniqueID>`：対象Modの `manifest.json` にある `UniqueID`。
+- `<SettingPath>`：対象Modの `config.json` にある設定名。ネストした設定は `Visuals.EnableGlow` のようにドットで区切ります。
+
+`When` での使用例：
+
+```json
+{
+  "Action": "EditMap",
+  "Target": "Maps/YourCustomMap",
+  "FromFile": "assets/YourPatch.tmx",
+  "When": {
+    "Tikamin557.TsCore/ModConfig:Example.Author.ModA/EnablePond": "true"
+  }
+}
+```
+
+通常は対象Modの `config.json` の保存値を読み取ります。**Content PatcherのContent Packに限り**、設定が保存されていない場合は `content.json` の `ConfigSchema` にある該当設定の `Default` を参照できます。通常のSMAPI Modにはこの補完はありません。
+
+取得できる値は文字列・数値・真偽値（`true` / `false`）です。対象Modが未導入、設定パスが無効、対応しないJSON型の場合は値を返しません。Content Patcherのコンテキスト更新時に再評価されますが、設定ファイルの変更を直接監視する機能ではありません。
+
+> **注意：** 他Modの設定を参照するだけで、書き換えは行いません。対象Modが読み込まれており、設定値または対応するデフォルト値が存在する必要があります。
+
+---
+
 ## Content Patcher Content Packの再読み込み
 
 使用:

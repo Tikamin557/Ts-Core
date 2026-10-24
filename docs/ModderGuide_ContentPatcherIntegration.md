@@ -23,6 +23,7 @@ This guide explains how to use the public features provided by **T's Core** in C
 - 📄 [Notification System](ModderGuide_NotificationSystem.md)
 - ✅ **Content Patcher Integration** *(Current Page)*
 - 📄 [Position Picker](ModderGuide_PositionPicker.md)
+- 📄 [Event Commands](ModderGuide_EventCommands.md)
 - 📄 [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [Back to README](../README.md)
@@ -55,6 +56,40 @@ T's Core also extends Content Patcher's `ConfigSchema` with optional properties 
 - [Development Workflow](#development-workflow)
 - [Limitations](#limitations)
 - [Notes](#notes)
+
+---
+
+## ModConfig Token (v2.0.0)
+
+`Tikamin557.TsCore/ModConfig` exposes **configuration values from other installed Content Patcher packs or SMAPI mods** to Content Patcher conditions.
+
+### Syntax
+
+```text
+{{Tikamin557.TsCore/ModConfig:<ModUniqueID>/<SettingPath>}}
+```
+
+- `<ModUniqueID>`: the target mod's `manifest.json` `UniqueID`.
+- `<SettingPath>`: a property in that mod's `config.json`; use dot-separated names for nested properties (for example, `Visuals.EnableGlow`).
+
+Example in a Content Patcher `When` condition:
+
+```json
+{
+  "Action": "EditMap",
+  "Target": "Maps/YourCustomMap",
+  "FromFile": "assets/YourPatch.tmx",
+  "When": {
+    "Tikamin557.TsCore/ModConfig:Example.Author.ModA/EnablePond": "true"
+  }
+}
+```
+
+The token reads the target mod's saved `config.json`. **For Content Patcher packs only**, when the requested setting has no saved value, it can fall back to that setting's `Default` in `content.json` → `ConfigSchema`. SMAPI mods do not have this fallback.
+
+Supported values are strings, numbers, and booleans (returned as `true` or `false`). Missing mods, invalid paths, or unsupported JSON values return no token value. The token is reevaluated on Content Patcher context updates; it does not directly subscribe to configuration file changes.
+
+> **Note:** This token reads another mod's configuration; it does not change it. The target mod must be loaded, and the relevant setting must exist in its configuration or supported fallback.
 
 ---
 
