@@ -1,4 +1,4 @@
-﻿namespace Ts_Core.Models.BuildingRelated
+namespace Ts_Core.Models.BuildingRelated
 {
     /// <summary>
     /// Buildingに追加するTsCore拡張機能の定義です。
@@ -34,6 +34,11 @@
         /// 建築可能にするかどうかです。
         /// </summary>
         public bool ValleyFarmOnly { get; set; }
+
+        /// <summary>
+        /// HumanDoorのタイルに接触したときに、通常の建物入室処理を実行します。
+        /// </summary>
+        public bool HumanDoorTouchWarp { get; set; }
 
         //----------------------------------------
         // Lights

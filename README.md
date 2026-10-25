@@ -35,7 +35,7 @@ T's Core also includes optional convenience features for players, including a cu
   - Greenhouse-compatible custom locations with configurable fruit tree floor types
   - FarmHouse-style ambient lighting for custom locations
   - Out-of-bounds foreground masking using `TsCoreOutOfBoundsMask`
-- Building Services for adding custom settings and visual features to buildings
+- Building Services for adding custom settings and visual features to buildings, including HumanDoor touch entry, flooring-aware Draw Layers, building skin textures, and per-building animation timing
 - BigCraftable Extension for adding custom interactions, collision sizes, placement conditions, textures, animations, effects, lights, and other optional behavior to BigCraftables
 - Additional Tile Actions and Game State Queries for custom gameplay behavior and conditions
 - Dialogue System for creating data-driven dialogues with conditions, responses, actions, and dialogue chaining

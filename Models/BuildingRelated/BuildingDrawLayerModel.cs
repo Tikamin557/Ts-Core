@@ -65,6 +65,12 @@ namespace Ts_Core.Models.BuildingRelated
         public bool DrawInBackground { get; set; }
 
         /// <summary>
+        /// 背景DrawLayerを床材より上、建物本体より下に描画します。
+        /// DrawInBackgroundがtrueの場合のみ有効です。
+        /// </summary>
+        public bool DrawAboveFlooring { get; set; }
+
+        /// <summary>
         /// 描画順計算用のタイルオフセットです。
         /// </summary>
         public float SortTileOffset { get; set; }
@@ -92,6 +98,17 @@ namespace Ts_Core.Models.BuildingRelated
         /// -1の場合は横一列として扱います。
         /// </summary>
         public int FramesPerRow { get; set; } = -1;
+
+        /// <summary>
+        /// 建物ごとにアニメーションの再生開始位置をずらします。
+        /// </summary>
+        public bool RandomStartFrame { get; set; }
+
+        /// <summary>
+        /// 再生開始位置をずらす刻み幅（ミリ秒）です。
+        /// 0以下の場合はずらしません。
+        /// </summary>
+        public int RandomStartIntervalMs { get; set; } = 100;
 
         //----------------------------------------
         // Conditions

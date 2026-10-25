@@ -509,6 +509,20 @@ If both `Enabled` and `EnabledField` are used, both must be enabled for the Ligh
 
 ---
 
+### HumanDoorTouchWarp (v2.0.1)
+
+Set `"HumanDoorTouchWarp": true` on a Building Provider to enter its buildings automatically when the player first touches the HumanDoor tile from outside. Clicking the HumanDoor to enter is disabled, the actionable hand cursor is hidden, and the `doorClose` sound is suppressed during touch entry.
+
+```json
+{
+  "HumanDoorTouchWarp": true
+}
+```
+
+When omitted or `false`, the normal click-to-enter behavior is preserved. This setting applies only to buildings managed by the enabled provider.
+
+---
+
 ## Building Draw Layers
 
 Building Draw Layers add extra graphical layers to a building.
@@ -558,19 +572,43 @@ Example:
 | `SourceRect` | ✅ | — | Pixel area of the texture to draw. |
 | `DrawPosition` | Optional | `0, 0` | Draw position relative to the building. |
 | `DrawInBackground` | Optional | `false` | Draw the layer behind the building instead of in front of it. |
+| `DrawAboveFlooring` | Optional | `false` | Draw background layers above flooring but below the building. Requires `DrawInBackground: true`. |
 | `SortTileOffset` | Optional | `0` | Y tile offset used when calculating the render order. |
 | `OnlyDrawIfChestHasContents` | Optional | — | Draw only if the specified Building Chest contains an item. |
 | `FrameDuration` | Optional | `90` | Duration of each animation frame in milliseconds. A single value or per-frame values can be used. |
 | `FrameCount` | Optional | `1` | Number of animation frames. |
+| `RandomStartFrame` | Optional | `false` | Offset animation timing per building. |
+| `RandomStartIntervalMs` | Optional | `100` | Offset step size in milliseconds; values ≤ 0 disable the offset. |
 | `FramesPerRow` | Optional | `-1` | Number of animation frames per spritesheet row. |
 | `AnimalDoorOffset` | Optional | `0, 0` | Pixel offset applied based on the building's animal door open state. |
 | `Condition` | Optional | — | Game State Query condition which must match for the layer to be drawn. |
 
 ---
 
+### Draw Layer settings added in v2.0.1
+
+- `DrawAboveFlooring` (default `false`): When `DrawInBackground` is `true`, renders the layer above flooring but below the building.
+- `RandomStartFrame` (default `false`): Offsets animation timing for each building based on its position, building type, and layer ID. The offset is deterministic, so the same building keeps its timing across restarts.
+- `RandomStartIntervalMs` (default `100`): Step size in milliseconds for the start-time offset. Values of `0` or less disable the offset. Used when `RandomStartFrame` is `true`.
+
+```json
+{
+  "Id": "Animal",
+  "DrawInBackground": true,
+  "DrawAboveFlooring": true,
+  "FrameCount": 4,
+  "FrameDuration": 200,
+  "RandomStartFrame": true,
+  "RandomStartIntervalMs": 500,
+  "SourceRect": { "X": 0, "Y": 0, "Width": 16, "Height": 16 }
+}
+```
+
+---
+
 ### Texture
 
-If `Texture` is omitted, T's Core uses the target building's texture.
+If `Texture` is omitted, T's Core uses the texture **currently applied to the building**, including an active building skin.
 
 ```json
 {

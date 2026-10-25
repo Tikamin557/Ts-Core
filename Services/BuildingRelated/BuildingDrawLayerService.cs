@@ -119,7 +119,12 @@ namespace Ts_Core.Services.BuildingRelated
                 // Background / Foreground判定
                 //----------------------------------------
 
-                if (drawLayer.DrawInBackground != drawInBackground)
+                // 床材の上に置く背景レイヤーは通常描画側で処理します。
+                bool useBackgroundPass =
+                    drawLayer.DrawInBackground
+                    && !drawLayer.DrawAboveFlooring;
+
+                if (useBackgroundPass != drawInBackground)
                     continue;
 
                 //----------------------------------------
@@ -154,7 +159,7 @@ namespace Ts_Core.Services.BuildingRelated
 
                 Rectangle sourceRect =
                     GetSourceRect(
-                        drawLayer);
+                        drawLayer, building);
 
                 // BuildingDataのSeasonOffset等を適用
                 sourceRect =
@@ -176,22 +181,8 @@ namespace Ts_Core.Services.BuildingRelated
                 }
                 else
                 {
-                    var buildingData =
-                        building.GetData();
-
-                    if (buildingData == null
-                        || string.IsNullOrWhiteSpace(
-                            buildingData.Texture))
-                    {
-                        layerTexture =
-                            building.texture.Value;
-                    }
-                    else
-                    {
-                        layerTexture =
-                            Game1.content.Load<Texture2D>(
-                                buildingData.Texture);
-                    }
+                    layerTexture =
+                        building.texture.Value;
                 }
 
                 //----------------------------------------
@@ -233,6 +224,12 @@ namespace Ts_Core.Services.BuildingRelated
                 if (drawInBackground)
                 {
                     sortY = 0f;
+                }
+                else if (drawLayer.DrawInBackground
+                    && drawLayer.DrawAboveFlooring)
+                {
+                    // 床材より上、建物本体より下の描画深度。
+                    sortY = 0.00002f;
                 }
                 else
                 {
@@ -425,7 +422,7 @@ namespace Ts_Core.Services.BuildingRelated
 
                     Rectangle sourceRect =
                         GetSourceRect(
-                            drawLayer);
+                            drawLayer, building);
 
                     sourceRect =
                         building.ApplySourceRectOffsets(
@@ -497,22 +494,8 @@ namespace Ts_Core.Services.BuildingRelated
                     }
                     else
                     {
-                        var buildingData =
-                            building.GetData();
-
-                        if (buildingData == null
-                            || string.IsNullOrWhiteSpace(
-                                buildingData.Texture))
-                        {
-                            layerTexture =
-                                building.texture.Value;
-                        }
-                        else
-                        {
-                            layerTexture =
-                                Game1.content.Load<Texture2D>(
-                                    buildingData.Texture);
-                        }
+                        layerTexture =
+                            building.texture.Value;
                     }
 
                     //----------------------------------------
@@ -581,7 +564,8 @@ namespace Ts_Core.Services.BuildingRelated
         /// DrawLayerの現在のSourceRectを取得します。
         /// </summary>
         private static Rectangle GetSourceRect(
-            BuildingDrawLayerModel drawLayer)
+            BuildingDrawLayerModel drawLayer,
+            Building building)
         {
             Rectangle sourceRect =
                 drawLayer.SourceRect;
@@ -606,8 +590,8 @@ namespace Ts_Core.Services.BuildingRelated
             // 現在時刻
             //----------------------------------------
 
-            int time =
-                (int)Game1.currentGameTime
+            long time =
+                (long)Game1.currentGameTime
                     .TotalGameTime
                     .TotalMilliseconds;
 
@@ -637,8 +621,30 @@ namespace Ts_Core.Services.BuildingRelated
             // 現在フレーム
             //----------------------------------------
 
+            // 建物の位置とレイヤーIDから固定のずれ幅を生成します。
+            // ゲーム再起動後も同じ位置の建物は同じタイミングになります。
+            if (drawLayer.RandomStartFrame
+                && drawLayer.RandomStartIntervalMs > 0)
+            {
+                int interval = drawLayer.RandomStartIntervalMs;
+                int slotCount = (totalDuration - 1) / interval + 1;
+
+                uint hash = 2166136261;
+                unchecked
+                {
+                    hash = (hash ^ (uint)building.tileX.Value) * 16777619;
+                    hash = (hash ^ (uint)building.tileY.Value) * 16777619;
+                    foreach (char c in building.buildingType.Value)
+                        hash = (hash ^ c) * 16777619;
+                    foreach (char c in drawLayer.Id)
+                        hash = (hash ^ c) * 16777619;
+                }
+
+                time += (long)(hash % (uint)slotCount) * interval;
+            }
+
             int animationTime =
-                time % totalDuration;
+                (int)(time % totalDuration);
 
             int frame = 0;
 
@@ -857,7 +863,7 @@ namespace Ts_Core.Services.BuildingRelated
 
                     Rectangle sourceRect =
                         GetSourceRect(
-                            drawLayer);
+                            drawLayer, building);
 
                     sourceRect =
                         building.ApplySourceRectOffsets(

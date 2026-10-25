@@ -140,6 +140,9 @@ namespace Ts_Core
             // タイルのワープTouchActionを接触時に起動
             InstantTouchWarpPatch.Apply(harmony);
 
+            // BuildingのHumanDoorタッチ入室とクリック入室制御
+            BuildingHumanDoorTouchWarpPatch.Apply(harmony);
+
             // Warp暗転オーバーレイを最終描画
             WarpBlackoutOverlayPatch.Apply(
                 harmony);

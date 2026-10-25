@@ -580,6 +580,20 @@ Provider内のすべてのLightは、次のように直接制御できます:
 
 ------------------------------------------------------------------------
 
+### HumanDoorTouchWarp (v2.0.1)
+
+Building Providerに `"HumanDoorTouchWarp": true` を指定すると、プレイヤーが建物のHumanDoorタイルに**外側から接触した際**に通常の入室処理を実行します。クリックでの入室は無効となり、HumanDoorの操作可能カーソルも表示されません。タッチ入室時の `doorClose` 効果音は抑制されます。
+
+```json
+{
+  "HumanDoorTouchWarp": true
+}
+```
+
+省略または `false` の場合はバニラのクリック入室を維持します。対象はこの設定を有効にしたBuilding Providerの建物です。
+
+---
+
 ## Building Draw Layers
 
 Building Draw LayerはBuildingへ追加の描画Layerを追加します。
@@ -657,9 +671,30 @@ T's CoreはBuildingに既存の `DrawLayers` を置き換えません。
 
 ------------------------------------------------------------------------
 
+### v2.0.1で追加されたDraw Layer設定
+
+- `DrawAboveFlooring`（既定値 `false`）：`DrawInBackground` が `true` の場合に限り、床材より上・建物本体より下にLayerを描画します。
+- `RandomStartFrame`（既定値 `false`）：建物の位置・種類とLayer IDから決まる開始時間のずれを適用します。複数の建物のアニメーションを異なるタイミングで再生できます。ずれは建物ごとに固定され、再起動後も同じ条件なら維持されます。
+- `RandomStartIntervalMs`（既定値 `100`）：開始時間のずれを決める刻み幅（ミリ秒）。`0` 以下ではずれません。`RandomStartFrame` が `true` の場合に使用します。
+
+```json
+{
+  "Id": "Animal",
+  "DrawInBackground": true,
+  "DrawAboveFlooring": true,
+  "FrameCount": 4,
+  "FrameDuration": 200,
+  "RandomStartFrame": true,
+  "RandomStartIntervalMs": 500,
+  "SourceRect": { "X": 0, "Y": 0, "Width": 16, "Height": 16 }
+}
+```
+
+---
+
 ### Texture
 
-`Texture` を省略すると、T's Coreは対象BuildingのTextureを使用します。
+`Texture` を省略すると、T's Coreは対象Buildingに**現在適用されているTexture**を使用します。Building Skinが適用されている場合も、そのSkinのTextureが使用されます。
 
 ``` json
 {
