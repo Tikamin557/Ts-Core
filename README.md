@@ -173,3 +173,8 @@ When reporting a bug, please include:
 
 - [Nexus Mods - T's Core](https://www.nexusmods.com/stardewvalley/mods/50043)
 - [All Mods by Tikamin557](https://www.nexusmods.com/profile/tikamin557/mods)
+
+
+### Decoratable Cellar (v2.0.2)
+
+T's Core can enable wallpaper and flooring customization in Cellar locations, including additional material sets. See the [Decoratable Cellar Guide](docs/ModderGuide_DecoratableCellar.md).

@@ -26,6 +26,7 @@ using Ts_Core.Services.MapRelated.PostRenovation;
 using Ts_Core.Services.MapRelated.TimedExit;
 using Ts_Core.Services.MapRelated.TsCoreAlwaysFront;
 using Ts_Core.Services.MapRelated.TsCoreAmbientLight;
+using Ts_Core.Services.MapRelated.TsCoreDecoratableCellar;
 using Ts_Core.Services.MapRelated.TsCoreGreenhouse;
 using Ts_Core.Services.MapRelated.TsCoreOutOfBoundsMask;
 using Ts_Core.Services.Migration;
@@ -125,6 +126,9 @@ namespace Ts_Core
             //----------------------------------------
             // Harmonyパッチ
             //----------------------------------------
+
+            // Cellar内でバニラの壁紙・床材アイテムを使用可能にします。
+            TsCoreDecoratableCellarItemPatch.Apply(harmony, Monitor);
 
             // クラフト・料理レシピの素材不要指定に対応
             NullRecipeIngredientsPatch.Apply(harmony, Monitor, helper.Translation);
@@ -263,7 +267,8 @@ namespace Ts_Core
             // BigCraftable Extensionの
             // Texture / Animation / DrawLayerを有効化
             MachineAnimationTexturePatch.Apply(
-                harmony);
+                harmony,
+                Monitor);
 
             // BigCraftable Extensionの
             // Texture Size / DrawLayerをMenu描画に適用
@@ -657,6 +662,13 @@ namespace Ts_Core
             helper.Events.Player.Warped
                 += OnWarped;
 
+            // Cellarマップの再読み込み後に、保存済みの壁紙と床材を復元します。
+            helper.Events.GameLoop.UpdateTicked
+                += TsCoreDecoratableCellarMapReload.OnUpdateTicked;
+
+            helper.Events.Content.AssetReady
+                += TsCoreDecoratableCellarMapReload.OnAssetReady;
+
             //----------------------------------------
             // Content
             //----------------------------------------
@@ -1016,6 +1028,9 @@ namespace Ts_Core
 
             BuildingLightService
                 .UpdateLights();
+
+            // 保存済みの壁紙を、移動先Cellarの現在のマップへ再適用します。
+            TsCoreDecoratableCellarRestore.RestoreSavedWallpaper(e.NewLocation);
         }
 
         //----------------------------------------

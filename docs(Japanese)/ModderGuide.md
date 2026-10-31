@@ -263,3 +263,8 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 
 
 ショートカットパネルの自由配置・CJB Cheats Menu連携については、[ショートカットパネルガイド](ModderGuide_ShortcutPanel.md)を参照してください。
+
+
+## Decoratable Cellar
+
+[Decoratable Cellar（地下室の壁紙・床材変更）](ModderGuide_DecoratableCellar.md)を参照してください。

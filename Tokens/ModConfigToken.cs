@@ -108,14 +108,16 @@ namespace Ts_Core.Tokens
             if (modDirectories.TryGetValue(modId, out string? cached))
                 return cached;
 
-            // SMAPIのModフォルダを起点として、子フォルダのmanifest.jsonを照合します。
-            DirectoryInfo? directory = new(helper.DirectoryPath);
-            while (directory != null && !string.Equals(directory.Name, "Mods", StringComparison.OrdinalIgnoreCase))
-                directory = directory.Parent;
-
+            // フォルダ名「Mods」を前提とせず、T's Coreの配置先から親階層を探索します。
+            // Stardropなどの--mods-path指定にも対応します。
             string? result = null;
-            if (directory != null)
+            DirectoryInfo? directory = new DirectoryInfo(helper.DirectoryPath).Parent;
+            for (int depth = 0; directory != null && depth < 5 && result == null; depth++, directory = directory.Parent)
             {
+                // ドライブ全体やゲーム本体のフォルダまで再帰探索しないようにします。
+                if (directory.Parent == null || File.Exists(Path.Combine(directory.FullName, "Stardew Valley.dll")))
+                    break;
+
                 try
                 {
                     foreach (string manifestPath in Directory.EnumerateFiles(directory.FullName, "manifest.json", SearchOption.AllDirectories))
@@ -139,7 +141,7 @@ namespace Ts_Core.Tokens
                 }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                 {
-                    // ファイル探索ができない場合は値なしとして扱います。
+                    // この階層を探索できない場合は、上位階層を確認します。
                 }
             }
 

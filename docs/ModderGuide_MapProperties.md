@@ -812,3 +812,8 @@ Set the map-level property `TsCoreOutOfBoundsMask` to `true` to draw a black for
 ```
 
 Use `"false"` or remove the property to disable it. The value is parsed as a boolean (`true`/`false`, case-insensitive). This is a visual mask only; it does not change collisions or the playable map area.
+
+
+## Decoratable Cellar
+
+Set `TsCoreDecoratableCellar=T` on a Cellar map. See the [Decoratable Cellar Guide](ModderGuide_DecoratableCellar.md) for region properties and materials.

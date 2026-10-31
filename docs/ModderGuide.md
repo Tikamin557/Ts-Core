@@ -70,6 +70,7 @@ T's Core currently provides the following systems.
 | Map Properties | Adds custom map properties for additional location behavior. |
 | Building Services | Adds custom settings and visual features to buildings. |
 | BigCraftable Extension | BigCraftable Extensions registered through `TsCore/BigCraftableExtension` can add configurable interactions, collision sizes, placement conditions, textures, animations, effects, lights, and other optional behavior to BigCraftables. |
+| Decoratable Cellar | Wallpaper and flooring customization for Cellar locations using map and tile properties. |
 | Custom Flooring | Configurable flooring variants, textures, previews, sounds, and randomization through `TsCore/CustomFlooring`. |
 | Custom Recipe Pages | Dedicated crafting/cooking recipe pages through `TsCore/CustomRecipePages`, with Better Crafting support. |
 | Ingredient-Free Recipes | Crafting/cooking recipes without ingredients, with configurable ingredient-area presentation. |
@@ -193,6 +194,7 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Map Properties](ModderGuide_MapProperties.md)
 - [Building Services](ModderGuide_BuildingServices.md)
 - [BigCraftable Extension](ModderGuide_BigCraftableExtension.md)
+- [Decoratable Cellar](ModderGuide_DecoratableCellar.md)
 - [Custom Flooring](ModderGuide_CustomFlooring.md)
 - [Custom Recipe Pages](ModderGuide_CustomRecipePages.md)
 - [Ingredient-Free Recipes](ModderGuide_IngredientFreeRecipes.md)

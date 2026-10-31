@@ -866,3 +866,8 @@ Map Property `TsCoreOutOfBoundsMask` を `true` にすると、画面に見え�
 ```
 
 無効にする場合は `"false"` にするかPropertyを削除してください。値は真偽値として判定され、大文字・小文字は区別しません。これは表示用マスクであり、当たり判定やMapの移動可能範囲は変更しません。
+
+
+## Decoratable Cellar
+
+Cellarマップに`TsCoreDecoratableCellar=T`を指定します。詳しくは[Decoratable Cellarガイド](ModderGuide_DecoratableCellar.md)を参照してください。

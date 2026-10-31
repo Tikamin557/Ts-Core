@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
 using System.Reflection;
 using System.Reflection.Emit;
 using Ts_Core.Services.BigCraftableRelated;
@@ -13,6 +14,8 @@ namespace Ts_Core.Patches.BigCraftableRelated
     /// </summary>
     public static class MachineAnimationTexturePatch
     {
+        private static IMonitor? monitor;
+
         //----------------------------------------
         // Apply
         //----------------------------------------
@@ -21,8 +24,10 @@ namespace Ts_Core.Patches.BigCraftableRelated
         /// Patchを適用します。
         /// </summary>
         public static void Apply(
-            Harmony harmony)
+            Harmony harmony,
+            IMonitor modMonitor)
         {
+            monitor = modMonitor;
             MethodInfo? targetMethod =
                 AccessTools.Method(
                     typeof(StardewValley.Object),
@@ -127,43 +132,107 @@ namespace Ts_Core.Patches.BigCraftableRelated
                 || vanillaDrawMethod == null
                 || customDrawMethod == null)
             {
-                throw new InvalidOperationException(
-                    "Machine animation draw methods were not found.");
+                monitor?.Log(
+                    "Machine animation drawing patch was skipped: required methods were not found.",
+                    LogLevel.Warn);
+
+                return codes;
             }
 
             //----------------------------------------
-            // 通常BigCraftableのSourceRectを検索
+            // 通常BigCraftableの描画候補を検索
             //----------------------------------------
+
+            /*
+             * まず従来の条件（直前4命令以内のldloc）で検索します。
+             * 他Modによる命令挿入で条件から外れた場合のみ、
+             * 直前12命令まで検索範囲を広げます。
+             *
+             * 誤ったDrawの差し替えを防ぐため、候補が
+             * 一意に特定できる場合にだけPatchを適用します。
+             */
+
+            List<int> strictCandidates =
+                FindDrawCandidates(
+                    codes,
+                    getSourceRectMethod,
+                    vanillaDrawMethod,
+                    4);
+
+            List<int> candidates =
+                strictCandidates.Count > 0
+                    ? strictCandidates
+                    : FindDrawCandidates(
+                        codes,
+                        getSourceRectMethod,
+                        vanillaDrawMethod,
+                        12);
+
+            if (candidates.Count != 1)
+            {
+                monitor?.Log(
+                    $"Machine animation drawing patch was skipped: expected one BigCraftable draw call, found {candidates.Count}. Another mod may have modified Object.draw().",
+                    LogLevel.Warn);
+
+                return codes;
+            }
+
+            //----------------------------------------
+            // Object自身を描画呼び出しへ追加
+            //----------------------------------------
+
+            int drawIndex = candidates[0];
+            CodeInstruction originalDraw = codes[drawIndex];
+            CodeInstruction loadMachine =
+                new(OpCodes.Ldarg_0);
+
+            // 分岐先ラベルは追加命令に移し、
+            // Object引数の読み込みを飛ばさないようにします。
+            loadMachine.labels.AddRange(originalDraw.labels);
+            originalDraw.labels.Clear();
+
+            codes.Insert(
+                drawIndex,
+                loadMachine);
+
+            originalDraw.opcode =
+                OpCodes.Call;
+
+            originalDraw.operand =
+                customDrawMethod;
+
+            return codes;
+        }
+
+        //----------------------------------------
+        // FindDrawCandidates
+        //----------------------------------------
+
+        /// <summary>
+        /// SourceRect取得から近い通常BigCraftable描画候補を探します。
+        /// 別のSourceRect取得をまたいでDrawを検索しません。
+        /// </summary>
+        private static List<int> FindDrawCandidates(
+            List<CodeInstruction> codes,
+            MethodInfo getSourceRectMethod,
+            MethodInfo vanillaDrawMethod,
+            int localSearchRange)
+        {
+            HashSet<int> candidates =
+                new();
 
             for (int i = 0;
                 i < codes.Count;
                 i++)
             {
-                if (!codes[i].Calls(
-                    getSourceRectMethod))
-                {
+                if (!codes[i].Calls(getSourceRectMethod))
                     continue;
-                }
-
-                /*
-                 * 通常Machineの場合:
-                 *
-                 * itemData.GetSourceRect(
-                 *     offset,
-                 *     ParentSheetIndex)
-                 *
-                 * offsetはローカル変数なので、
-                 * GetSourceRect直前付近に
-                 * ldloc が存在します。
-                 */
 
                 bool usesLocalOffset =
                     false;
 
                 int start =
-                    Math.Max(
-                        0,
-                        i - 4);
+                    Math.Max(0, i - localSearchRange);
 
                 for (int j = start;
                     j < i;
@@ -189,49 +258,26 @@ namespace Ts_Core.Patches.BigCraftableRelated
                 if (!usesLocalOffset)
                     continue;
 
-                //----------------------------------------
-                // このSourceRectの後にある
-                // SpriteBatch.Drawを検索
-                //----------------------------------------
+                // 次のSourceRect取得、または一定の範囲で検索を終了します。
+                int end =
+                    Math.Min(codes.Count, i + 80);
 
                 for (int j = i + 1;
-                    j < codes.Count;
+                    j < end;
                     j++)
                 {
-                    if (!codes[j].Calls(
-                        vanillaDrawMethod))
+                    if (codes[j].Calls(getSourceRectMethod))
+                        break;
+
+                    if (codes[j].Calls(vanillaDrawMethod))
                     {
-                        continue;
+                        candidates.Add(j);
+                        break;
                     }
-
-                    //----------------------------------------
-                    // Object自身を追加
-                    //----------------------------------------
-
-                    codes.Insert(
-                        j,
-                        new CodeInstruction(
-                            OpCodes.Ldarg_0));
-
-                    j++;
-
-                    //----------------------------------------
-                    // vanilla Drawを
-                    // TsCore対応Drawへ差し替え
-                    //----------------------------------------
-
-                    codes[j].opcode =
-                        OpCodes.Call;
-
-                    codes[j].operand =
-                        customDrawMethod;
-
-                    return codes;
                 }
             }
 
-            throw new InvalidOperationException(
-                "Normal BigCraftable draw call was not found.");
+            return candidates.OrderBy(index => index).ToList();
         }
 
         //----------------------------------------
