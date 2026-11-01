@@ -175,6 +175,8 @@ When reporting a bug, please include:
 - [All Mods by Tikamin557](https://www.nexusmods.com/profile/tikamin557/mods)
 
 
-### Decoratable Cellar (v2.0.2)
+### Decoratable Cellar (v2.0.2) and Initial Casks (v2.0.3)
 
 T's Core can enable wallpaper and flooring customization in Cellar locations, including additional material sets. See the [Decoratable Cellar Guide](docs/ModderGuide_DecoratableCellar.md).
+
+From v2.0.3, the `TsCoreInitialCasks` map property also controls initial cask and cask-filled chest placement in Cellars. See the [Map Properties Guide](docs/ModderGuide_MapProperties.md#initial-casks-v203).

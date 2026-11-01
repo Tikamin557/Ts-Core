@@ -195,6 +195,7 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Building Services](ModderGuide_BuildingServices.md)
 - [BigCraftable Extension](ModderGuide_BigCraftableExtension.md)
 - [Decoratable Cellar](ModderGuide_DecoratableCellar.md)
+- [Initial Casks (Map Properties)](ModderGuide_MapProperties.md#initial-casks-v203)
 - [Custom Flooring](ModderGuide_CustomFlooring.md)
 - [Custom Recipe Pages](ModderGuide_CustomRecipePages.md)
 - [Ingredient-Free Recipes](ModderGuide_IngredientFreeRecipes.md)

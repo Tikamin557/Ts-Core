@@ -130,6 +130,9 @@ namespace Ts_Core
             // Cellar内でバニラの壁紙・床材アイテムを使用可能にします。
             TsCoreDecoratableCellarItemPatch.Apply(harmony, Monitor);
 
+            // 熟成ダル初期配置の呼び出し状況をログに記録します（診断専用）。
+            TsCoreInitialCasksDiagnosticPatch.Apply(harmony, Monitor);
+
             // クラフト・料理レシピの素材不要指定に対応
             NullRecipeIngredientsPatch.Apply(harmony, Monitor, helper.Translation);
 

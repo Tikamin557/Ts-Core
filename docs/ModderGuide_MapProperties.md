@@ -817,3 +817,42 @@ Use `"false"` or remove the property to disable it. The value is parsed as a boo
 ## Decoratable Cellar
 
 Set `TsCoreDecoratableCellar=T` on a Cellar map. See the [Decoratable Cellar Guide](ModderGuide_DecoratableCellar.md) for region properties and materials.
+
+
+## Initial Casks (v2.0.3)
+
+The `TsCoreInitialCasks` map property controls the **initial placement** of casks and chests containing casks in a `Cellar`. It works independently of `TsCoreDecoratableCellar`; wallpaper and flooring customization is not required.
+
+Add it to the map used by the Cellar, for example through Content Patcher:
+
+```json
+{
+  "Action": "EditMap",
+  "Target": "Maps/Cellar",
+  "MapProperties": {
+    "TsCoreInitialCasks": "6 8 Chest 2 NoStack, 7 8 StoneChest 5, 8 8, 9 8"
+  }
+}
+```
+
+Entries are separated by commas, and each entry uses one of these formats:
+
+| Format | Result |
+|---|---|
+| `X Y` | Place one cask at tile `(X, Y)` |
+| `X Y ChestType Count` | Place a chest containing `Count` casks at `(X, Y)` |
+| `X Y ChestType Count NoStack` | Place a chest containing `Count` separate cask item stacks |
+
+Supported `ChestType` values (case-sensitive): `Chest`, `StoneChest`, `JunimoChest`, `BigChest`, and `BigStoneChest`. `Count` must be from 1 to 999, and `NoStack` is case-sensitive. With `NoStack`, each cask occupies its own chest slot, so the count must not exceed the chest's actual capacity. Without `NoStack`, identical casks can stack normally.
+
+**Behavior and limitations:**
+
+- This changes the initial cask setup only; it does not continuously spawn or rearrange objects.
+- When the property is absent, vanilla initial cask placement is used.
+- When the property is present and valid, it replaces the vanilla initial placement rather than adding to it.
+- The custom placement is applied only when the Cellar is being initialized outside save loading and has no existing objects. Existing saved casks and chests are not removed or replaced.
+- Tile coordinates must be within the map bounds. Duplicate coordinates place only the first specified object.
+- Invalid entries or a chest that cannot hold the requested items cause T's Core to fall back to vanilla initial placement; a warning is logged.
+- An empty property value specifies no initial objects.
+
+See also the [Decoratable Cellar Guide](ModderGuide_DecoratableCellar.md) for optional wallpaper and flooring customization.

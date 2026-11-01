@@ -268,3 +268,5 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 ## Decoratable Cellar
 
 [Decoratable Cellar（地下室の壁紙・床材変更）](ModderGuide_DecoratableCellar.md)を参照してください。
+
+熟成ダルの初期配置については[Map PropertiesのInitial Casks](ModderGuide_MapProperties.md#initial-casksv203熟成ダルの初期配置)を参照してください。

@@ -147,10 +147,29 @@ namespace Ts_Core.Services.MapRelated.TsCoreDecoratableCellar
             // 追加素材の登録方式は現段階では変更しません。
             if (separator < 0 && location.Map?.GetTileSheet(tileSheetId) == null)
             {
-                if (!TsCoreDecoratableCellarWallpaperSource.TryResolve(location, materialId,
+                if (TsCoreDecoratableCellarWallpaperSource.TryResolve(location, materialId,
                     out string resolvedSheetId, out _))
-                    return false;
-                tileSheetId = resolvedSheetId;
+                {
+                    tileSheetId = resolvedSheetId;
+                }
+                else
+                {
+                    // CPのOverlay等でバニラのシートが別IDに変更される場合があります。
+                    // 床領域で実際に使用されているシートを、IDの一致で限定的に探します。
+                    // 候補が複数ある場合は誤ったシートへの適用を避けます。
+                    string? candidateId = null;
+                    foreach (xTile.Tiles.TileSheet sheet in location.Map!.TileSheets)
+                    {
+                        if (!sheet.Id.EndsWith("walls_and_floors", StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        if (candidateId != null)
+                            return false;
+                        candidateId = sheet.Id;
+                    }
+                    if (candidateId == null)
+                        return false;
+                    tileSheetId = candidateId;
+                }
             }
 
             return location.Map?.GetTileSheet(tileSheetId) != null;

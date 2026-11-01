@@ -39,3 +39,7 @@ Selected materials are stored separately for walls and floors in each Cellar's `
 Keep region IDs consistent across map updates so saved selections remain associated with the intended regions. This feature preserves the original `Cellar` location type.
 
 ← [Back to Modder Guide](ModderGuide.md)
+
+## Initial cask placement (v2.0.3)
+
+The separate `TsCoreInitialCasks` map property controls initial cask/chest placement without requiring wallpaper or flooring customization. See the [Map Properties Guide](ModderGuide_MapProperties.md#initial-casks-v203).

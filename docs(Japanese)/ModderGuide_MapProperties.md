@@ -871,3 +871,42 @@ Map Property `TsCoreOutOfBoundsMask` を `true` にすると、画面に見え�
 ## Decoratable Cellar
 
 Cellarマップに`TsCoreDecoratableCellar=T`を指定します。詳しくは[Decoratable Cellarガイド](ModderGuide_DecoratableCellar.md)を参照してください。
+
+
+## Initial Casks（v2.0.3／熟成ダルの初期配置）
+
+Map Property `TsCoreInitialCasks` で、`Cellar` の**初期配置**に使う熟成ダルや、熟成ダル入りチェストを指定できます。`TsCoreDecoratableCellar` とは独立しており、壁紙・床材の張り替え機能を有効にする必要はありません。
+
+Content PatcherでCellarマップに指定する例：
+
+```json
+{
+  "Action": "EditMap",
+  "Target": "Maps/Cellar",
+  "MapProperties": {
+    "TsCoreInitialCasks": "6 8 Chest 2 NoStack, 7 8 StoneChest 5, 8 8, 9 8"
+  }
+}
+```
+
+各指定はカンマで区切り、次のいずれかの形式で記述します。
+
+| 形式 | 動作 |
+|---|---|
+| `X Y` | 座標 `(X, Y)` に熟成ダルを1個配置 |
+| `X Y ChestType Count` | 熟成ダルを `Count` 個収納したチェストを配置 |
+| `X Y ChestType Count NoStack` | 熟成ダルを1個ずつ別のスロットに収納したチェストを配置 |
+
+`ChestType` に指定できる値は `Chest`、`StoneChest`、`JunimoChest`、`BigChest`、`BigStoneChest` です（大文字・小文字を区別します）。`Count` は1～999です。`NoStack` も大文字・小文字を区別します。`NoStack` 指定時は熟成ダル1個につき1スロットを使うため、個数がチェストの実際の容量を超えないようにしてください。省略時は通常どおりスタック可能です。
+
+**動作と注意事項：**
+
+- 初期配置だけを変更します。継続的に生成したり、配置を並べ直したりする機能ではありません。
+- プロパティがない場合は、バニラの熟成ダル初期配置を使用します。
+- 有効な指定がある場合は、バニラの初期配置に追加するのではなく、置き換えます。
+- セーブデータの読み込み中はカスタム初期配置を行いません。また、既にオブジェクトがあるCellarには適用しないため、保存済みの熟成ダルやチェストを削除・置換しません。
+- 座標はマップ範囲内に指定してください。同じ座標を複数指定した場合は最初の指定が優先されます。
+- 指定が不正な場合や、チェストに指定数を収納できない場合は警告ログを出し、バニラの初期配置に戻します。
+- プロパティを空文字列にすると、初期配置オブジェクトなしを指定できます。
+
+壁紙・床材の張り替えについては[Decoratable Cellarガイド](ModderGuide_DecoratableCellar.md)を参照してください。

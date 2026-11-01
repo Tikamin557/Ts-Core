@@ -39,3 +39,7 @@ FloorIDs = Floor_1 0, Floor_2 1
 マップ更新時には領域IDを維持してください。この機能は元の`Cellar`型を変更しません。
 
 ← [Modder Guideに戻る](ModderGuide.md)
+
+## 熟成ダルの初期配置（v2.0.3）
+
+`TsCoreInitialCasks` は壁紙・床材の張り替えとは独立して熟成ダルやチェストの初期配置を制御します。詳しくは[Map Propertiesガイド](ModderGuide_MapProperties.md#initial-casksv203熟成ダルの初期配置)を参照してください。
