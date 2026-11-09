@@ -10,25 +10,25 @@ namespace Ts_Core.Services.MapRelated.TsCoreDecoratableCellar
     /// </summary>
     internal static class TsCoreDecoratableCellarService
     {
-        private const string MapPropertyName = "TsCoreDecoratableCellar";
+        private const string CellarPropertyName = "TsCoreDecoratableCellar";
+        private const string GreenhousePropertyName = "TsCoreDecoratableGreenhouse";
 
         //----------------------------------------
         // Map Property
         //----------------------------------------
 
         /// <summary>
-        /// マッププロパティがTであるCellarのみを対象とします。
+        /// Cellarでは従来のプロパティを、その他のマップでは温室用プロパティを確認します。
+        /// 独自温室はGameLocation派生型に制限せず、マッププロパティで判定します。
         /// </summary>
         internal static bool IsEnabled(GameLocation? location)
         {
-            if (location is not Cellar cellar
-                || cellar.Map == null
-                || !cellar.Map.Properties.TryGetValue(MapPropertyName, out var property))
-            {
+            if (location?.Map == null)
                 return false;
-            }
 
-            return string.Equals(property?.ToString()?.Trim(), "T", StringComparison.OrdinalIgnoreCase);
+            string propertyName = location is Cellar ? CellarPropertyName : GreenhousePropertyName;
+            return location.Map.Properties.TryGetValue(propertyName, out var property)
+                && string.Equals(property?.ToString()?.Trim(), "T", StringComparison.OrdinalIgnoreCase);
         }
 
         //----------------------------------------

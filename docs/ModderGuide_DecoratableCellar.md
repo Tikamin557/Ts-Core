@@ -43,3 +43,7 @@ Keep region IDs consistent across map updates so saved selections remain associa
 ## Initial cask placement (v2.0.3)
 
 The separate `TsCoreInitialCasks` map property controls initial cask/chest placement without requiring wallpaper or flooring customization. See the [Map Properties Guide](ModderGuide_MapProperties.md#initial-casks-v203).
+
+## Decoratable Greenhouse (v2.0.4)
+
+For non-`Cellar` maps, `TsCoreDecoratableGreenhouse = T` enables the same region-based wallpaper and flooring customization. Use `WallID`, `FloorID`, `WallIDs`, and `FloorIDs` as described above. See the [Map Properties Guide](ModderGuide_MapProperties.md#tscoredecoratablegreenhouse).

@@ -12,6 +12,19 @@ namespace Ts_Core.Services.MapRelated.TsCoreDecoratableCellar
         private const string FloorDataKey = "Tikamin557.TsCore/DecoratableCellar/Floors";
         private const string WallDataKey = "Tikamin557.TsCore/DecoratableCellar/Walls";
 
+        private const string GreenhouseFloorDataKey = "Tikamin557.TsCore/DecoratableGreenhouse/Floors";
+        private const string GreenhouseWallDataKey = "Tikamin557.TsCore/DecoratableGreenhouse/Walls";
+
+        /// <summary>
+        /// Cellarの既存保存キーを維持し、温室は別のキーに保存します。
+        /// </summary>
+        private static string GetDataKey(GameLocation location, bool isFloor)
+        {
+            if (location is StardewValley.Locations.Cellar)
+                return isFloor ? FloorDataKey : WallDataKey;
+            return isFloor ? GreenhouseFloorDataKey : GreenhouseWallDataKey;
+        }
+
         //----------------------------------------
         // Persistence
         //----------------------------------------
@@ -22,7 +35,7 @@ namespace Ts_Core.Services.MapRelated.TsCoreDecoratableCellar
         /// </summary>
         internal static Dictionary<string, string> Read(GameLocation location, bool isFloor)
         {
-            string key = isFloor ? FloorDataKey : WallDataKey;
+            string key = GetDataKey(location, isFloor);
             if (!TsCoreDecoratableCellarService.IsEnabled(location)
                 || !location.modData.TryGetValue(key, out string? json)
                 || string.IsNullOrWhiteSpace(json))
@@ -54,7 +67,7 @@ namespace Ts_Core.Services.MapRelated.TsCoreDecoratableCellar
 
             var values = Read(location, isFloor);
             values[regionId] = materialId;
-            location.modData[isFloor ? FloorDataKey : WallDataKey] = JsonSerializer.Serialize(values);
+            location.modData[GetDataKey(location, isFloor)] = JsonSerializer.Serialize(values);
         }
     }
 }

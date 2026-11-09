@@ -32,7 +32,7 @@ namespace Ts_Core.Models
         {
             get;
             set;
-        } = true;
+        } = false;
 
         /// <summary>
         /// ショートカットパネルが開いている時に、

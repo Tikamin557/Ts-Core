@@ -25,7 +25,8 @@ namespace Ts_Core.Services.MapRelated.TsCoreDecoratableCellar
         internal static void OnAssetReady(object? sender, AssetReadyEventArgs e)
         {
             if (Context.IsWorldReady
-                && e.NameWithoutLocale.IsEquivalentTo("Maps/Cellar")
+                && (e.NameWithoutLocale.IsEquivalentTo("Maps/Cellar")
+                    || e.NameWithoutLocale.IsEquivalentTo(Game1.currentLocation.mapPath.Value))
                 && TsCoreDecoratableCellarService.IsEnabled(Game1.currentLocation))
             {
                 pendingTicks = 2;

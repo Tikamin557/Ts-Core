@@ -180,3 +180,12 @@ When reporting a bug, please include:
 T's Core can enable wallpaper and flooring customization in Cellar locations, including additional material sets. See the [Decoratable Cellar Guide](docs/ModderGuide_DecoratableCellar.md).
 
 From v2.0.3, the `TsCoreInitialCasks` map property also controls initial cask and cask-filled chest placement in Cellars. See the [Map Properties Guide](docs/ModderGuide_MapProperties.md#initial-casks-v203).
+
+## New in v2.0.4
+
+- Decoratable Greenhouse: wallpaper and flooring customization using `TsCoreDecoratableGreenhouse`.
+- Greenhouse fruit trees: `None` support in `TsCoreGreenhouse`, rectangular `TsCoreNoFruitTree` exclusions, and `TsCoreFruitTreeGround` ground graphic control.
+- Multiple `TsCoreAlwaysFront` map layers with numeric suffixes.
+- Shortcut Panel is disabled by default for new installations (existing saved settings are preserved).
+
+See the [Map Properties Guide](docs/ModderGuide_MapProperties.md) and [Shortcut Panel Guide](docs/ModderGuide_ShortcutPanel.md).

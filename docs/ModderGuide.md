@@ -212,3 +212,14 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [Back to README](../README.md)
+
+## What changed in v2.0.4
+
+- `TsCoreDecoratableGreenhouse`: greenhouse wallpaper and flooring customization
+- `TsCoreGreenhouse`: support for `None` (Back tiles without a `Type`)
+- `TsCoreNoFruitTree`: rectangular fruit-tree planting exclusions
+- `TsCoreFruitTreeGround`: fruit-tree ground graphic control
+- `TsCoreAlwaysFront`: multiple numbered layers
+- Shortcut Panel: disabled by default on new installations
+
+See [Map Properties](ModderGuide_MapProperties.md) and [Shortcut Panel](ModderGuide_ShortcutPanel.md) for details.

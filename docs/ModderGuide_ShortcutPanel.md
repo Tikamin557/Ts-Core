@@ -22,3 +22,7 @@ Under **Mod Features**, the Shortcut Panel can open T's Core's **Terrain Feature
 ## For C# mod authors
 
 C# mods can register custom actions for the Shortcut Panel using T's Core's public `ITsCoreApi` shortcut registration API. See the API interface and existing Modder Guide for the registration contract.
+
+## Default visibility (v2.0.4)
+
+The Shortcut Panel is **disabled by default on new installations**. Players can enable it through GMCM. Existing enabled/disabled preferences saved in `config.json` are preserved.

@@ -41,6 +41,10 @@ This guide explains the custom map properties currently supported by T's Core.
 
 - [Timed Exit](#timed-exit)
 - [TsCoreGreenhouse](#tscoregreenhouse)
+- [TsCoreNoFruitTree](#tscorenofruittree)
+- [TsCoreFruitTreeGround](#tscorefruittreeground)
+- [TsCoreDecoratableGreenhouse](#tscoredecoratablegreenhouse)
+- [TsCoreAlwaysFront layers](#tscorealwaysfront-layers)
 - [TsCoreAmbientLight](#tscoreambientlight)
 - [TsCoreTimedExit](#tscoretimedexit)
 - [TsCoreTimedExitMessage](#tscoretimedexitmessage)
@@ -700,6 +704,8 @@ or:
 TsCoreGreenhouse = Dirt, Grass
 ```
 
+Starting in v2.0.4, `None` is also allowed. It matches a Back tile with **no `Type` property** (e.g. `Dirt, Grass, None`).
+
 When this map property is present, T's Core marks the location as a greenhouse. This enables the normal greenhouse behavior used by Stardew Valley, including greenhouse-compatible planting behavior.
 
 For fruit trees, the value of `TsCoreGreenhouse` is also used as an allow-list for the Back-layer `Type` tile property. A fruit tree can only be placed on a tile whose Back layer has one of the listed `Type` values.
@@ -733,6 +739,62 @@ T's Core also resets the footstep state before checking footsteps in these locat
   }
 }
 ```
+
+---
+
+## TsCoreNoFruitTree
+
+Starting in v2.0.4, `TsCoreNoFruitTree` defines rectangular areas where fruit trees cannot be planted on maps using `TsCoreGreenhouse`. These exclusions take precedence over the allowed Back-layer `Type` values.
+
+```text
+TsCoreNoFruitTree = 0 1 3 10, 10 15 12 15
+```
+
+Each comma-separated rectangle contains four integers: `StartX StartY EndX EndY`. **Both endpoints are inclusive.** Invalid rectangle entries are ignored.
+
+## TsCoreFruitTreeGround
+
+Starting in v2.0.4, this map property controls the ground graphic beneath fruit trees based on the planting tile's Back-layer `Type` property.
+
+| Map property value | Result |
+|---|---|
+| Property absent | Keep vanilla ground-drawing behavior |
+| `Stone` | Draw only on `Type=Stone` |
+| `Dirt, Wood` | Draw only on `Type=Dirt` or `Type=Wood` |
+| `None` | Draw only where the Back tile has no `Type` |
+| Empty string `""` | Never draw the ground graphic |
+
+Type matching is case-sensitive. This changes **the ground graphic only**, not where fruit trees may be planted.
+
+## TsCoreDecoratableGreenhouse
+
+Starting in v2.0.4, set `TsCoreDecoratableGreenhouse = T` on a non-`Cellar` map to enable wallpaper and flooring customization using the same region system as Decoratable Cellar. This supports vanilla and custom greenhouse maps.
+
+```json
+{
+  "Action": "EditMap",
+  "Target": "Maps/Greenhouse",
+  "MapProperties": {
+    "TsCoreDecoratableGreenhouse": "T",
+    "FloorIDs": "MyGreenhouseFloor 0",
+    "WallIDs": "MyGreenhouseWall 0"
+  }
+}
+```
+
+Mark the relevant tiles with `FloorID` / `WallID` properties. See the [Decoratable Cellar Guide](ModderGuide_DecoratableCellar.md) for region setup, initial materials, and persistence. Actual `Cellar` locations continue to use `TsCoreDecoratableCellar`.
+
+## TsCoreAlwaysFront layers
+
+Starting in v2.0.4, maps can use multiple `TsCoreAlwaysFront` layers by adding numeric suffixes:
+
+```text
+TsCoreAlwaysFront
+TsCoreAlwaysFront1
+TsCoreAlwaysFront2
+```
+
+Numbers do not need to be consecutive. Only the exact base name or names with **digits only** after it are recognized. Layers are drawn in their TMX map order, in front of the player and normal foreground; overlapping mature fruit-tree canopies are then redrawn above them once, after all matching layers.
 
 ---
 

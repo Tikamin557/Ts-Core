@@ -1,6 +1,10 @@
 ﻿using HarmonyLib;
+using Netcode;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.TerrainFeatures;
+using System.Reflection;
+using System.Reflection.Emit;
 using xTile.Tiles;
 
 namespace Ts_Core.Services.MapRelated.TsCoreGreenhouse
@@ -32,7 +36,8 @@ namespace Ts_Core.Services.MapRelated.TsCoreGreenhouse
         /// TsCoreGreenhouseに必要なHarmonyパッチを適用します。
         /// </summary>
         internal static void Apply(
-            Harmony harmony)
+            Harmony harmony,
+            IMonitor monitor)
         {
             // Map読み込み時にIsGreenhouseを有効化
             harmony.Patch(
@@ -95,6 +100,22 @@ namespace Ts_Core.Services.MapRelated.TsCoreGreenhouse
                         typeof(TsCoreGreenhousePatch),
                         nameof(FinalizePlacementAction)));
 
+            // FruitTree.drawの温室用地面描画条件のみを差し替えます。
+            // 指定プロパティがないマップではVanillaの結果を維持します。
+            harmony.Patch(
+                original:
+                    AccessTools.Method(
+                        typeof(FruitTree),
+                        nameof(FruitTree.draw),
+                        new[]
+                        {
+                            typeof(Microsoft.Xna.Framework.Graphics.SpriteBatch)
+                        }),
+                transpiler:
+                    new HarmonyMethod(
+                        typeof(TsCoreGreenhousePatch),
+                        nameof(FruitTreeDrawTranspiler)));
+
             // TsCoreGreenhouseでは各足音判定前に
             // Default Footstepへ戻してTypeなしで前回音が残るのを防止
             harmony.Patch(
@@ -106,6 +127,75 @@ namespace Ts_Core.Services.MapRelated.TsCoreGreenhouse
                     new HarmonyMethod(
                         typeof(TsCoreGreenhousePatch),
                         nameof(BeforeCheckForFootstep)));
+        }
+
+        //----------------------------------------
+        // FruitTree.draw
+        //----------------------------------------
+
+        /// <summary>
+        /// VanillaのgreenHouseTileTree判定だけを差し替え、
+        /// 根元の地面描画をBackタイルのTypeに応じて制御します。
+        /// 対象のILを特定できない場合は元の描画を維持します。
+        /// </summary>
+        private static IEnumerable<CodeInstruction> FruitTreeDrawTranspiler(
+            IEnumerable<CodeInstruction> instructions)
+        {
+            List<CodeInstruction> codes = new(instructions);
+
+            FieldInfo? groundFlag = AccessTools.Field(
+                typeof(FruitTree),
+                "greenHouseTileTree");
+            MethodInfo helper = AccessTools.Method(
+                typeof(TsCoreGreenhousePatch),
+                nameof(ShouldDrawFruitTreeGround));
+
+            if (groundFlag == null || helper == null)
+                return codes;
+
+            int targetIndex = -1;
+            for (int i = 1; i < codes.Count; i++)
+            {
+                // get_ValueはNetBool自身ではなく基底クラスで宣言される場合があります。
+                // FruitTree.greenHouseTileTree直後のbool getterだけを対象にします。
+                if (codes[i - 1].opcode == OpCodes.Ldfld
+                    && Equals(codes[i - 1].operand, groundFlag)
+                    && (codes[i].opcode == OpCodes.Callvirt || codes[i].opcode == OpCodes.Call)
+                    && codes[i].operand is MethodInfo getter
+                    && getter.Name == "get_Value"
+                    && getter.ReturnType == typeof(bool)
+                    && getter.DeclaringType != null
+                    && getter.DeclaringType.IsAssignableFrom(typeof(NetBool)))
+                {
+                    if (targetIndex >= 0)
+                        return codes;
+
+                    targetIndex = i;
+                }
+            }
+
+            if (targetIndex < 0)
+                return codes;
+
+            // 元のNetBoolインスタンスを保持したままFruitTreeを渡します。
+            codes.Insert(targetIndex, new CodeInstruction(OpCodes.Ldarg_0));
+            codes[targetIndex + 1].opcode = OpCodes.Call;
+            codes[targetIndex + 1].operand = helper;
+
+            return codes;
+        }
+
+        /// <summary>
+        /// 温室用地面描画のVanilla判定を取得し、
+        /// マッププロパティがあればその設定を優先します。
+        /// </summary>
+        private static bool ShouldDrawFruitTreeGround(
+            NetBool vanillaFlag,
+            FruitTree tree)
+        {
+            return TsCoreGreenhouseService.ShouldDrawFruitTreeGround(
+                tree,
+                vanillaFlag.Value);
         }
 
         //----------------------------------------

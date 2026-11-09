@@ -43,3 +43,7 @@ FloorIDs = Floor_1 0, Floor_2 1
 ## 熟成ダルの初期配置（v2.0.3）
 
 `TsCoreInitialCasks` は壁紙・床材の張り替えとは独立して熟成ダルやチェストの初期配置を制御します。詳しくは[Map Propertiesガイド](ModderGuide_MapProperties.md#initial-casksv203熟成ダルの初期配置)を参照してください。
+
+## 温室の壁紙・床材変更（v2.0.4）
+
+`Cellar` 以外のマップでは `TsCoreDecoratableGreenhouse = T` を使用できます。領域設定には同じ `WallID`、`FloorID`、`WallIDs`、`FloorIDs` を使用します。詳しくは [Map Properties ガイド](ModderGuide_MapProperties.md#tscoredecoratablegreenhouse) を参照してください。

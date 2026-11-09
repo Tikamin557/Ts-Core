@@ -176,7 +176,8 @@ namespace Ts_Core
             // TsCoreGreenhouse Map Propertyを
             // Stardew Valley本体の温室処理へ適用
             TsCoreGreenhousePatch.Apply(
-                harmony);
+                harmony,
+                Monitor);
 
             // TsCoreAmbientLight = Farmhouse のLocationへ
             // Vanilla FarmHouseと同じAmbient Light処理を適用

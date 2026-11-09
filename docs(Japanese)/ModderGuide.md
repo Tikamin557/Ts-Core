@@ -270,3 +270,14 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 [Decoratable Cellar（地下室の壁紙・床材変更）](ModderGuide_DecoratableCellar.md)を参照してください。
 
 熟成ダルの初期配置については[Map PropertiesのInitial Casks](ModderGuide_MapProperties.md#initial-casksv203熟成ダルの初期配置)を参照してください。
+
+## v2.0.4 の追加・変更点
+
+- `TsCoreDecoratableGreenhouse`：温室の壁紙・床材変更
+- `TsCoreGreenhouse`：許可Typeに `None` を追加
+- `TsCoreNoFruitTree`：果樹の植樹禁止範囲
+- `TsCoreFruitTreeGround`：果樹の根元の地面描画制御
+- `TsCoreAlwaysFront`：番号付きの複数レイヤー対応
+- ショートカットパネル：新規インストール時はデフォルトで無効
+
+詳細は [Map Properties](ModderGuide_MapProperties.md) と [Shortcut Panel](ModderGuide_ShortcutPanel.md) を参照してください。

@@ -48,6 +48,10 @@ Propertyについて説明します。
 
 -   [Timed Exit](#timed-exit)
 -   [TsCoreGreenhouse](#tscoregreenhouse)
+-   [TsCoreNoFruitTree](#tscorenofruittree)
+-   [TsCoreFruitTreeGround](#tscorefruittreeground)
+-   [TsCoreDecoratableGreenhouse](#tscoredecoratablegreenhouse)
+-   [TsCoreAlwaysFront レイヤー](#tscorealwaysfront-レイヤー)
 -   [TsCoreAmbientLight](#tscoreambientlight)
 -   [TsCoreTimedExit](#tscoretimedexit)
 -   [TsCoreTimedExitMessage](#tscoretimedexitmessage)
@@ -749,6 +753,8 @@ TsCoreGreenhouse = Dirt
 TsCoreGreenhouse = Dirt, Grass
 ```
 
+v2.0.4 以降は `None` も指定できます。`None` は `Back` タイルの `Type` が未設定であることを意味します（例：`Dirt, Grass, None`）。
+
 このMap Propertyが存在するLocationは、T's CoreによってGreenhouseとして扱われます。これにより、Stardew Valley本体のGreenhouseと同様の植え付け動作を利用できます。
 
 Fruit Treeについては、`TsCoreGreenhouse` の値がBack Layerの `Type` Tile Propertyに対する許可リストとしても使用されます。Fruit Treeを実際に設置できるのは、Back Layerに指定した `Type` が設定されているTileだけです。
@@ -784,6 +790,62 @@ Type = Dirt
 ```
 
 ------------------------------------------------------------------------
+
+## TsCoreNoFruitTree
+
+v2.0.4 以降、`TsCoreGreenhouse` を設定したマップで、果樹を植えられない長方形領域を指定できます。`TsCoreGreenhouse` の許可Typeより優先されます。
+
+```text
+TsCoreNoFruitTree = 0 1 3 10, 10 15 12 15
+```
+
+各領域は `開始X 開始Y 終了X 終了Y` の4つの整数で指定し、カンマで複数指定します。**開始・終了座標の両端を含みます。** 無効な形式の領域は無視されます。
+
+## TsCoreFruitTreeGround
+
+v2.0.4 以降、果樹の根元の地面描画を、植樹位置の `Back` レイヤーにある `Type` タイルプロパティで制御できます。
+
+| マッププロパティの値 | 動作 |
+|---|---|
+| プロパティ未設定 | バニラの描画判定を維持 |
+| `Stone` | `Type=Stone` の位置のみ描画 |
+| `Dirt, Wood` | `Type=Dirt` または `Wood` の位置のみ描画 |
+| `None` | `Type` が未設定の位置のみ描画 |
+| 空文字 `""` | すべての位置で非表示 |
+
+Type名は大文字・小文字を区別します。これは**果樹の根元の地面の表示**に関する設定であり、植樹可能な場所を変更するものではありません。
+
+## TsCoreDecoratableGreenhouse
+
+v2.0.4 以降、`Cellar` 以外のマップに `TsCoreDecoratableGreenhouse = T` を設定すると、地下室と同じ仕組みで壁紙・床材の変更を有効化できます。バニラ温室やカスタム温室向けの機能です。
+
+```json
+{
+  "Action": "EditMap",
+  "Target": "Maps/Greenhouse",
+  "MapProperties": {
+    "TsCoreDecoratableGreenhouse": "T",
+    "FloorIDs": "MyGreenhouseFloor 0",
+    "WallIDs": "MyGreenhouseWall 0"
+  }
+}
+```
+
+装飾対象のタイルには `FloorID` / `WallID` を指定してください。領域指定・初期素材・保存の詳細は [Decoratable Cellar ガイド](ModderGuide_DecoratableCellar.md) を参照してください。`Cellar` 型の場所では従来どおり `TsCoreDecoratableCellar` を使用します。
+
+## TsCoreAlwaysFront レイヤー
+
+v2.0.4 以降、`TsCoreAlwaysFront` に加え、末尾に数字を付けた複数のレイヤーを使用できます。
+
+```text
+TsCoreAlwaysFront
+TsCoreAlwaysFront1
+TsCoreAlwaysFront2
+```
+
+番号は連番である必要はありません。**末尾が数字のみ**のレイヤー名を認識し、TMX内のレイヤー順に描画します。通常のプレイヤー描画より前面に表示され、重なる成木の果樹の樹冠はその上に再描画されます。樹冠の再描画は対象レイヤーをすべて描画した後に行われます。
+
+---
 
 ## TsCoreAmbientLight
 

@@ -10,7 +10,7 @@ using xTile.Layers;
 namespace Ts_Core.Services.MapRelated.TsCoreAlwaysFront
 {
     /// <summary>
-    /// Map内の「TsCoreAlwaysFront」レイヤーを、プレイヤーや通常Frontより前、
+    /// Map内の「TsCoreAlwaysFront」および番号付きレイヤーを、プレイヤーや通常Frontより前、
     /// AlwaysFrontより後ろに描画します。
     /// 果樹はバニラの描画順を維持しつつ、樹冠部分のみこのレイヤーより前へ再描画します。
     /// </summary>
@@ -60,19 +60,41 @@ namespace Ts_Core.Services.MapRelated.TsCoreAlwaysFront
                 return;
             }
 
-            Layer? layer =
+            // 番号なしの従来名と、末尾が数字のレイヤーだけを対象にします。
+            // 描画順はマップに登録されているレイヤー順を維持します。
+            List<Layer> layers =
                 Game1.currentLocation.Map.Layers
-                    .FirstOrDefault(p => p.Id == LayerName);
+                    .Where(p => IsAlwaysFrontLayer(p.Id))
+                    .ToList();
 
-            if (layer == null)
+            if (layers.Count == 0)
             {
                 return;
             }
 
             Draw(
                 Game1.currentLocation,
-                layer,
+                layers,
                 e.SpriteBatch);
+        }
+
+        /// <summary>
+        /// 従来のレイヤー名、またはその末尾に数字を付けた名前を判定します。
+        /// </summary>
+        private static bool IsAlwaysFrontLayer(string id)
+        {
+            if (id == LayerName)
+            {
+                return true;
+            }
+
+            if (!id.StartsWith(LayerName, StringComparison.Ordinal)
+                || id.Length == LayerName.Length)
+            {
+                return false;
+            }
+
+            return id.Substring(LayerName.Length).All(char.IsDigit);
         }
 
         //----------------------------------------
@@ -85,7 +107,7 @@ namespace Ts_Core.Services.MapRelated.TsCoreAlwaysFront
         /// </summary>
         private static void Draw(
             GameLocation location,
-            Layer layer,
+            IReadOnlyList<Layer> layers,
             SpriteBatch spriteBatch)
         {
             spriteBatch.End();
@@ -95,17 +117,20 @@ namespace Ts_Core.Services.MapRelated.TsCoreAlwaysFront
             //----------------------------------------
 
             spriteBatch.Begin(
-                SpriteSortMode.Texture,
+                SpriteSortMode.Deferred,
                 BlendState.AlphaBlend,
                 SamplerState.PointClamp);
 
-            layer.Draw(
-                Game1.mapDisplayDevice,
-                Game1.viewport,
-                xTile.Dimensions.Location.Origin,
-                wrapAround: false,
-                4,
-                -1f);
+            foreach (Layer layer in layers)
+            {
+                layer.Draw(
+                    Game1.mapDisplayDevice,
+                    Game1.viewport,
+                    xTile.Dimensions.Location.Origin,
+                    wrapAround: false,
+                    4,
+                    -1f);
+            }
 
             spriteBatch.End();
 
@@ -115,7 +140,7 @@ namespace Ts_Core.Services.MapRelated.TsCoreAlwaysFront
 
             DrawFruitTreeCanopies(
                 location,
-                layer,
+                layers,
                 spriteBatch);
 
             //----------------------------------------
@@ -135,7 +160,7 @@ namespace Ts_Core.Services.MapRelated.TsCoreAlwaysFront
         /// </summary>
         private static void DrawFruitTreeCanopies(
             GameLocation location,
-            Layer layer,
+            IReadOnlyList<Layer> layers,
             SpriteBatch spriteBatch)
         {
             Rectangle originalScissor =
@@ -186,7 +211,7 @@ namespace Ts_Core.Services.MapRelated.TsCoreAlwaysFront
 
                     DrawFruitTreeCanopyOverLayerTiles(
                         fruitTree,
-                        layer,
+                        layers,
                         canopyBounds,
                         spriteBatch);
                 }
@@ -203,7 +228,7 @@ namespace Ts_Core.Services.MapRelated.TsCoreAlwaysFront
         /// </summary>
         private static void DrawFruitTreeCanopyOverLayerTiles(
             FruitTree fruitTree,
-            Layer layer,
+            IReadOnlyList<Layer> layers,
             Rectangle canopyBounds,
             SpriteBatch spriteBatch)
         {
@@ -218,20 +243,22 @@ namespace Ts_Core.Services.MapRelated.TsCoreAlwaysFront
                     (canopyBounds.Top + Game1.viewport.Y) / 64);
 
             int tileXMax =
-                Math.Min(
-                    layer.LayerWidth - 1,
-                    (canopyBounds.Right - 1 + Game1.viewport.X) / 64);
+                (canopyBounds.Right - 1 + Game1.viewport.X) / 64;
 
             int tileYMax =
-                Math.Min(
-                    layer.LayerHeight - 1,
-                    (canopyBounds.Bottom - 1 + Game1.viewport.Y) / 64);
+                (canopyBounds.Bottom - 1 + Game1.viewport.Y) / 64;
 
             for (int tileY = tileYMin; tileY <= tileYMax; tileY++)
             {
                 for (int tileX = tileXMin; tileX <= tileXMax; tileX++)
                 {
-                    if (layer.Tiles[tileX, tileY] == null)
+                    // 複数レイヤーの同じ座標にタイルがあっても樹冠は一度だけ描画します。
+                    bool hasTile = layers.Any(layer =>
+                        tileX < layer.LayerWidth
+                        && tileY < layer.LayerHeight
+                        && layer.Tiles[tileX, tileY] != null);
+
+                    if (!hasTile)
                     {
                         continue;
                     }
