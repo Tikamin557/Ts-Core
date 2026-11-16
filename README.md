@@ -181,6 +181,13 @@ T's Core can enable wallpaper and flooring customization in Cellar locations, in
 
 From v2.0.3, the `TsCoreInitialCasks` map property also controls initial cask and cask-filled chest placement in Cellars. See the [Map Properties Guide](docs/ModderGuide_MapProperties.md#initial-casks-v203).
 
+## New in v2.0.5
+
+- `TsCoreAlwaysFront` layers now render in front of players, but behind overlapping mature fruit-tree canopies and farm buildings.
+- Fixed split-screen warp issues, improved normal warp transitions, and fixed a map-loading exception.
+
+See the [Map Properties Guide](docs/ModderGuide_MapProperties.md) for details.
+
 ## New in v2.0.4
 
 - Decoratable Greenhouse: wallpaper and flooring customization using `TsCoreDecoratableGreenhouse`.

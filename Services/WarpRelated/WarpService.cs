@@ -35,7 +35,7 @@ namespace Ts_Core.Services.WarpRelated
         //----------------------------------------
 
         // 通常Warpで、完全に暗転してからWarpを実行するまでの時間
-        private const int NormalBlackoutDuration = 100;
+        private const int NormalBlackoutDuration = 0;
 
         // MagicWarpで、完全に暗転してからWarpを実行するまでの時間
         private const int MagicBlackoutDuration = 100;
@@ -459,15 +459,6 @@ namespace Ts_Core.Services.WarpRelated
                     point.Y,
                     direction);
 
-                //----------------------------------------
-                // バニラWarpのフェードを即時完了させる
-                //----------------------------------------
-
-                Game1.globalFade = false;
-                Game1.fadeToBlack = true;
-                Game1.fadeIn = true;
-                Game1.nonWarpFade = false;
-                Game1.fadeToBlackAlpha = 1.2f;
             }
 
             //----------------------------------------
@@ -532,7 +523,9 @@ namespace Ts_Core.Services.WarpRelated
                 //----------------------------------------
 
                 WarpBlackoutOverlayService.Show(
-                    onShown);
+                    onShown,
+                    fadeInDurationMs: 90,
+                    fadeOutDurationMs: 90);
             }
 
             //----------------------------------------

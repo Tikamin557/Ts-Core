@@ -24,10 +24,18 @@ namespace Ts_Core.Services.MapRelated.TsCoreDecoratableCellar
         /// </summary>
         internal static void OnAssetReady(object? sender, AssetReadyEventArgs e)
         {
-            if (Context.IsWorldReady
-                && (e.NameWithoutLocale.IsEquivalentTo("Maps/Cellar")
-                    || e.NameWithoutLocale.IsEquivalentTo(Game1.currentLocation.mapPath.Value))
-                && TsCoreDecoratableCellarService.IsEnabled(Game1.currentLocation))
+            if (!Context.IsWorldReady)
+                return;
+
+            // 画面分割の参加・マップ読み込み中は現在地が未設定の場合があります。
+            // 現在地を一度だけ取得し、nullや未設定のマップパスを参照しないようにします。
+            GameLocation? location = Game1.currentLocation;
+            if (location == null || !TsCoreDecoratableCellarService.IsEnabled(location))
+                return;
+
+            string? mapPath = location.mapPath?.Value;
+            if (e.NameWithoutLocale.IsEquivalentTo("Maps/Cellar")
+                || (!string.IsNullOrEmpty(mapPath) && e.NameWithoutLocale.IsEquivalentTo(mapPath)))
             {
                 pendingTicks = 2;
             }

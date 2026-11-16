@@ -271,6 +271,13 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 
 熟成ダルの初期配置については[Map PropertiesのInitial Casks](ModderGuide_MapProperties.md#initial-casksv203熟成ダルの初期配置)を参照してください。
 
+## v2.0.5 の追加・変更点
+
+- `TsCoreAlwaysFront`：プレイヤーより前面、重なる成木の果樹の樹冠および農場の建物より背面に描画。
+- 画面分割時のワープ不具合、通常ワープの画面移行、マップ読み込み時の例外を修正。
+
+詳細は [Map Properties](ModderGuide_MapProperties.md) を参照してください。
+
 ## v2.0.4 の追加・変更点
 
 - `TsCoreDecoratableGreenhouse`：温室の壁紙・床材変更

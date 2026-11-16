@@ -818,6 +818,10 @@ namespace Ts_Core.Actions
             Farmer who,
             Vector2 playerStandingPosition)
         {
+            // 分割画面で別プレイヤーのTouchActionを実行しない。
+            if (who != Game1.player)
+                return;
+
             ExecuteWarp(
                 location,
                 action);
@@ -836,6 +840,10 @@ namespace Ts_Core.Actions
             Farmer who,
             Point tile)
         {
+            // 操作したプレイヤーの画面でのみWarpを実行する。
+            if (who != Game1.player)
+                return false;
+
             return ExecuteWarp(
                 location,
                 action);

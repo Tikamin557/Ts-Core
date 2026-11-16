@@ -213,6 +213,13 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 
 ← [Back to README](../README.md)
 
+## What changed in v2.0.5
+
+- `TsCoreAlwaysFront`: draws in front of players, but behind overlapping mature fruit-tree canopies and farm buildings.
+- Fixed split-screen warp issues, improved normal warp transitions, and fixed a map-loading exception.
+
+See [Map Properties](ModderGuide_MapProperties.md) for details.
+
 ## What changed in v2.0.4
 
 - `TsCoreDecoratableGreenhouse`: greenhouse wallpaper and flooring customization

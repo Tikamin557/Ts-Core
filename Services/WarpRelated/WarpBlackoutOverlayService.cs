@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
+using StardewModdingAPI.Utilities;
 using StardewValley;
 
 namespace Ts_Core.Services.WarpRelated
@@ -22,19 +23,23 @@ namespace Ts_Core.Services.WarpRelated
         // 状態
         //----------------------------------------
 
-        private static float Alpha;
-        private static float TargetAlpha;
+        /// <summary>
+        /// 分割画面ごとに保持する暗転状態です。
+        /// 一方の画面の完了コールバックが他方の画面で実行されることを防ぎます。
+        /// </summary>
+        private sealed class OverlayState
+        {
+            public float Alpha;
+            public float TargetAlpha;
+            public bool IsActive;
+            public int FadeInDurationMs = DefaultFadeDurationMs;
+            public int FadeOutDurationMs = DefaultFadeDurationMs;
+            public Action? OnShown;
+            public Action? OnHidden;
+        }
 
-        private static bool IsActive;
-
-        private static int FadeInDurationMs =
-            DefaultFadeDurationMs;
-
-        private static int FadeOutDurationMs =
-            DefaultFadeDurationMs;
-
-        private static Action? OnShown;
-        private static Action? OnHidden;
+        private static readonly PerScreen<OverlayState> States =
+            new(() => new OverlayState());
 
         //----------------------------------------
         // 初期化
@@ -63,20 +68,22 @@ namespace Ts_Core.Services.WarpRelated
             int fadeInDurationMs = DefaultFadeDurationMs,
             int fadeOutDurationMs = DefaultFadeDurationMs)
         {
-            IsActive = true;
-            TargetAlpha = 1f;
+            OverlayState state = States.Value;
 
-            FadeInDurationMs =
+            state.IsActive = true;
+            state.TargetAlpha = 1f;
+
+            state.FadeInDurationMs =
                 Math.Max(
                     1,
                     fadeInDurationMs);
 
-            FadeOutDurationMs =
+            state.FadeOutDurationMs =
                 Math.Max(
                     1,
                     fadeOutDurationMs);
 
-            OnShown =
+            state.OnShown =
                 onShown;
         }
 
@@ -91,9 +98,11 @@ namespace Ts_Core.Services.WarpRelated
         internal static void Hide(
             Action? onHidden = null)
         {
-            TargetAlpha = 0f;
+            OverlayState state = States.Value;
 
-            OnHidden =
+            state.TargetAlpha = 0f;
+
+            state.OnHidden =
                 onHidden;
         }
 
@@ -108,7 +117,9 @@ namespace Ts_Core.Services.WarpRelated
             object? sender,
             UpdateTickedEventArgs e)
         {
-            if (!IsActive)
+            OverlayState state = States.Value;
+
+            if (!state.IsActive)
                 return;
 
             //----------------------------------------
@@ -122,29 +133,29 @@ namespace Ts_Core.Services.WarpRelated
             // フェードイン
             //----------------------------------------
 
-            if (Alpha < TargetAlpha)
+            if (state.Alpha < state.TargetAlpha)
             {
                 float alphaStep =
                     millisecondsPerFrame
-                    / FadeInDurationMs;
+                    / state.FadeInDurationMs;
 
-                Alpha =
+                state.Alpha =
                     Math.Min(
-                        TargetAlpha,
-                        Alpha + alphaStep);
+                        state.TargetAlpha,
+                        state.Alpha + alphaStep);
 
                 //----------------------------------------
                 // 完全暗転
                 //----------------------------------------
 
-                if (Alpha >= 1f)
+                if (state.Alpha >= 1f)
                 {
-                    Alpha = 1f;
+                    state.Alpha = 1f;
 
                     Action? callback =
-                        OnShown;
+                        state.OnShown;
 
-                    OnShown = null;
+                    state.OnShown = null;
 
                     callback?.Invoke();
                 }
@@ -156,30 +167,30 @@ namespace Ts_Core.Services.WarpRelated
             // フェードアウト
             //----------------------------------------
 
-            if (Alpha > TargetAlpha)
+            if (state.Alpha > state.TargetAlpha)
             {
                 float alphaStep =
                     millisecondsPerFrame
-                    / FadeOutDurationMs;
+                    / state.FadeOutDurationMs;
 
-                Alpha =
+                state.Alpha =
                     Math.Max(
-                        TargetAlpha,
-                        Alpha - alphaStep);
+                        state.TargetAlpha,
+                        state.Alpha - alphaStep);
 
                 //----------------------------------------
                 // 完全透明
                 //----------------------------------------
 
-                if (Alpha <= 0f)
+                if (state.Alpha <= 0f)
                 {
-                    Alpha = 0f;
-                    IsActive = false;
+                    state.Alpha = 0f;
+                    state.IsActive = false;
 
                     Action? callback =
-                        OnHidden;
+                        state.OnHidden;
 
-                    OnHidden = null;
+                    state.OnHidden = null;
 
                     callback?.Invoke();
                 }
@@ -195,8 +206,10 @@ namespace Ts_Core.Services.WarpRelated
         /// </summary>
         internal static void Draw()
         {
-            if (!IsActive
-                || Alpha <= 0f)
+            OverlayState state = States.Value;
+
+            if (!state.IsActive
+                || state.Alpha <= 0f)
             {
                 return;
             }
@@ -222,7 +235,7 @@ namespace Ts_Core.Services.WarpRelated
                     0,
                     viewport.Width,
                     viewport.Height),
-                Color.Black * Alpha);
+                Color.Black * state.Alpha);
 
             spriteBatch.End();
         }

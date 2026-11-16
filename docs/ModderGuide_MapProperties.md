@@ -794,7 +794,7 @@ TsCoreAlwaysFront1
 TsCoreAlwaysFront2
 ```
 
-Numbers do not need to be consecutive. Only the exact base name or names with **digits only** after it are recognized. Layers are drawn in their TMX map order, in front of the player and normal foreground; overlapping mature fruit-tree canopies are then redrawn above them once, after all matching layers.
+Numbers do not need to be consecutive. Only the exact base name or names with **digits only** after it are recognized. Layers are drawn in their TMX map order, in front of the player and normal foreground; overlapping mature fruit-tree canopies and farm buildings are then redrawn above them. Fruit-tree canopies are redrawn once after all matching layers, and overlapping farm-building portions are drawn above the layers.
 
 ---
 

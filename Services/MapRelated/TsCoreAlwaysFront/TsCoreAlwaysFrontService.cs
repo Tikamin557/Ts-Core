@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Buildings;
 using StardewValley.Mods;
 using StardewValley.TerrainFeatures;
 using xTile.Layers;
@@ -144,6 +145,12 @@ namespace Ts_Core.Services.MapRelated.TsCoreAlwaysFront
                 spriteBatch);
 
             //----------------------------------------
+            // Farm buildings (test implementation)
+            //----------------------------------------
+
+            DrawBuildingsOverLayerTiles(location, layers, spriteBatch);
+
+            //----------------------------------------
             // Resume World_Sorted
             //----------------------------------------
 
@@ -151,6 +158,91 @@ namespace Ts_Core.Services.MapRelated.TsCoreAlwaysFront
                 SpriteSortMode.FrontToBack,
                 BlendState.AlphaBlend,
                 SamplerState.PointClamp);
+        }
+
+        /// <summary>
+        /// 農場の建物とTsCoreAlwaysFrontが重なるタイルだけを切り抜き、
+        /// 建物本体とBuildingDrawLayerを前面に描き直します。
+        /// 描画範囲は屋根の張り出しを考慮して、建物のソース矩形から算出します。
+        /// </summary>
+        private static void DrawBuildingsOverLayerTiles(
+            GameLocation location,
+            IReadOnlyList<Layer> layers,
+            SpriteBatch spriteBatch)
+        {
+            if (location is not Farm farm || farm.buildings.Count == 0)
+            {
+                return;
+            }
+
+            Rectangle screenBounds =
+                Game1.graphics.GraphicsDevice.Viewport.Bounds;
+
+            Rectangle originalScissor =
+                Game1.graphics.GraphicsDevice.ScissorRectangle;
+
+            try
+            {
+                foreach (Building building in farm.buildings)
+                {
+                    Rectangle source = building.getSourceRect();
+                    int left = building.tileX.Value * 64 - Game1.viewport.X;
+                    int bottom = (building.tileY.Value + building.tilesHigh.Value) * 64 - Game1.viewport.Y;
+                    Rectangle drawBounds = new Rectangle(
+                        left,
+                        bottom - source.Height * 4,
+                        Math.Max(source.Width * 4, building.tilesWide.Value * 64),
+                        Math.Max(source.Height * 4, building.tilesHigh.Value * 64));
+
+                    drawBounds = Rectangle.Intersect(drawBounds, screenBounds);
+                    if (drawBounds.Width <= 0 || drawBounds.Height <= 0)
+                    {
+                        continue;
+                    }
+
+                    int minX = Math.Max(0, (drawBounds.Left + Game1.viewport.X) / 64);
+                    int minY = Math.Max(0, (drawBounds.Top + Game1.viewport.Y) / 64);
+                    int maxX = (drawBounds.Right - 1 + Game1.viewport.X) / 64;
+                    int maxY = (drawBounds.Bottom - 1 + Game1.viewport.Y) / 64;
+
+                    for (int y = minY; y <= maxY; y++)
+                    {
+                        for (int x = minX; x <= maxX; x++)
+                        {
+                            if (!layers.Any(layer =>
+                                x < layer.LayerWidth && y < layer.LayerHeight
+                                && layer.Tiles[x, y] != null))
+                            {
+                                continue;
+                            }
+
+                            Rectangle tileBounds = new Rectangle(
+                                x * 64 - Game1.viewport.X,
+                                y * 64 - Game1.viewport.Y,
+                                64, 64);
+                            Rectangle clip = Rectangle.Intersect(drawBounds, tileBounds);
+                            if (clip.Width <= 0 || clip.Height <= 0)
+                            {
+                                continue;
+                            }
+
+                            Game1.graphics.GraphicsDevice.ScissorRectangle = clip;
+                            spriteBatch.Begin(
+                                SpriteSortMode.Deferred,
+                                BlendState.AlphaBlend,
+                                SamplerState.PointClamp,
+                                DepthStencilState.None,
+                                ScissorRasterizerState);
+                            building.draw(spriteBatch);
+                            spriteBatch.End();
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                Game1.graphics.GraphicsDevice.ScissorRectangle = originalScissor;
+            }
         }
 
         /// <summary>
