@@ -806,8 +806,8 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
             Color arrowColor =
                 enabled
-                    ? Game1.textColor
-                    : Game1.textColor * 0.45f;
+                    ? ShortcutPanelService.GetSymbolColor()
+                    : ShortcutPanelService.GetSymbolColor() * 0.45f;
 
             for (int y = 0;
                  y < arrowHeight;

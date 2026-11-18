@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -39,8 +38,8 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 var entry = new ShortcutPanelEntry(
                     id,
                     translation.Get("shortcutPanel.GameMenu." + tabNames[i]),
-                    () => helper.ModContent.Load<Texture2D>(
-                        "assets/ShortcutPanel/" + tabIconNames[tabIndex]),
+                    () => ShortcutPanelIconAssetService.GetTexture(
+                        tabIconNames[tabIndex].Replace(".png", "")),
                     iconSourceRect: null,
                     () =>
                     {

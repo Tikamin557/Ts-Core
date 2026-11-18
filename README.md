@@ -144,7 +144,7 @@ Content Packs can register incompatible mod groups using `TsCore/ModConflictWarn
 
 See the **[Mod Conflict Warnings Guide](docs/ModderGuide_ModConflictWarnings.md)** for details.
 
-For the movable Shortcut Panel and CJB Cheats Menu warp shortcuts, see the **[Shortcut Panel Guide](docs/ModderGuide_ShortcutPanel.md)**.
+For the movable Shortcut Panel, CJB Cheats Menu warp shortcuts, icon customization, and Symbol Color settings, see the **[Shortcut Panel Guide](docs/ModderGuide_ShortcutPanel.md)**.
 
 T's Core also provides additional Tile Actions and Game State Queries, including custom sleeping actions and location category checks.
 
@@ -180,6 +180,13 @@ When reporting a bug, please include:
 T's Core can enable wallpaper and flooring customization in Cellar locations, including additional material sets. See the [Decoratable Cellar Guide](docs/ModderGuide_DecoratableCellar.md).
 
 From v2.0.3, the `TsCoreInitialCasks` map property also controls initial cask and cask-filled chest placement in Cellars. See the [Map Properties Guide](docs/ModderGuide_MapProperties.md#initial-casks-v203).
+
+## New in v2.0.6
+
+- Shortcut Panel icons can now be customized through Content Patcher using `Load` or `EditImage` (22 built-in icon assets).
+- Added a Symbol Color setting in GMCM to make arrows and move handles visible on dark UI themes while preserving normal text colors.
+
+See the [Shortcut Panel Guide](docs/ModderGuide_ShortcutPanel.md) for details.
 
 ## New in v2.0.5
 

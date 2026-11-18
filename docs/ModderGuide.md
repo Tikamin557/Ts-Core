@@ -84,7 +84,7 @@ T's Core currently provides the following systems.
 | Polyamory Sweet Rooms Integration | Allows supported Farmhouse mods to provide configurable spouse room presets for Polyamory Sweet Rooms. |
 | Other Features | Provides additional Tile Actions and Game State Queries, including custom sleeping actions and location category checks. |
 | Content Patcher Tokens | Provides custom tokens for use with Content Patcher. |
-| Shortcut Panel | Provides a customizable in-game shortcut panel, optional free positioning, CJB Cheats Menu warp shortcuts, and a public API for C# mods. |
+| Shortcut Panel | Provides a customizable in-game shortcut panel, optional free positioning, CJB Cheats Menu warp shortcuts, customizable icon assets, a symbol color setting, and a public API for C# mods. |
 | Shared Utilities | Provides common functionality shared between T's Mods. |
 
 See the [Detailed Documentation](#-detailed-documentation) section for individual guides.
@@ -212,6 +212,13 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [Back to README](../README.md)
+
+## What changed in v2.0.6
+
+- Shortcut Panel: exposes 22 built-in icon assets for customization through Content Patcher `Load` and `EditImage`.
+- Added the GMCM Symbol Color option for dark UI themes without overriding normal text colors.
+
+See [Shortcut Panel](ModderGuide_ShortcutPanel.md) for details.
 
 ## What changed in v2.0.5
 

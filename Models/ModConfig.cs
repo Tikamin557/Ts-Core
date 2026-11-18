@@ -45,6 +45,16 @@ namespace Ts_Core.Models
         } = false;
 
         /// <summary>
+        /// ショートカットパネルの記号の描画色です。
+        /// Defaultはゲームの文字色、Whiteは白を使用します。
+        /// </summary>
+        public string ShortcutPanelForegroundColor
+        {
+            get;
+            set;
+        } = "Default";
+
+        /// <summary>
         /// ショートカットパネルの表示位置です。
         /// Fixedは所持金UI基準、Freeは保存したオフセットを使用します。
         /// </summary>

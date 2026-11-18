@@ -948,6 +948,25 @@ namespace Ts_Core.Services.GenericModConfigMenuRelated
                     "ShortcutPanelCloseOnOutsideClick");
 
             //----------------------------------------
+            // Shortcut Panel - 記号の描画色
+            //----------------------------------------
+
+            api.AddTextOption(
+                manifest,
+                getValue: () =>
+                    getConfig().ShortcutPanelForegroundColor,
+                setValue: value =>
+                    getConfig().ShortcutPanelForegroundColor = value,
+                name: () =>
+                    helper.Translation.Get("config.ShortcutPanelForegroundColor.name"),
+                tooltip: () =>
+                    helper.Translation.Get("config.ShortcutPanelForegroundColor.description"),
+                allowedValues: new[] { "Default", "White" },
+                formatAllowedValue: value =>
+                    helper.Translation.Get($"config.ShortcutPanelForegroundColor.values.{value}"),
+                fieldId: "ShortcutPanelForegroundColor");
+
+            //----------------------------------------
             // Shortcut Panel - 表示位置
             //----------------------------------------
 

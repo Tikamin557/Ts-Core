@@ -352,6 +352,11 @@ namespace Ts_Core
                 helper,
                 Monitor);
 
+            // ショートカットパネルのアイコンをゲームアセットとして公開します。
+            ShortcutPanelIconAssetService.Initialize(helper);
+            helper.Events.Content.AssetRequested
+                += ShortcutPanelIconAssetService.OnAssetRequested;
+
             ShortcutPanelService.Initialize(
                 helper,
                 Monitor);

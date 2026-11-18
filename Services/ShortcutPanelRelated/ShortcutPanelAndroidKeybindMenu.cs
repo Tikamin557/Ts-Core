@@ -261,7 +261,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             b.DrawString(Game1.smallFont, text,
                 new Vector2(bounds.Center.X - size.X * scale / 2f,
                     bounds.Center.Y - size.Y * scale / 2f),
-                Game1.textColor * (enabled ? 1f : 0.45f),
+                ((text == "◀" || text == "▶") ? ShortcutPanelService.GetSymbolColor() : Game1.textColor) * (enabled ? 1f : 0.45f),
                 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
         }
     }

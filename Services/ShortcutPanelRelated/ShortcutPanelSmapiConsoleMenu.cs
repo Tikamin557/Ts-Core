@@ -394,7 +394,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 new Vector2(
                     closeBounds.Center.X - closeSize.X * closeScale / 2f,
                     closeBounds.Center.Y - closeSize.Y * closeScale / 2f),
-                Game1.textColor,
+                ShortcutPanelService.GetSymbolColor(),
                 0f,
                 Vector2.Zero,
                 closeScale,
@@ -501,7 +501,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                         centerY - arrowHeight / 2 + y,
                         lineWidth,
                         1),
-                    Game1.textColor);
+                    ShortcutPanelService.GetSymbolColor());
             }
         }
 
@@ -538,7 +538,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                             arrowTop + y,
                             lineWidth,
                             1),
-                        Game1.textColor);
+                        ShortcutPanelService.GetSymbolColor());
                 }
             }
         }
@@ -568,7 +568,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 new Vector2(
                     bounds.Center.X - size.X * scale / 2f,
                     bounds.Center.Y - size.Y * scale / 2f),
-                Game1.textColor,
+                ((text == "+" || text == "-") ? ShortcutPanelService.GetSymbolColor() : Game1.textColor),
                 0f,
                 Vector2.Zero,
                 scale,

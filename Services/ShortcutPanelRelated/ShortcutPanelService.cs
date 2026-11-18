@@ -25,11 +25,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         private const string ShortcutPanelConfigFile =
             "ShortcutPanelConfig.json";
 
-        private static Texture2D missingShortcutIcon =
-            null!;
 
-        private static Texture2D gmcmIcon =
-            null!;
 
         //----------------------------------------
         // 表示状態
@@ -180,14 +176,6 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             // アセット
             //----------------------------------------
 
-            missingShortcutIcon =
-                helper.ModContent.Load<Texture2D>(
-                    "assets/ShortcutPanel/MissingShortcut.png");
-
-            gmcmIcon =
-                helper.ModContent.Load<Texture2D>(
-                    "assets/ShortcutPanel/GmcmSelectMod.png");
-
             //----------------------------------------
             // スロット初期化
             //----------------------------------------
@@ -240,8 +228,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 new ShortcutPanelEntry(
                     "TsCore/ResetTerrainFeatures",
                     helper.Translation.Get("shortcutPanel.ResetTerrainFeatures"),
-                    () => helper.ModContent.Load<Texture2D>(
-                        "assets/ShortcutPanel/TerrainFeatures.png"),
+                    () => ShortcutPanelIconAssetService.GetTexture("TerrainFeatures"),
                     null,
                     () => TerrainFeaturesMenuService.TryOpen()));
 
@@ -250,8 +237,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     "TsCore/TimeSkip",
                     helper.Translation.Get(
                         "shortcutPanel.TimeSkip"),
-                    () => helper.ModContent.Load<Texture2D>(
-                        "assets/ShortcutPanel/TimeSkip.png"),
+                    () => ShortcutPanelIconAssetService.GetTexture("TimeSkip"),
                     null,
                     () =>
                     {
@@ -263,8 +249,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     "TsCore/TimeSkipDuration",
                     helper.Translation.Get(
                         "shortcutPanel.TimeSkipDuration"),
-                    () => helper.ModContent.Load<Texture2D>(
-                        "assets/ShortcutPanel/TimeSkipDuration.png"),
+                    () => ShortcutPanelIconAssetService.GetTexture("TimeSkipDuration"),
                     null,
                     () =>
                     {
@@ -276,8 +261,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     "TsCore/OpenGmcmMenu",
                     helper.Translation.Get(
                         "shortcutPanel.OpenGmcmMenu"),
-                    () => helper.ModContent.Load<Texture2D>(
-                        "assets/ShortcutPanel/GmcmTopMenu.png"),
+                    () => ShortcutPanelIconAssetService.GetTexture("GmcmTopMenu"),
                     null,
                     () =>
                     {
@@ -313,8 +297,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     "TsCore/OpenSmapiConsole",
                     helper.Translation.Get(
                         "shortcutPanel.OpenSmapiConsole"),
-                    () => helper.ModContent.Load<Texture2D>(
-                        "assets/ShortcutPanel/SmapiConsole.png"),
+                    () => ShortcutPanelIconAssetService.GetTexture("SmapiConsole"),
                     iconSourceRect: null,
                     action: () =>
                     {
@@ -338,8 +321,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                 new ShortcutPanelEntry(
                     "TsCore/GameMenuSelector",
                     helper.Translation.Get("shortcutPanel.GameMenu"),
-                    () => helper.ModContent.Load<Texture2D>(
-                        "assets/ShortcutPanel/GameMenu.png"),
+                    () => ShortcutPanelIconAssetService.GetTexture("GameMenu"),
                     iconSourceRect: null,
                     () => { }));
 
@@ -355,8 +337,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     "TsCore/CjbWarpSelector",
                     helper.Translation.Get(
                         "shortcutPanel.CjbWarp"),
-                    () => helper.ModContent.Load<Texture2D>(
-                        "assets/ShortcutPanel/CjbCheatsMenu.png"),
+                    () => ShortcutPanelIconAssetService.GetTexture("CjbCheatsMenu"),
                     iconSourceRect: null,
                     action: () => { },
                     isAvailable: () =>
@@ -383,8 +364,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     "TsCore/PsrRoomPresets",
                     helper.Translation.Get(
                         "shortcutPanel.PsrRoomPresets"),
-                    () => helper.ModContent.Load<Texture2D>(
-                        "assets/ShortcutPanel/PsrRoomPresets.png"),
+                    () => ShortcutPanelIconAssetService.GetTexture("PsrRoomPresets"),
                     null,
                     () =>
                     {
@@ -416,8 +396,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     "TsCore/ScreenshotFullMap",
                     helper.Translation.Get(
                         "shortcutPanel.ScreenshotFullMap"),
-                    () => helper.ModContent.Load<Texture2D>(
-                        "assets/ShortcutPanel/ScreenshotFullMap.png"),
+                    () => ShortcutPanelIconAssetService.GetTexture("ScreenshotFullMap"),
                     null,
                     () =>
                     {
@@ -429,8 +408,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     "TsCore/ScreenshotCurrentScreen",
                     helper.Translation.Get(
                         "shortcutPanel.ScreenshotCurrentScreen"),
-                    () => helper.ModContent.Load<Texture2D>(
-                        "assets/ShortcutPanel/ScreenshotCurrentScreen.png"),
+                    () => ShortcutPanelIconAssetService.GetTexture("ScreenshotCurrentScreen"),
                     null,
                     () =>
                     {
@@ -2573,6 +2551,16 @@ namespace Ts_Core.Services.ShortcutPanelRelated
         //----------------------------------------
 
         /// <summary>
+        /// パネルの記号に使用する描画色を取得します。
+        /// </summary>
+        internal static Color GetSymbolColor()
+        {
+            return ModEntry.Config.ShortcutPanelForegroundColor == "White"
+                ? Color.White
+                : Game1.textColor;
+        }
+
+        /// <summary>
         /// 自由配置時の移動ハンドルを描画します。
         /// </summary>
         private static void DrawMoveHandle(SpriteBatch spriteBatch)
@@ -2606,20 +2594,20 @@ namespace Ts_Core.Services.ShortcutPanelRelated
 
             spriteBatch.Draw(Game1.staminaRect,
                 new Rectangle(centerX - armLength, centerY - lineThickness / 2, armLength * 2 + 1, lineThickness),
-                Game1.textColor);
+                GetSymbolColor());
             spriteBatch.Draw(Game1.staminaRect,
                 new Rectangle(centerX - lineThickness / 2, centerY - armLength, lineThickness, armLength * 2 + 1),
-                Game1.textColor);
+                GetSymbolColor());
 
             int head = Math.Max(1, Math.Min((int)MathF.Round(3f * handleScale),
                 Math.Max(1, moveHandleBounds.Height / 2 - armLength - 1)));
             for (int i = 0; i < head; i++)
             {
                 int span = i * 2 + 1;
-                spriteBatch.Draw(Game1.staminaRect, new Rectangle(centerX - span / 2, centerY - armLength - i, span, 1), Game1.textColor);
-                spriteBatch.Draw(Game1.staminaRect, new Rectangle(centerX - span / 2, centerY + armLength + i, span, 1), Game1.textColor);
-                spriteBatch.Draw(Game1.staminaRect, new Rectangle(centerX - armLength - i, centerY - span / 2, 1, span), Game1.textColor);
-                spriteBatch.Draw(Game1.staminaRect, new Rectangle(centerX + armLength + i, centerY - span / 2, 1, span), Game1.textColor);
+                spriteBatch.Draw(Game1.staminaRect, new Rectangle(centerX - span / 2, centerY - armLength - i, span, 1), GetSymbolColor());
+                spriteBatch.Draw(Game1.staminaRect, new Rectangle(centerX - span / 2, centerY + armLength + i, span, 1), GetSymbolColor());
+                spriteBatch.Draw(Game1.staminaRect, new Rectangle(centerX - armLength - i, centerY - span / 2, 1, span), GetSymbolColor());
+                spriteBatch.Draw(Game1.staminaRect, new Rectangle(centerX + armLength + i, centerY - span / 2, 1, span), GetSymbolColor());
             }
         }
 
@@ -2786,7 +2774,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                             iconSize);
 
                     spriteBatch.Draw(
-                        gmcmIcon,
+                        ShortcutPanelIconAssetService.GetTexture("GmcmSelectMod"),
                         iconBounds,
                         Color.White);
 
@@ -2955,7 +2943,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                     iconSize);
 
             spriteBatch.Draw(
-                missingShortcutIcon,
+                ShortcutPanelIconAssetService.GetTexture("MissingShortcut"),
                 destinationRect,
                 Color.White);
         }
@@ -3317,7 +3305,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
                         drawY,
                         lineWidth,
                         lineHeight),
-                    Game1.textColor);
+                    GetSymbolColor());
             }
         }
     }

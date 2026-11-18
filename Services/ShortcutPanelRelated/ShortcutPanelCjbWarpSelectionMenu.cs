@@ -320,7 +320,7 @@ namespace Ts_Core.Services.ShortcutPanelRelated
             const int arrowHeight = 12;
             int centerX = bounds.Center.X;
             int centerY = bounds.Center.Y;
-            Color arrowColor = enabled ? Game1.textColor : Game1.textColor * 0.45f;
+            Color arrowColor = enabled ? ShortcutPanelService.GetSymbolColor() : ShortcutPanelService.GetSymbolColor() * 0.45f;
 
             for (int y = 0; y < arrowHeight; y++)
             {

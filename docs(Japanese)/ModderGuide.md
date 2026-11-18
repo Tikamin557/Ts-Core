@@ -262,7 +262,7 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 ← [READMEに戻る](../../README.md)
 
 
-ショートカットパネルの自由配置・CJB Cheats Menu連携については、[ショートカットパネルガイド](ModderGuide_ShortcutPanel.md)を参照してください。
+ショートカットパネルの自由配置・CJB Cheats Menu連携・アイコンのカスタマイズ・記号の描画色については、[ショートカットパネルガイド](ModderGuide_ShortcutPanel.md)を参照してください。
 
 
 ## Decoratable Cellar
@@ -270,6 +270,13 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 [Decoratable Cellar（地下室の壁紙・床材変更）](ModderGuide_DecoratableCellar.md)を参照してください。
 
 熟成ダルの初期配置については[Map PropertiesのInitial Casks](ModderGuide_MapProperties.md#initial-casksv203熟成ダルの初期配置)を参照してください。
+
+## v2.0.6 の追加・変更点
+
+- ショートカットパネル：22種類の標準アイコンをゲームアセットとして公開し、Content Patcherの `Load` / `EditImage` に対応。
+- GMCMに「記号の描画色」を追加。暗いUIテーマ向けに記号を白に変更でき、通常テキストの色は維持されます。
+
+詳細は [Shortcut Panel](ModderGuide_ShortcutPanel.md) を参照してください。
 
 ## v2.0.5 の追加・変更点
 
