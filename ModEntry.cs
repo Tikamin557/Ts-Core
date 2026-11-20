@@ -18,6 +18,7 @@ using Ts_Core.Services.DebugSupport;
 using Ts_Core.Services.DialogueRelated;
 using Ts_Core.Services.EventRelated;
 using Ts_Core.Services.FarmhouseFixes;
+using Ts_Core.Services.FurnitureRelated;
 using Ts_Core.Services.GameStateQueryRelated;
 using Ts_Core.Services.GenericModConfigMenuRelated;
 using Ts_Core.Services.Location;
@@ -323,6 +324,7 @@ namespace Ts_Core
                 Monitor);
 
             // Custom Flooring（バニラのFlooringを拡張）
+            CustomFurnitureService.Initialize(helper, Monitor, harmony);
             CustomFlooringService.Initialize(helper, Monitor, harmony);
             CustomFlooringObjectTextureService.Initialize(helper, Monitor);
 
@@ -617,6 +619,9 @@ namespace Ts_Core
             //----------------------------------------
             // GameLoop
             //----------------------------------------
+
+            // クイックゴミ箱
+            QuickTrashService.Initialize(helper, () => Config);
 
             // ゲーム起動完了処理
             helper.Events.GameLoop.GameLaunched
@@ -940,6 +945,12 @@ namespace Ts_Core
             BuildingMigrationService
                 .ApplyMigrations(
                     Monitor);
+
+            //----------------------------------------
+            // Furniture Migration
+            //----------------------------------------
+
+            FurnitureMigrationService.ApplyMigrations(Monitor);
 
             //----------------------------------------
             // Building Light

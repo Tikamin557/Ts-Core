@@ -93,6 +93,17 @@ namespace Ts_Core.Services.Migration
         }
 
         /// <summary>
+        /// Furniture用のMigration定義を取得します。
+        /// </summary>
+        internal static IReadOnlyList<MigrationModel> GetFurnitureMigrations(IMonitor? monitor = null)
+        {
+            return GetValidMigrationEntries(monitor)
+                .Where(entry => string.Equals(entry.Value.Type, "Furniture", StringComparison.OrdinalIgnoreCase))
+                .Select(entry => entry.Value)
+                .ToList();
+        }
+
+        /// <summary>
         /// 現在登録されている
         /// Migration情報を取得します。
         /// </summary>
@@ -157,138 +168,81 @@ namespace Ts_Core.Services.Migration
             // Migration確認
             //----------------------------------------
 
-            foreach (
-                KeyValuePair<
-                    string,
-                    MigrationModel> entry
-                in data)
+            foreach (KeyValuePair<string, MigrationModel> entry in data)
             {
-                string id =
-                    entry.Key;
+                string id = entry.Key;
+                MigrationModel migration = entry.Value;
 
-                MigrationModel migration =
-                    entry.Value;
-
-                //----------------------------------------
-                // Migration ID
-                //----------------------------------------
-
-                if (string.IsNullOrWhiteSpace(
-                        id))
+                if (string.IsNullOrWhiteSpace(id))
                 {
-                    monitor?.Log(
-                        "Migration entry has no ID.",
-                        LogLevel.Warn);
+                    monitor?.Log("Migration entry has no ID.", LogLevel.Warn);
+                    continue;
+                }
 
+                if (string.IsNullOrWhiteSpace(migration.Type))
+                {
+                    monitor?.Log($"Migration '{id}' has no Type.", LogLevel.Warn);
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(migration.OldId))
+                {
+                    monitor?.Log($"Migration '{id}' has no OldId.", LogLevel.Warn);
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(migration.NewId))
+                {
+                    monitor?.Log($"Migration '{id}' has no NewId.", LogLevel.Warn);
+                    continue;
+                }
+
+                if (!string.Equals(migration.Type, "Building", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(migration.Type, "Furniture", StringComparison.OrdinalIgnoreCase))
+                {
+                    monitor?.Log($"Migration '{id}' has unsupported Type '{migration.Type}'.", LogLevel.Warn);
                     continue;
                 }
 
                 //----------------------------------------
-                // Type
+                // OldId（カンマ区切りの複数指定に対応）
                 //----------------------------------------
 
-                if (string.IsNullOrWhiteSpace(
-                        migration.Type))
+                foreach (string oldId in migration.OldId.Split(','))
                 {
-                    monitor?.Log(
-                        $"Migration '{id}' has no Type.",
-                        LogLevel.Warn);
+                    string trimmedOldId = oldId.Trim();
+                    if (trimmedOldId.Length == 0)
+                        continue;
 
-                    continue;
+                    if (string.Equals(trimmedOldId, migration.NewId, StringComparison.Ordinal))
+                    {
+                        monitor?.Log($"Migration '{id}' has the same OldId and NewId: '{trimmedOldId}'.", LogLevel.Warn);
+                        continue;
+                    }
+
+                    string duplicateKey = $"{migration.Type.ToLowerInvariant()}\0{trimmedOldId}";
+                    if (registeredKeys.TryGetValue(duplicateKey, out string? existingId))
+                    {
+                        monitor?.Log(
+                            $"Duplicate Migration ignored.\n" +
+                            $"Type: {migration.Type}\n" +
+                            $"OldId: {trimmedOldId}\n" +
+                            $"Existing Migration ID: {existingId}\n" +
+                            $"Ignored Migration ID: {id}",
+                            LogLevel.Warn);
+                        continue;
+                    }
+
+                    registeredKeys[duplicateKey] = id;
+                    result.Add(new KeyValuePair<string, MigrationModel>(
+                        id,
+                        new MigrationModel
+                        {
+                            Type = migration.Type,
+                            OldId = trimmedOldId,
+                            NewId = migration.NewId
+                        }));
                 }
-
-                //----------------------------------------
-                // OldId
-                //----------------------------------------
-
-                if (string.IsNullOrWhiteSpace(
-                        migration.OldId))
-                {
-                    monitor?.Log(
-                        $"Migration '{id}' has no OldId.",
-                        LogLevel.Warn);
-
-                    continue;
-                }
-
-                //----------------------------------------
-                // NewId
-                //----------------------------------------
-
-                if (string.IsNullOrWhiteSpace(
-                        migration.NewId))
-                {
-                    monitor?.Log(
-                        $"Migration '{id}' has no NewId.",
-                        LogLevel.Warn);
-
-                    continue;
-                }
-
-                //----------------------------------------
-                // 同一ID
-                //----------------------------------------
-
-                if (string.Equals(
-                        migration.OldId,
-                        migration.NewId,
-                        StringComparison.Ordinal))
-                {
-                    monitor?.Log(
-                        $"Migration '{id}' has the same OldId and NewId: '{migration.OldId}'.",
-                        LogLevel.Warn);
-
-                    continue;
-                }
-
-                //----------------------------------------
-                // 現在対応しているType
-                //----------------------------------------
-
-                if (!string.Equals(
-                        migration.Type,
-                        "Building",
-                        StringComparison.OrdinalIgnoreCase))
-                {
-                    monitor?.Log(
-                        $"Migration '{id}' has unsupported Type '{migration.Type}'.",
-                        LogLevel.Warn);
-
-                    continue;
-                }
-
-                //----------------------------------------
-                // Type + OldId 重複確認
-                //----------------------------------------
-
-                string duplicateKey =
-                    $"{migration.Type.ToLowerInvariant()}\0{migration.OldId}";
-
-                if (registeredKeys.TryGetValue(
-                        duplicateKey,
-                        out string? existingId))
-                {
-                    monitor?.Log(
-                        $"Duplicate Migration ignored.\n" +
-                        $"Type: {migration.Type}\n" +
-                        $"OldId: {migration.OldId}\n" +
-                        $"Existing Migration ID: {existingId}\n" +
-                        $"Ignored Migration ID: {id}",
-                        LogLevel.Warn);
-
-                    continue;
-                }
-
-                //----------------------------------------
-                // 有効なMigration
-                //----------------------------------------
-
-                registeredKeys[
-                    duplicateKey] =
-                        id;
-
-                result.Add(
-                    entry);
             }
 
             return result;

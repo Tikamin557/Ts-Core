@@ -816,6 +816,18 @@ namespace Ts_Core.Services.GenericModConfigMenuRelated
                     "EnableSpouseRoomTileFix");
 
             //----------------------------------------
+            // クイックゴミ箱
+            //----------------------------------------
+
+            api.AddKeybindList(
+                manifest,
+                getValue: () => getConfig().QuickTrashKey,
+                setValue: value => getConfig().QuickTrashKey = value,
+                name: () => helper.Translation.Get("config.QuickTrashKey.name"),
+                tooltip: () => helper.Translation.Get("config.QuickTrashKey.description"),
+                fieldId: "QuickTrashKey");
+
+            //----------------------------------------
             // PSR配偶者部屋設定
             //----------------------------------------
 

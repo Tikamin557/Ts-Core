@@ -43,8 +43,7 @@ Migration定義は、T's Coreの次のカスタムData Assetを通して登録�
 TsCore/Migrations
 ```
 
-現在、Migration Systemはすでに建築済みのBuildingに対する **Building Type
-ID** の移行に対応しています。
+Migration Systemは、Buildingの**Building Type ID**に加え、v2.0.7から**家具のItem ID**の移行にも対応しています。
 
 ------------------------------------------------------------------------
 
@@ -653,7 +652,7 @@ Migration定義はContent Patcherから次のData Assetへ登録します:
 TsCore/Migrations
 ```
 
-現在対応しているのはBuilding TypeのMigrationだけです。
+Building TypeのMigrationに加え、v2.0.7からFurniture Item IDのMigrationにも対応しています。
 
 Building Migrationは:
 
@@ -690,3 +689,33 @@ Logへ警告が出力される場合があります。
 ← [READMEに戻る](../../README.md)
 
 ← [Modder Guideに戻る](ModderGuide.md)
+
+---
+
+<a id="furniture-migration-v207"></a>
+
+## Furniture Migration（v2.0.7）
+
+T's Core 2.0.7では、`TsCore/Migrations`に`Type: "Furniture"`を指定できるようになりました。既存のセーブにある家具のItem IDを、`Data/Furniture`に登録済みの別の家具IDへ移行します。
+
+```json
+{
+  "Action": "EditData",
+  "Target": "TsCore/Migrations",
+  "Entries": {
+    "YourModId_OldTVToNewTV": {
+      "Type": "Furniture",
+      "OldId": "YourModId_OldTV",
+      "NewId": "YourModId_NewTV"
+    }
+  }
+}
+```
+
+`OldId`には保存済み家具の**Item ID**、`NewId`には`Data/Furniture`に存在する移行先IDを指定します。1件の定義は旧IDと新IDの組み合わせ1つです。複数の旧IDには個別の定義を用意してください。移行はセーブ読み込み時に実行され、マルチプレイでは**ホスト側**で処理します。
+
+対象は、マップに設置された家具、プレイヤーの所持品、通常のチェスト、農家と島の農家の冷蔵庫、ジュニモの箱の共有収納です。
+
+データ損失を避けるため、移行先IDが存在しない場合、家具クラスが互換でない場合、移行先が元の回転状態に対応しない場合、保持中の内容を安全に引き継げない場合は**移行をスキップ**します。`StorageFurniture`は非対応です。例外として、同一の家具クラスが保持する中身・modDataのないダミーチェスト`(O)-1`は許可されますが、ダミーチェスト自体は新しい家具に引き継ぎません。互換性のある回転状態と家具の`modData`は維持しますが、家具の上に置かれた任意のアイテムの移行は保証しません。公開前にセーブをバックアップして移行テストを行ってください。
+
+関連：[Custom Furniture](ModderGuide_CustomFurniture.md)

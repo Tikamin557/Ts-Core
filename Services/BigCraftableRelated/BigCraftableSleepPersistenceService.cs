@@ -60,8 +60,11 @@ namespace Ts_Core.Services.BigCraftableRelated
         /// </summary>
         public static void Load()
         {
-            if (helper == null)
+            // リモート接続中のFarmhandはホストのセーブデータを読み込めません。
+            // ゲスト側には前のセーブの寝床情報を残しません。
+            if (helper == null || !Context.IsMainPlayer)
             {
+                sleepDataByPlayer.Clear();
                 return;
             }
 
@@ -82,7 +85,8 @@ namespace Ts_Core.Services.BigCraftableRelated
         /// </summary>
         public static void Save()
         {
-            if (helper == null)
+            // リモート接続中のFarmhandはホストのセーブデータを書き込めません。
+            if (helper == null || !Context.IsMainPlayer)
             {
                 return;
             }

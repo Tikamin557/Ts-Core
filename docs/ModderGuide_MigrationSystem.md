@@ -39,7 +39,7 @@ Migration definitions are registered through the custom T's Core Data Asset:
 TsCore/Migrations
 ```
 
-Currently, the Migration System supports migrating **Building Type IDs** for buildings that have already been constructed.
+The Migration System supports **Building Type IDs** and, starting with v2.0.7, **Furniture Item IDs**.
 
 ---
 
@@ -50,6 +50,7 @@ Currently, the Migration System supports migrating **Building Type IDs** for bui
 - [Migration Properties](#migration-properties)
 - [Migration IDs](#migration-ids)
 - [Building Migration](#building-migration)
+- [Furniture Migration (v2.0.7)](#furniture-migration-v207)
 - [When Migrations Are Applied](#when-migrations-are-applied)
 - [Multiple Migrations](#multiple-migrations)
 - [Duplicate Migrations](#duplicate-migrations)
@@ -161,13 +162,13 @@ YourModId_NewBuilding
 
 when the corresponding Migration type is processed.
 
-Currently, the only supported Migration type is:
+The supported Migration types include:
 
 ```text
 Building
 ```
 
-Additional Migration types may be added in future versions of T's Core.
+Furniture migrations (`Type: "Furniture"`) are also supported in v2.0.7 and later.
 
 ---
 
@@ -177,7 +178,7 @@ Each Migration definition supports the following properties:
 
 | Property | Required | Description |
 |----------|----------|-------------|
-| `Type` | ✅ | Type of Migration. Currently only `Building` is supported. |
+| `Type` | ✅ | Type of Migration: `Building` or `Furniture` (v2.0.7+). |
 | `OldId` | ✅ | Old ID stored in existing save data. |
 | `NewId` | ✅ | New ID that should replace the old ID. |
 
@@ -585,6 +586,36 @@ Once an existing building has already been migrated, these definitions no longer
 
 ---
 
+<a id="furniture-migration-v207"></a>
+
+## Furniture Migration (v2.0.7)
+
+T's Core 2.0.7 adds `Type: "Furniture"` to `TsCore/Migrations`. This replaces matching furniture Item IDs in existing saves with furniture already registered in `Data/Furniture`.
+
+```json
+{
+  "Action": "EditData",
+  "Target": "TsCore/Migrations",
+  "Entries": {
+    "YourModId_OldTVToNewTV": {
+      "Type": "Furniture",
+      "OldId": "YourModId_OldTV",
+      "NewId": "YourModId_NewTV"
+    }
+  }
+}
+```
+
+`OldId` must match the saved furniture's **Item ID**, and `NewId` must exist in `Data/Furniture`. Each entry maps one old ID to one new ID; define separate entries for additional old IDs. The migration runs when a save is loaded, on the **host** in multiplayer.
+
+Supported locations include placed furniture in game locations, player inventories, regular chests, farmhouse and island farmhouse refrigerators, and Junimo Chest shared storage.
+
+To avoid data loss, a migration is **skipped** if the target ID is missing, the furniture class is incompatible, the target cannot represent the original rotation, or stored contents cannot be safely preserved. `StorageFurniture` is not supported. A special case permits an empty, unmodified dummy chest (`(O)-1`) held by the same furniture class; the dummy chest is not carried to the replacement. The system preserves compatible rotation and furniture `modData`, but does **not** guarantee transfer of arbitrary contents held on furniture. Back up saves and test the migration before release.
+
+See also [Custom Furniture](ModderGuide_CustomFurniture.md).
+
+---
+
 ## Notes
 
 The Migration System is designed for updating IDs already stored in existing save data when a mod changes its internal IDs.
@@ -595,7 +626,7 @@ Migration definitions are registered through Content Patcher using:
 TsCore/Migrations
 ```
 
-Currently, only Building Type migration is supported.
+Building Type and Furniture Item ID migrations are supported (Furniture since v2.0.7).
 
 Building Migrations:
 
@@ -616,7 +647,7 @@ Avoid defining more than one Migration for the same `Type` and `OldId`.
 
 Invalid Migration definitions are ignored and may produce a warning in the SMAPI log.
 
-Additional Migration types may be added in future versions of T's Core.
+Furniture migrations (`Type: "Furniture"`) are also supported in v2.0.7 and later.
 
 ---
 

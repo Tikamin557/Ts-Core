@@ -22,6 +22,16 @@ namespace Ts_Core.Models
         } = false;
 
         //----------------------------------------
+        // クイックゴミ箱
+        //----------------------------------------
+
+        /// <summary>
+        /// メニューで持っているアイテムをゴミ箱へ送るキーです。
+        /// </summary>
+        public KeybindList QuickTrashKey { get; set; } =
+            new KeybindList(StardewModdingAPI.SButton.Tab);
+
+        //----------------------------------------
         // ショートカットパネル
         //----------------------------------------
 

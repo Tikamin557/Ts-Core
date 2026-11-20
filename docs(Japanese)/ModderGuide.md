@@ -247,6 +247,7 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 -   [Custom Recipe Pages](ModderGuide_CustomRecipePages.md)
 -   [Ingredient-Free Recipes](ModderGuide_IngredientFreeRecipes.md)
 -   [Dialogue System](ModderGuide_DialogueSystem.md)
+-   [Custom Furniture](ModderGuide_CustomFurniture.md)
 -   [Migration System](ModderGuide_MigrationSystem.md)
 -   [Notification System](ModderGuide_NotificationSystem.md)
 -   [Content Patcher
@@ -295,3 +296,10 @@ T's Coreを利用してModを開発する場合は、以下を推奨します。
 - ショートカットパネル：新規インストール時はデフォルトで無効
 
 詳細は [Map Properties](ModderGuide_MapProperties.md) と [Shortcut Panel](ModderGuide_ShortcutPanel.md) を参照してください。
+
+## v2.0.7で追加・変更された機能
+
+- [Custom Furniture](ModderGuide_CustomFurniture.md)：`TsCore/CustomFurniture`からTVの画面領域・表示方法、回転バリエーション、説明文、タイルごとの操作を設定できます。
+- [Migration System](ModderGuide_MigrationSystem.md#furniture-migration-v207)：既存セーブ内の家具Item IDの移行に対応しました。
+- Quick Trash：通常のインベントリ画面でカーソルに持っているアイテムをキー操作でゴミ箱に捨てられます。初期キーはTabで、GMCMから変更できます。チェスト等の画面では使用できません。
+- マルチプレイ時のBigCraftable睡眠状態の保存・読み込みでゲスト側に発生していたエラーを修正しました。

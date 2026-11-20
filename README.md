@@ -39,7 +39,9 @@ T's Core also includes optional convenience features for players, including a cu
 - BigCraftable Extension for adding custom interactions, collision sizes, placement conditions, textures, animations, effects, lights, and other optional behavior to BigCraftables
 - Additional Tile Actions and Game State Queries for custom gameplay behavior and conditions
 - Dialogue System for creating data-driven dialogues with conditions, responses, actions, and dialogue chaining
-- Migration System for updating IDs stored in existing save data
+- Migration System for updating Building Type IDs and Furniture Item IDs stored in existing save data
+- Custom Furniture (`TsCore/CustomFurniture`) with TV screen positioning, fit modes, rotation variants, descriptions, and per-tile interactions
+- Quick Trash (default: Tab) to discard cursor-held items from the normal inventory menu
 - Customizable Notification System and Notification Themes
 - `tsCoreChangeMapTile` event command for temporary tile changes (including animated tiles), with automatic restoration after the event
 - Content Patcher tokens and integration
@@ -93,7 +95,8 @@ The Modder Guide covers:
 - Custom Recipe Pages
 - Ingredient-Free Recipes
 - Dialogue System
-- Migration System and custom migration definitions
+- [Custom Furniture](docs/ModderGuide_CustomFurniture.md), including TV screen and rotation variants
+- [Migration System](docs/ModderGuide_MigrationSystem.md), including furniture ID migration
 - Notification System and custom Notification Themes
 - Content Patcher Integration and Tokens, including `ModConfig`
 - Position Picker for visual coordinate selection from Content Pack GMCM settings
@@ -109,6 +112,8 @@ T's Core provides custom Data Assets which allow Content Patcher packs to regist
 The BigCraftable Extension system can add configurable interactions, collision sizes, placement conditions, custom textures and animations, effects, lights, wobble effects, interaction conditions, required items, and other optional behavior to BigCraftables.
 
 See the **[BigCraftable Extension Guide](docs/ModderGuide_BigCraftableExtension.md)** for details.
+
+New in v2.0.7: [Custom Furniture](docs/ModderGuide_CustomFurniture.md), furniture ID migration through [Migration System](docs/ModderGuide_MigrationSystem.md), and Quick Trash (Tab by default, configurable in GMCM; available only in the normal inventory menu).
 
 New in v2.0.0: Instant Touch Warp ([Warp Services](docs/ModderGuide_WarpServices.md)), the [tsCoreChangeMapTile event command](docs/ModderGuide_EventCommands.md), and the [ModConfig token](docs/ModderGuide_ContentPatcherIntegration.md).
 

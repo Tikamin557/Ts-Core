@@ -75,7 +75,8 @@ T's Core currently provides the following systems.
 | Custom Recipe Pages | Dedicated crafting/cooking recipe pages through `TsCore/CustomRecipePages`, with Better Crafting support. |
 | Ingredient-Free Recipes | Crafting/cooking recipes without ingredients, with configurable ingredient-area presentation. |
 | Dialogue System | Adds data-driven custom dialogues with conditions, responses, actions, dialogue chaining, and other optional behavior. |
-| Migration System | Provides migration support for IDs stored in existing save data. |
+| Custom Furniture | Extends `Data/Furniture` through `TsCore/CustomFurniture` with TV screen areas, rotation variants, descriptions, and tile interactions. |
+| Migration System | Migrates Building Type IDs and Furniture Item IDs stored in existing saves. |
 | Notification System | Provides customizable on-screen notifications and Notification Themes. |
 | Content Patcher Integration | Provides additional Content Patcher development and configuration features. |
 | Position Picker | Lets Content Packs add GMCM buttons for selecting X/Y coordinates directly on a map. |
@@ -200,6 +201,7 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Custom Recipe Pages](ModderGuide_CustomRecipePages.md)
 - [Ingredient-Free Recipes](ModderGuide_IngredientFreeRecipes.md)
 - [Dialogue System](ModderGuide_DialogueSystem.md)
+- [Custom Furniture](ModderGuide_CustomFurniture.md)
 - [Migration System](ModderGuide_MigrationSystem.md)
 - [Notification System](ModderGuide_NotificationSystem.md)
 - [Content Patcher Integration](ModderGuide_ContentPatcherIntegration.md)
@@ -212,6 +214,13 @@ For detailed setup, properties, examples, and usage instructions, see the indivi
 - [Other Features](ModderGuide_OtherFeatures.md)
 
 ← [Back to README](../README.md)
+
+## What changed in v2.0.7
+
+- Added [Custom Furniture](ModderGuide_CustomFurniture.md) (`TsCore/CustomFurniture`) with TV screen areas, fit modes, rotation variants, descriptions, and per-tile interactions.
+- Extended [Migration System](ModderGuide_MigrationSystem.md#furniture-migration-v207) with Furniture Item ID migrations.
+- Added Quick Trash for cursor-held items in the normal inventory menu (default: Tab; configurable in GMCM).
+- Fixed multiplayer guest save/load errors related to BigCraftable sleep persistence.
 
 ## What changed in v2.0.6
 
