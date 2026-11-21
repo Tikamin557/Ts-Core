@@ -184,7 +184,7 @@ namespace Ts_Core.Services.FurnitureRelated
         private static void AfterGetDescription(Furniture __instance, ref string __result)
         {
             if (TryGetDefinition(__instance.ItemId, out var model) && model.Description != null)
-                __result = Game1.parseText(model.Description, Game1.smallFont, 320);
+                __result = Game1.parseText(model.Description, Game1.smallFont, 380);
         }
 
         //----------------------------------------
